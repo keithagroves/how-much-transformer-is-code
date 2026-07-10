@@ -90,33 +90,42 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 <header>
   <p class="eyebrow">Interpretability · field report</p>
   <h1>How Much of a Transformer Is Code?</h1>
-  <p class="byline">Measuring the fraction of a language model that can be replaced by
-  human-readable rules — and where that fraction stops.</p>
+  <p class="byline">Which computations in a small language model can be replaced by explicit
+  surrogates, at what cost, under a stated rule vocabulary — and where that stops. Short answer: a
+  third of attention heads become positional templates and a fifth of MLP layers become context-free
+  tables, but at a substantial cost (perplexity roughly doubles), and the fraction is a dial, not a
+  constant.</p>
 </header>
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  We ask how much of a small transformer's computation can be replaced by explicit,
-  human-readable code. On Qwen3-0.6B and Pythia-410M we fit readable surrogates — attention heads
-  as mixtures of a few named columns, MLPs as token-keyed lookup tables — install them, and heal
-  only the 65k normalization gains. About <strong>36% of attention heads and 21% of MLP layers</strong>
-  run as code for +0.64 nats on held-out text (95% CI [+0.57, +0.71]) — a real cost, not near-parity:
-  it lifts held-out perplexity from ≈29 to ≈55, and is ≈+0.88 once we net out the domain-adaptation
-  the norm-heal earns on its own (healing an intact no-code model gains −0.24 nats). Controls fix what this means:
-  content-free positional templates <em>tie</em> the fitted code, so the substitutable majority is
-  positional plumbing, not content; while zeroing or position-scrambling the code before the same
-  heal is far worse (+2.2 vs +0.7 nats), so the heal recovers real function rather than manufacturing
-  it. The fraction is a floor set by a simple selection heuristic, and it is not a constant: the
-  nameable share of induction rises with the input's verbatim structure (fiction &lt; WikiText &lt;
-  rigid schemas), on both models. The residue — which entity a head selects — resists every nameable
-  rule we tried once the attention sink is controlled for; a query edit shows a learned direction is
-  causally <em>used</em> but does not name the choice. So the honest result is not a percentage but a
-  dependency: <strong>how much of a transformer is code depends on the model, the rule vocabulary you
-  allow, the data distribution you measure on, and the procedure that selects what to replace</strong>
-  — and 36% is one operating point. Sharpest first answers of ours died under their own controls (a
-  cross-family "constant," a first-entity rule that was the attention sink in costume). Main limits:
-  small models, roughly six induction heads per model, and "code" that for the MLPs means a large
-  legible lookup table rather than a compact program.
+  We ask how much of a small transformer's computation can be replaced by explicit surrogates,
+  and at what cost. On Qwen3-0.6B and Pythia-410M we fit two families — attention heads as compact
+  <strong>positional templates</strong> (a mixture of a few named columns) and MLP layers as
+  <strong>context-free token tables</strong> (each token's mean output) — install them, and heal
+  only the 65k normalization gains. We keep the two apart: the templates are genuinely compact
+  programs; the token table is memoization (millions of learned numbers), so it measures
+  context-independence, not program structure. At a chosen tolerance, 36% of heads are
+  template-replaceable and 21% of MLP layers context-free-replaceable — counts of architectural
+  units, not of parameters or FLOPs, so we do not sum them into one number. The cost is
+  <strong>substantial</strong>: against a fair baseline (an identically-healed no-code model) it is
+  <strong>+0.88 nats</strong> on held-out text — perplexity roughly doubles (≈29 → ≈55); the
+  raw-intact figure is +0.64 [+0.57, +0.71]. This is lossy surgery at a stated tolerance, not a free
+  decomposition, and healing adapts a hybrid <em>around</em> the surrogate — substitutability, not
+  proof the original network implemented the same rule. Controls make the surgery meaningful:
+  positional templates <em>tie</em> the fitted code (the substitutable majority is plumbing, not
+  content), while zeroing or position-scrambling before the same heal is far worse (+2.2 vs +0.7
+  nats), so the surrogate carries real position-specific function. The fraction is not a constant —
+  it rises with the input's verbatim structure (fiction &lt; WikiText &lt; rigid schemas), and a
+  post-heal-ranked selection beats the cheapest-first floor. The residue — which entity a head
+  selects — resists every rule vocabulary we tried (recency, coreference, syntax, co-occurrence, a
+  learned rank-1 direction) once the attention sink is controlled; a query edit shows a low-dim
+  direction is causally <em>used</em> but does not name the choice, so we call it <em>un-named, not
+  smooth</em> — it could be higher-dimensional, nonlinear, or a circuit spanning components. The
+  honest result is a dependency, not a number: what admits a short executable description depends on
+  the surrogate family, the data distribution, the selection procedure, the adaptation budget, and
+  the tolerated loss. Our sharpest first answers died under their own controls (a cross-family
+  "constant"; a first-entity rule that was the attention sink in costume).
 </div>
 
 <h2>Setup</h2>
@@ -142,9 +151,15 @@ MLP surrogate is the opposite: a token-indexed table of mean output vectors, ~3,
 dimensions (~3.5M numbers) per substituted layer. That is legible as an <em>operation</em> — "look
 up this token's average effect and emit it" — but it is not compressible, and a skeptic is right
 that such a table can carry a great deal of learned data without being manually specifiable. So
-"code" here means executable-and-interpretable, and for attention also compact; for the MLPs it
-means an interpretable lookup, not a short description. The paper's claim is about which computation
-admits a nameable <em>form</em>, and we flag the MLP table as the loosest sense of the word.</p>
+"code" collapses three separable axes, and it is worth pulling them apart: <strong>explicitness</strong>
+(can the operation be named?), <strong>compressibility</strong> (how few parameters describe it?), and
+<strong>substitutability</strong> (how much loss when it replaces the learned component?). The
+attention templates score on all three — named, tiny, and swappable. The MLP tables score on
+explicitness and substitutability but <em>not</em> compressibility: they establish that the layer is
+context-free (memoization of a per-token map), not that it is program-like. Because these come apart,
+we avoid the single word "code" for the combined claim and instead report two named quantities —
+<strong>template-replaceable</strong> attention and <strong>context-free</strong> MLPs — measured, and
+caveated, separately.</p>
 
 <h2>How much substitutes, and the two controls</h2>
 
