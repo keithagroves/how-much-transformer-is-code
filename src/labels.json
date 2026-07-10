@@ -1,0 +1,290 @@
+[
+  {
+    "text": "The battery lasts all day and it barely weighs anything.",
+    "label": "positive"
+  },
+  {
+    "text": "The screen cracked after a week and support never replied.",
+    "label": "negative"
+  },
+  {
+    "text": "It's a phone. It makes calls and has a screen.",
+    "label": "neutral"
+  },
+  {
+    "text": "Setup took ten minutes and everything just worked.",
+    "label": "positive"
+  },
+  {
+    "text": "The app crashes every time I open the camera.",
+    "label": "negative"
+  },
+  {
+    "text": "The specs are average for the price bracket.",
+    "label": "neutral"
+  },
+  {
+    "text": "Best meal I've had all year, we're already booking again.",
+    "label": "positive"
+  },
+  {
+    "text": "Cold fries, rude waiter, and a forty minute wait.",
+    "label": "negative"
+  },
+  {
+    "text": "The cafe is on the corner of Fifth and Main.",
+    "label": "neutral"
+  },
+  {
+    "text": "Every dish came out perfectly seasoned and warm.",
+    "label": "positive"
+  },
+  {
+    "text": "I found a hair in my soup and lost my appetite.",
+    "label": "negative"
+  },
+  {
+    "text": "They serve lunch from eleven to three on weekdays.",
+    "label": "neutral"
+  },
+  {
+    "text": "What a gorgeous clear morning for a hike.",
+    "label": "positive"
+  },
+  {
+    "text": "The storm flooded the basement and ruined the carpet.",
+    "label": "negative"
+  },
+  {
+    "text": "It is partly cloudy with a light breeze today.",
+    "label": "neutral"
+  },
+  {
+    "text": "The sunset over the ridge left everyone speechless.",
+    "label": "neutral"
+  },
+  {
+    "text": "Three days of gray drizzle and I'm exhausted.",
+    "label": "negative"
+  },
+  {
+    "text": "Temperatures will hover around sixty this afternoon.",
+    "label": "neutral"
+  },
+  {
+    "text": "The hotel upgraded us for free and the view was unreal.",
+    "label": "positive"
+  },
+  {
+    "text": "Our flight was cancelled and we slept on the floor.",
+    "label": "negative"
+  },
+  {
+    "text": "The train departs from platform four every hour.",
+    "label": "neutral"
+  },
+  {
+    "text": "Locals were so welcoming we didn't want to leave.",
+    "label": "positive"
+  },
+  {
+    "text": "The tour was overpriced and the guide seemed bored.",
+    "label": "negative"
+  },
+  {
+    "text": "The museum is a short walk from the station.",
+    "label": "neutral"
+  },
+  {
+    "text": "My manager praised the launch in front of the whole team.",
+    "label": "positive"
+  },
+  {
+    "text": "Another pointless meeting that could have been an email.",
+    "label": "negative"
+  },
+  {
+    "text": "The report is due by end of business Friday.",
+    "label": "neutral"
+  },
+  {
+    "text": "I finally got the promotion I've been working toward.",
+    "label": "positive"
+  },
+  {
+    "text": "They cut our budget again with no explanation.",
+    "label": "negative"
+  },
+  {
+    "text": "The office has four floors and a small cafeteria.",
+    "label": "neutral"
+  },
+  {
+    "text": "Stunning visuals and a script that kept me guessing.",
+    "label": "positive"
+  },
+  {
+    "text": "Two hours of my life I will never get back.",
+    "label": "negative"
+  },
+  {
+    "text": "The film runs about a hundred and forty minutes.",
+    "label": "neutral"
+  },
+  {
+    "text": "I laughed and cried, easily my favorite of the year.",
+    "label": "positive"
+  },
+  {
+    "text": "The plot made no sense and the acting was wooden.",
+    "label": "negative"
+  },
+  {
+    "text": "It's a sequel released last spring.",
+    "label": "neutral"
+  },
+  {
+    "text": "She surprised me with tickets and I couldn't stop smiling.",
+    "label": "positive"
+  },
+  {
+    "text": "He forgot my birthday for the third year running.",
+    "label": "negative"
+  },
+  {
+    "text": "We are meeting for coffee sometime next week.",
+    "label": "neutral"
+  },
+  {
+    "text": "Their kindness during the move meant the world to me.",
+    "label": "positive"
+  },
+  {
+    "text": "The argument left both of us cold for days.",
+    "label": "negative"
+  },
+  {
+    "text": "My cousin lives two blocks from here.",
+    "label": "neutral"
+  },
+  {
+    "text": "We came back from ten points down to win it all.",
+    "label": "positive"
+  },
+  {
+    "text": "The team collapsed in the final minutes, heartbreaking.",
+    "label": "negative"
+  },
+  {
+    "text": "The match starts at seven on Saturday evening.",
+    "label": "neutral"
+  },
+  {
+    "text": "Crossing that finish line was the proudest moment of my life.",
+    "label": "positive"
+  },
+  {
+    "text": "Injured again, and the season just started, so frustrating.",
+    "label": "negative"
+  },
+  {
+    "text": "The gym has a pool and a running track.",
+    "label": "neutral"
+  },
+  {
+    "text": "Arrived early, beautifully packaged, exactly as described.",
+    "label": "positive"
+  },
+  {
+    "text": "Wrong size, torn box, and no return label included.",
+    "label": "negative"
+  },
+  {
+    "text": "The package weighs about two kilograms.",
+    "label": "neutral"
+  },
+  {
+    "text": "This jacket is warm, stylish, and worth every penny.",
+    "label": "positive"
+  },
+  {
+    "text": "The zipper broke the first time I wore it.",
+    "label": "negative"
+  },
+  {
+    "text": "It comes in three colors and two sizes.",
+    "label": "neutral"
+  },
+  {
+    "text": "The new couch makes the whole room feel cozy.",
+    "label": "positive"
+  },
+  {
+    "text": "The plumber overcharged us and left a mess.",
+    "label": "negative"
+  },
+  {
+    "text": "The thermostat is set to sixty-eight degrees.",
+    "label": "neutral"
+  },
+  {
+    "text": "Fresh paint and clean floors, the place feels brand new.",
+    "label": "positive"
+  },
+  {
+    "text": "The neighbors blast music until two every night.",
+    "label": "negative"
+  },
+  {
+    "text": "There are two bedrooms and one bathroom.",
+    "label": "neutral"
+  },
+  {
+    "text": "The professor made a hard topic genuinely exciting.",
+    "label": "positive"
+  },
+  {
+    "text": "The lecture dragged on and I learned nothing.",
+    "label": "negative"
+  },
+  {
+    "text": "The class meets on Tuesdays and Thursdays.",
+    "label": "neutral"
+  },
+  {
+    "text": "I aced the exam after weeks of studying, so relieved.",
+    "label": "positive"
+  },
+  {
+    "text": "The textbook is dense, dull, and full of errors.",
+    "label": "negative"
+  },
+  {
+    "text": "The syllabus lists twelve chapters in total.",
+    "label": "neutral"
+  },
+  {
+    "text": "The nurse was gentle and put me completely at ease.",
+    "label": "positive"
+  },
+  {
+    "text": "Two hours in the waiting room and still no answers.",
+    "label": "negative"
+  },
+  {
+    "text": "The clinic opens at eight and closes at five.",
+    "label": "neutral"
+  },
+  {
+    "text": "The treatment worked and I feel like myself again.",
+    "label": "positive"
+  },
+  {
+    "text": "They lost my results and made me redo every test.",
+    "label": "negative"
+  },
+  {
+    "text": "The pharmacy is next to the main entrance.",
+    "label": "neutral"
+  }
+]

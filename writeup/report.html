@@ -1,0 +1,403 @@
+<style>
+  :root{
+    --bg:#eef1f2; --panel:#f8fafa; --ink:#152029; --muted:#5c6b76; --faint:#8a97a1;
+    --rule:#d5dcdf; --rule-strong:#c0cace;
+    --neg:#3f7cc0; --pos:#d8892c; --neu:#94a0aa; --accent:#0f9e8d; --accent-ink:#0b7d70;
+    --band:rgba(148,160,170,.16); --band-edge:#b6c0c6;
+    --shadow:0 1px 2px rgba(20,32,41,.05),0 8px 30px rgba(20,32,41,.06);
+    --serif:"Iowan Old Style","Palatino Linotype","Book Antiqua",Charter,Georgia,serif;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    --mono:ui-monospace,"SF Mono","Cascadia Code",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0d1418; --panel:#141d23; --ink:#dde6eb; --muted:#93a3ad; --faint:#63727c;
+      --rule:#243139; --rule-strong:#32424c;
+      --neg:#5b9be0; --pos:#e6a24a; --neu:#7d8b95; --accent:#2bb8a6; --accent-ink:#42d3c0;
+      --band:rgba(125,139,149,.16); --band-edge:#3a4a54;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 40px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f2; --panel:#f8fafa; --ink:#152029; --muted:#5c6b76; --faint:#8a97a1;
+    --rule:#d5dcdf; --rule-strong:#c0cace; --neg:#3f7cc0; --pos:#d8892c; --neu:#94a0aa;
+    --accent:#0f9e8d; --accent-ink:#0b7d70; --band:rgba(148,160,170,.16); --band-edge:#b6c0c6;
+    --shadow:0 1px 2px rgba(20,32,41,.05),0 8px 30px rgba(20,32,41,.06);
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1418; --panel:#141d23; --ink:#dde6eb; --muted:#93a3ad; --faint:#63727c;
+    --rule:#243139; --rule-strong:#32424c; --neg:#5b9be0; --pos:#e6a24a; --neu:#7d8b95;
+    --accent:#2bb8a6; --accent-ink:#42d3c0; --band:rgba(125,139,149,.16); --band-edge:#3a4a54;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 40px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;
+    -webkit-font-smoothing:antialiased;margin:0}
+  .wrap{max-width:840px;margin:0 auto;padding:clamp(28px,5vw,72px) clamp(20px,4vw,32px) 96px}
+  .col{max-width:660px}
+  a{color:var(--accent-ink);text-decoration-thickness:1px;text-underline-offset:2px}
+
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--accent-ink);display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+  .eyebrow .dot{color:var(--faint)}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,5.4vw,46px);line-height:1.08;
+    letter-spacing:-.01em;text-wrap:balance;margin:.5em 0 .3em}
+  .dek{font-family:var(--serif);font-size:clamp(18px,2.4vw,21px);line-height:1.45;color:var(--muted);
+    max-width:620px;text-wrap:pretty;margin:0}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(21px,3vw,26px);line-height:1.2;
+    letter-spacing:-.01em;margin:0 0 .1em;text-wrap:balance}
+  h2 .num{font-family:var(--mono);font-size:.62em;color:var(--accent-ink);
+    letter-spacing:.05em;vertical-align:.15em;margin-right:.7em}
+  .lede{color:var(--muted);margin:.2em 0 0}
+  p{margin:.9em 0}
+  section{margin-top:clamp(46px,7vw,76px)}
+  hr.div{border:0;border-top:1px solid var(--rule);margin:0}
+
+  /* ---- hero instrument ---- */
+  .instrument{background:var(--panel);border:1px solid var(--rule);border-radius:14px;
+    box-shadow:var(--shadow);padding:clamp(18px,3vw,26px);margin-top:34px}
+  .inst-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;
+    gap:8px 20px;margin-bottom:6px}
+  .inst-title{font-family:var(--mono);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted)}
+  .legend{display:flex;gap:14px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .legend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;
+    vertical-align:.02em}
+  figure{margin:0}
+  .axiswrap{position:relative;width:100%}
+  svg{display:block;width:100%;height:auto;overflow:visible}
+  .track{fill:none;stroke:var(--rule-strong);stroke-width:1.4}
+  .tick{stroke:var(--rule);stroke-width:1}
+  .ticklab{font-family:var(--mono);font-size:11px;fill:var(--faint)}
+  .zero{stroke:var(--ink);stroke-width:1;stroke-dasharray:2 3;opacity:.42}
+  .band{fill:var(--band);stroke:var(--band-edge);stroke-width:1;stroke-dasharray:3 3}
+  .bandlab{font-family:var(--mono);font-size:11px;fill:var(--muted);text-anchor:middle}
+  .pt{cursor:pointer;transition:r .12s}
+  .pt:hover{stroke:var(--ink);stroke-width:1.5}
+  .polelab{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+
+  .tip{position:absolute;pointer-events:none;opacity:0;transform:translate(-50%,-8px);
+    background:var(--ink);color:var(--bg);font-size:12.5px;line-height:1.4;padding:8px 11px;
+    border-radius:8px;max-width:250px;box-shadow:var(--shadow);transition:opacity .1s;z-index:5}
+  .tip b{font-family:var(--mono);font-weight:600}
+  .tip .meta{font-family:var(--mono);font-size:11px;opacity:.72;margin-top:3px}
+
+  /* ---- controls + readout ---- */
+  .controls{display:grid;grid-template-columns:1fr;gap:18px;margin-top:22px;
+    padding-top:20px;border-top:1px solid var(--rule)}
+  @media(min-width:620px){.controls{grid-template-columns:1.15fr .85fr;align-items:center}}
+  .sliderbox label{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between;
+    align-items:baseline;margin-bottom:9px}
+  .sliderbox label b{font-family:var(--mono);color:var(--accent-ink);font-size:15px}
+  input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:5px;border-radius:4px;
+    background:linear-gradient(90deg,var(--accent) 0 var(--fill,38%),var(--rule-strong) var(--fill,38%) 100%);
+    outline-offset:4px}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+    background:var(--panel);border:2.5px solid var(--accent);box-shadow:var(--shadow);cursor:grab;margin-top:-1px}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--panel);
+    border:2.5px solid var(--accent);cursor:grab}
+  .presets{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+  .presets button{font-family:var(--mono);font-size:11.5px;color:var(--muted);background:transparent;
+    border:1px solid var(--rule-strong);border-radius:999px;padding:5px 11px;cursor:pointer;
+    transition:.14s}
+  .presets button:hover{border-color:var(--accent);color:var(--accent-ink)}
+  .presets button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .readout{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--rule);
+    border-radius:10px;overflow:hidden}
+  .stat{background:var(--panel);padding:14px 16px}
+  .stat .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--faint)}
+  .stat .v{font-family:var(--mono);font-size:clamp(26px,4.5vw,32px);font-weight:600;line-height:1.1;
+    margin-top:3px;font-variant-numeric:tabular-nums}
+  .stat .v small{font-size:14px;color:var(--muted);font-weight:400}
+  .stat.hero-prec .v{color:var(--accent-ink)}
+  .caption{font-family:var(--sans);font-size:13.5px;color:var(--muted);margin-top:16px;
+    max-width:640px;line-height:1.5}
+
+  /* ---- arc stat sequence ---- */
+  .arc{display:grid;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:12px;
+    overflow:hidden;margin:26px 0 4px}
+  @media(min-width:640px){.arc{grid-template-columns:repeat(3,1fr)}}
+  .arc .cell{background:var(--panel);padding:18px 18px 16px}
+  .arc .step{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint)}
+  .arc .big{font-family:var(--mono);font-size:30px;font-weight:600;line-height:1;margin:8px 0 2px;
+    font-variant-numeric:tabular-nums}
+  .arc .big.up{color:var(--accent-ink)} .arc .big.down{color:var(--neg)}
+  .arc .sub{font-size:13px;color:var(--muted);line-height:1.4}
+
+  pre{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--accent);
+    border-radius:0 10px 10px 0;padding:18px 20px;overflow-x:auto;margin:20px 0;
+    font-family:var(--mono);font-size:13.5px;line-height:1.7;color:var(--ink)}
+  pre .cm{color:var(--faint)} pre .kw{color:var(--accent-ink)}
+  pre .pos{color:var(--pos)} pre .neg{color:var(--neg)}
+
+  .finding{display:flex;gap:16px;padding:18px 0;border-top:1px solid var(--rule)}
+  .finding:last-child{border-bottom:1px solid var(--rule)}
+  .finding .mk{font-family:var(--mono);font-size:12px;color:var(--accent-ink);padding-top:3px;
+    white-space:nowrap;letter-spacing:.04em}
+  .finding h3{margin:0 0 3px;font-size:16px;font-family:var(--sans);font-weight:650}
+  .finding p{margin:0;font-size:14.5px;color:var(--muted)}
+  .finding b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  .foot{margin-top:64px;padding-top:22px;border-top:1px solid var(--rule);font-size:13px;
+    color:var(--muted);line-height:1.6}
+  .foot .mono{font-family:var(--mono);font-size:12px}
+  .kbd{font-family:var(--mono);font-size:.92em;background:var(--panel);border:1px solid var(--rule);
+    border-radius:4px;padding:.5px 5px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="col">
+    <div class="eyebrow">
+      <span>Latent-space field note</span><span class="dot">/</span>
+      <span>2026-07-05</span><span class="dot">/</span>
+      <span>qwen3-embedding · ministral-3 · gemma4</span>
+    </div>
+    <h1>Reading a model's mind by writing its rules</h1>
+    <p class="dek">Can three lines of legible code stand in for a neural sentiment
+      classifier — and tell us how the embedding space is organized? Mostly yes, once we
+      stop pretending “neutral” is a category.</p>
+  </header>
+
+  <!-- ============ HERO INSTRUMENT ============ -->
+  <div class="instrument">
+    <div class="inst-head">
+      <span class="inst-title">The polarity axis · 98 held-out sentences</span>
+      <span class="legend">
+        <span><i style="background:var(--pos)"></i>positive</span>
+        <span><i style="background:var(--neg)"></i>negative</span>
+        <span><i style="background:var(--neu)"></i>neutral</span>
+      </span>
+    </div>
+    <figure>
+      <div class="axiswrap">
+        <svg id="axis" viewBox="0 0 1000 250" role="img"
+          aria-label="Number line of 98 sentences positioned by polarity score, colored by their true label, with an adjustable abstention band around zero.">
+          <text class="polelab" x="6" y="228" style="fill:var(--neg)" text-anchor="start">◄ negative</text>
+          <text class="polelab" x="994" y="228" style="fill:var(--pos)" text-anchor="end">positive ►</text>
+          <g id="ticks"></g>
+          <rect id="band" class="band" x="0" y="24" width="0" height="150" rx="4"></rect>
+          <text id="bandlab" class="bandlab" y="18">abstain</text>
+          <line id="zero" class="zero" x1="500" y1="20" x2="500" y2="182"></line>
+          <line class="track" x1="40" y1="182" x2="960" y2="182"></line>
+          <g id="points"></g>
+        </svg>
+        <div class="tip" id="tip"></div>
+      </div>
+    </figure>
+
+    <div class="controls">
+      <div class="sliderbox">
+        <label for="m">Abstention margin&nbsp;·&nbsp;m
+          <span>|polarity| &lt; <b id="mval">0.115</b> → abstain</span></label>
+        <input type="range" id="m" min="0" max="0.26" step="0.001" value="0.115">
+        <div class="presets" id="presets">
+          <button data-m="0">commit to everything</button>
+          <button data-m="0.066">≥90% precise</button>
+          <button data-m="0.095">≥95% precise</button>
+          <button data-m="0.115">100% precise</button>
+        </div>
+      </div>
+      <div class="readout">
+        <div class="stat hero-prec">
+          <div class="k">Precision when it commits</div>
+          <div class="v" id="prec">100<small>%</small></div>
+        </div>
+        <div class="stat">
+          <div class="k">Coverage</div>
+          <div class="v" id="cov">53<small>%</small></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption" id="cap"></p>
+  </div>
+
+  <!-- ============ THE ARC ============ -->
+  <section class="col">
+    <h2><span class="num">01</span>What survived contact with real text</h2>
+    <p class="lede">The surrogate looked perfect on a corpus I wrote by hand. Then it met
+      sentences authored by a different model — and the honest number appeared.</p>
+    <div class="arc">
+      <div class="cell">
+        <div class="step">Curated corpus · LOO</div>
+        <div class="big">0.944</div>
+        <div class="sub">3-way fidelity to ministral — exactly the logistic-regression ceiling. Suspiciously clean.</div>
+      </div>
+      <div class="cell">
+        <div class="step">Author-independent · frozen</div>
+        <div class="big down">0.796</div>
+        <div class="sub">Same rules, 98 unseen gemma-written sentences. The drop was the point of running the test.</div>
+      </div>
+      <div class="cell">
+        <div class="step">When it commits</div>
+        <div class="big up">1.000</div>
+        <div class="sub">Hold out the confident 53% (|polarity| ≥ 0.115) and every verdict is correct — 52 / 52, neutrals included.</div>
+      </div>
+    </div>
+    <p>The decomposition is what makes the collapse informative. The <b>polarity axis</b> —
+      one direction in qwen's 1024-dimensional space — reproduced ministral's positive vs.
+      negative call at <b>0.951</b> on the unseen set, essentially undiminished. Every bit of
+      the fidelity loss lived in the third class: <b>17 of 20 errors</b> involved “neutral.”</p>
+  </section>
+
+  <!-- ============ NEUTRAL ISN'T A CLASS ============ -->
+  <section class="col">
+    <h2><span class="num">02</span>“Neutral” was never a region — it's the uncertainty</h2>
+    <p class="lede">Sampling ministral seven times per sentence exposed where the target model
+      disagrees with itself, and it lines up with the geometry.</p>
+    <p>Ministral's self-agreement splits cleanly by class: <b>0.96</b> on positive, <b>0.92</b>
+      on negative, but only <b>0.75</b> on neutral. “Neutral” is where the base model waffles.
+      And distance from the polarity midpoint tracks that waffling directly —
+      Spearman <b>ρ = +0.557</b> (p = 3×10⁻⁹) between <span class="mono">|polarity|</span> and
+      ministral's own agreement. The band you drag above isn't detecting a neutral <em>meaning</em>;
+      it's detecting the model's <em>doubt</em>. That reframes the whole surrogate: not a shaky
+      three-way classifier, but a calibrated binary one that knows when to abstain.</p>
+    <pre><span class="cm"># the entire model, read off one named direction in latent space</span>
+polarity(x) = x · unit(<span class="pos">μ_positive</span> − <span class="neg">μ_negative</span>)   <span class="cm"># a single 1024-d axis</span>
+
+<span class="kw">if</span> abs(polarity) &lt; m:   abstain     <span class="cm"># ← the tunable knob you dragged</span>
+<span class="kw">elif</span> polarity &gt; 0:      <span class="pos">positive</span>
+<span class="kw">else</span>:                  <span class="neg">negative</span></pre>
+  </section>
+
+  <!-- ============ FINDINGS ============ -->
+  <section class="col">
+    <h2><span class="num">03</span>What the code revealed about the space</h2>
+    <div style="margin-top:18px">
+      <div class="finding"><div class="mk">GEOMETRY</div><div>
+        <h3>Sentiment is one axis, not two</h3>
+        <p>Positive and negative prototypes are more similar to <b>each other</b> (cos <b>0.808</b>)
+          than either is to neutral — they're both “opinionated,” separated along a single polarity direction.</p></div></div>
+      <div class="finding"><div class="mk">TRANSFER</div><div>
+        <h3>The axis generalizes; the hand-tuned gate did not</h3>
+        <p>Polarity held at <b>0.951</b> on author-independent text. The earlier “evaluativeness gate”
+          was an artifact of my flat, factual neutral sentences and broke on naturalistic ones.</p></div></div>
+      <div class="finding"><div class="mk">CALIBRATION</div><div>
+        <h3>Confidence is legible, not a black box</h3>
+        <p>The surrogate's abstention region catches <b>85%</b> of the sentences ministral itself
+          is unsure about — the interpretable rule and the neural model doubt the same inputs.</p></div></div>
+      <div class="finding"><div class="mk">CONTROL</div><div>
+        <h3>One number is the business dial</h3>
+        <p>The margin <span class="mono">m</span> trades coverage for precision along a smooth curve:
+          <b>74%</b> coverage at 93% precision, <b>53%</b> at 100%. Pick a floor, route the rest to a human.</p></div></div>
+    </div>
+  </section>
+
+  <footer class="foot col">
+    <p><b>Method.</b> ministral-3:3b assigns a one-word sentiment token (the target we replicate);
+      qwen3-embedding:0.6b supplies the 1024-d, L2-normalized input; the surrogate is hand-authored
+      rules over prototype-difference axes, fit only on an original 72-sentence corpus and frozen.
+      The held-out set is 98 sentences written by gemma4:e4b — a different model from both the labeler
+      and the author — labeled by ministral and scored without refitting. Self-consistency uses 7 samples
+      per sentence at temperature 0.8.</p>
+    <p class="mono">Fidelity = agreement with the base model's token, not with human ground truth —
+      the goal is to explain the model, quirks included. Hover any point to read its sentence.</p>
+  </footer>
+</div>
+
+<script>
+const POINTS=[{"t":"The new router significantly improved our home Wi-Fi signal.","p":0.1504,"m":"positive","a":1.0},{"t":"Traffic delays made getting across town nearly impossible today.","p":-0.1231,"m":"negative","a":1.0},{"t":"She spent hours researching local history for her paper.","p":-0.0048,"m":"positive","a":0.714},{"t":"These apples taste wonderfully crisp and sweet right now.","p":0.1723,"m":"positive","a":1.0},{"t":"My old laptop overheats whenever I run complex software.","p":-0.1166,"m":"negative","a":1.0},{"t":"We should consider taking a day trip to the coast next month.","p":0.0445,"m":"neutral","a":0.571},{"t":"The library remains open until six o’clock this evening.","p":-0.111,"m":"neutral","a":1.0},{"t":"Rain clouds predicted heavy downpours for the weekend.","p":-0.0816,"m":"negative","a":1.0},{"t":"His constant lateness strains our professional relationship.","p":-0.1948,"m":"negative","a":1.0},{"t":"I need to buy some fresh bread and organic milk soon.","p":0.0503,"m":"neutral","a":0.571},{"t":"Mastering foreign languages takes incredible dedication over time.","p":0.0009,"m":"positive","a":0.571},{"t":"The plumber charged an exorbitant fee for a simple leak fix.","p":-0.1746,"m":"negative","a":1.0},{"t":"The movie adaptation faithfully captured the book's spirit.","p":0.2015,"m":"positive","a":1.0},{"t":"Running five miles felt surprisingly easy this morning.","p":0.1874,"m":"positive","a":0.857},{"t":"Our neighbor’s loud parties disturb our peace every weekend.","p":-0.1157,"m":"negative","a":1.0},{"t":"The coffee shop offers free Wi-Fi and comfortable seating.","p":0.091,"m":"positive","a":1.0},{"t":"She prefers hiking in mountain trails rather than forests.","p":0.0631,"m":"neutral","a":0.857},{"t":"I accidentally spilled coffee on my favorite new shirt.","p":-0.044,"m":"negative","a":1.0},{"t":"This inexpensive soap really exfoliates the skin perfectly.","p":0.1276,"m":"positive","a":1.0},{"t":"We must remember to renew the car's insurance policy soon.","p":-0.0904,"m":"neutral","a":0.714},{"t":"High pollen counts can trigger seasonal allergy symptoms.","p":-0.0378,"m":"negative","a":0.857},{"t":"The warm sunlight streaming through the window felt amazing.","p":0.2782,"m":"positive","a":1.0},{"t":"Learning a new skill always brings such genuine joy.","p":0.2502,"m":"positive","a":1.0},{"t":"This amazing concert was the highlight of my year.","p":0.2585,"m":"positive","a":1.0},{"t":"Exploring this ancient city was an incredible experience.","p":0.1927,"m":"positive","a":1.0},{"t":"Our deep conversation strengthened our relationship greatly.","p":0.146,"m":"positive","a":1.0},{"t":"I feel healthier and more energized after exercising.","p":0.2047,"m":"positive","a":1.0},{"t":"Finding that perfect sweater made my morning shine.","p":0.2225,"m":"positive","a":1.0},{"t":"The scent of freshly baked cinnamon rolls is divine.","p":0.1962,"m":"positive","a":1.0},{"t":"Streaming movies at home is wonderfully relaxing tonight.","p":0.0935,"m":"positive","a":1.0},{"t":"This lovely weekend trip restored my entire spirit.","p":0.2886,"m":"positive","a":1.0},{"t":"The stale coffee tastes terrible this afternoon.","p":-0.1911,"m":"negative","a":1.0},{"t":"My laptop screen suddenly went completely black.","p":-0.2018,"m":"negative","a":1.0},{"t":"Traffic was unusually heavy, causing massive delays.","p":-0.1437,"m":"negative","a":1.0},{"t":"The complicated instructions were impossible to follow.","p":-0.2004,"m":"negative","a":1.0},{"t":"These cheap headphones broke within a single day.","p":-0.2352,"m":"negative","a":1.0},{"t":"Our disagreement caused unnecessary emotional tension.","p":-0.1818,"m":"negative","a":0.714},{"t":"I feel overwhelmed by the sheer amount of work.","p":0.0103,"m":"negative","a":1.0},{"t":"The grocery store ran out of all my favorite items.","p":-0.0852,"m":"negative","a":1.0},{"t":"That intense headache lasted for nearly an entire afternoon.","p":-0.101,"m":"negative","a":1.0},{"t":"This confusing paperwork process is highly frustrating.","p":-0.1698,"m":"negative","a":1.0},{"t":"Temperatures are predicted to drop below freezing soon.","p":-0.1249,"m":"negative","a":1.0},{"t":"The syllabus requires reading chapters six through eight.","p":-0.0887,"m":"neutral","a":0.857},{"t":"Flight check-in closes two hours before departure time.","p":-0.0839,"m":"negative","a":0.571},{"t":"Rainfall levels exceed the average recorded yearly metric.","p":-0.0145,"m":"negative","a":0.714},{"t":"Most major rivers flow into the ocean basin eventually.","p":0.0139,"m":"neutral","a":0.571},{"t":"Workers must wear safety helmets inside this facility.","p":0.0574,"m":"negative","a":0.714},{"t":"The machine operates using a complex pulley system.","p":-0.0022,"m":"neutral","a":0.857},{"t":"Online courses provide flexible learning schedules for adults.","p":-0.0078,"m":"positive","a":0.857},{"t":"Local ordinances prohibit parking near this corner.","p":-0.0671,"m":"negative","a":0.571},{"t":"Historical records suggest settlement predates current architecture.","p":-0.0504,"m":"neutral","a":0.571},{"t":"The sunset painted the sky with brilliant orange hues.","p":0.0906,"m":"positive","a":1.0},{"t":"My laptop finally updated after weeks of delay.","p":-0.0252,"m":"positive","a":0.857},{"t":"Please remember to bring your own reusable bags.","p":-0.0168,"m":"neutral","a":1.0},{"t":"We should try that new Italian restaurant downtown.","p":0.0478,"m":"positive","a":1.0},{"t":"She gave me a wonderful, thoughtful surprise gift.","p":0.2751,"m":"positive","a":1.0},{"t":"Traffic was severely backed up due to an accident.","p":-0.1203,"m":"negative","a":1.0},{"t":"I wish this endless rain would just stop already.","p":-0.1247,"m":"negative","a":1.0},{"t":"The stale air in the office felt suffocating today.","p":-0.087,"m":"negative","a":1.0},{"t":"Getting lost on unfamiliar streets always worries me.","p":-0.1386,"m":"negative","a":1.0},{"t":"He canceled our plans at the last minute again.","p":-0.2,"m":"negative","a":1.0},{"t":"Learning Mandarin requires intense daily commitment.","p":-0.0912,"m":"negative","a":0.857},{"t":"This checkout line moves painfully slowly right now.","p":-0.111,"m":"negative","a":1.0},{"t":"I hope we can reschedule our meeting soon.","p":-0.0802,"m":"neutral","a":0.428},{"t":"Remember to check the expiration date on milk.","p":-0.0912,"m":"neutral","a":1.0},{"t":"The flight was delayed by unexpected severe fog.","p":-0.1896,"m":"negative","a":1.0},{"t":"My smartphone battery drains way too quickly these days.","p":-0.1942,"m":"negative","a":1.0},{"t":"Studying for exams consumes all my free time.","p":-0.016,"m":"negative","a":1.0},{"t":"We absolutely deserve a relaxing weekend getaway trip.","p":0.2008,"m":"positive","a":1.0},{"t":"She always knows exactly what I need to hear.","p":0.0726,"m":"positive","a":1.0},{"t":"This stain on the couch is impossible to remove completely.","p":-0.1295,"m":"negative","a":1.0},{"t":"The grocery store flyer included excellent sales today.","p":0.1412,"m":"positive","a":1.0},{"t":"The old washing machine finally gave up working entirely.","p":-0.1774,"m":"negative","a":1.0},{"t":"I love spending quiet mornings drinking coffee.","p":0.1485,"m":"positive","a":1.0},{"t":"It rained heavily enough to flood the basement once.","p":-0.1259,"m":"negative","a":0.571},{"t":"Wearing these worn-out shoes hurts my feet badly.","p":-0.1927,"m":"negative","a":1.0},{"t":"He accidentally spilled paint on the clean carpet.","p":-0.0768,"m":"negative","a":1.0},{"t":"My headache was severe after staring at screens.","p":-0.1198,"m":"negative","a":1.0},{"t":"Booking train tickets requires careful timing and effort.","p":-0.0563,"m":"negative","a":0.571},{"t":"We need reliable internet for working from home.","p":0.0006,"m":"negative","a":0.571},{"t":"The local park featured vibrant flower gardens this spring.","p":0.1835,"m":"positive","a":1.0},{"t":"Learning a new skill feels incredibly rewarding always.","p":0.2456,"m":"positive","a":1.0},{"t":"Our friendship has weathered many difficult times successfully.","p":0.1133,"m":"positive","a":1.0},{"t":"Please wash your hands thoroughly before eating dinner.","p":0.0153,"m":"neutral","a":0.714},{"t":"Finding affordable housing in the city is extremely hard.","p":-0.1505,"m":"negative","a":1.0},{"t":"The temperature dropped below freezing overnight last night.","p":-0.1079,"m":"negative","a":1.0},{"t":"I really enjoyed our deep, heart-to-heart conversation.","p":0.2036,"m":"positive","a":1.0},{"t":"These instructions for assembling furniture are unclear and vague.","p":-0.195,"m":"negative","a":1.0},{"t":"Our car needs an oil change appointment next week promptly.","p":-0.0605,"m":"neutral","a":0.571},{"t":"He kept checking his phone despite knowing better manners.","p":-0.1375,"m":"negative","a":1.0},{"t":"Sending personalized emails makes the work feel meaningful.","p":0.1344,"m":"positive","a":1.0},{"t":"The library's quiet section is perfect for focused studying.","p":0.0788,"m":"positive","a":0.857},{"t":"A sudden thunderstorm made us run indoors quickly.","p":-0.0641,"m":"negative","a":0.571},{"t":"I prefer cooking healthy meals at home after work.","p":0.1668,"m":"positive","a":0.714},{"t":"The museum exhibition showcased amazing historical artifacts today.","p":0.1236,"m":"positive","a":1.0},{"t":"We discovered a fantastic little hidden coffee shop nearby.","p":0.1264,"m":"positive","a":1.0},{"t":"Remember to bring sunscreen when traveling outside now.","p":0.0435,"m":"neutral","a":1.0},{"t":"Making time for self-care is absolutely essential always.","p":0.0583,"m":"positive","a":1.0}];
+const COL={positive:"var(--pos)",negative:"var(--neg)",neutral:"var(--neu)"};
+const PMIN=-0.26, PMAX=0.30, X0=40, X1=960;
+const xOf=p=>X0+(p-PMIN)/(PMAX-PMIN)*(X1-X0);
+
+// deterministic vertical jitter so overlapping points stay readable
+function seed(i){let x=Math.sin(i*127.1+31.7)*43758.5;return x-Math.floor(x);}
+const YTOP=34, YBOT=176;
+
+const ptsG=document.getElementById('points');
+const ticksG=document.getElementById('ticks');
+const tip=document.getElementById('tip');
+const axis=document.getElementById('axis');
+
+// ticks at labelled polarity values
+[-0.2,-0.1,0,0.1,0.2].forEach(v=>{
+  const x=xOf(v);
+  const ln=document.createElementNS('http://www.w3.org/2000/svg','line');
+  ln.setAttribute('class', v===0?'zero':'tick');
+  ln.setAttribute('x1',x);ln.setAttribute('x2',x);ln.setAttribute('y1',182);ln.setAttribute('y2',188);
+  ticksG.appendChild(ln);
+  const tx=document.createElementNS('http://www.w3.org/2000/svg','text');
+  tx.setAttribute('class','ticklab');tx.setAttribute('x',x);tx.setAttribute('y',202);
+  tx.setAttribute('text-anchor','middle');tx.textContent=v.toFixed(1);
+  ticksG.appendChild(tx);
+});
+
+POINTS.forEach((d,i)=>{
+  const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  const y=YTOP+seed(i)*(YBOT-YTOP);
+  c.setAttribute('class','pt');
+  c.setAttribute('cx',xOf(d.p));c.setAttribute('cy',y.toFixed(1));
+  c.setAttribute('r',4.6);c.style.fill=COL[d.m];
+  c.setAttribute('fill-opacity',0.9);
+  c.dataset.i=i;
+  c.addEventListener('pointerenter',ev=>showTip(ev,d));
+  c.addEventListener('pointermove',ev=>placeTip(ev));
+  c.addEventListener('pointerleave',()=>{tip.style.opacity=0;});
+  ptsG.appendChild(c);
+});
+
+function showTip(ev,d){
+  const agree=Math.round(d.a*7);
+  tip.innerHTML=`${d.t}<div class="meta">polarity <b>${d.p>=0?'+':''}${d.p.toFixed(3)}</b> · `+
+    `label ${d.m} · ministral ${agree}/7</div>`;
+  tip.style.opacity=1;placeTip(ev);
+}
+function placeTip(ev){
+  const r=axis.getBoundingClientRect();
+  tip.style.left=(ev.clientX-r.left)+'px';
+  tip.style.top=(ev.clientY-r.top)+'px';
+}
+
+const band=document.getElementById('band');
+const bandlab=document.getElementById('bandlab');
+const slider=document.getElementById('m');
+const mval=document.getElementById('mval');
+const precEl=document.getElementById('prec');
+const covEl=document.getElementById('cov');
+const capEl=document.getElementById('cap');
+
+function stats(m){
+  let committed=0,correct=0;
+  for(const d of POINTS){
+    if(Math.abs(d.p)>=m){committed++;const pred=d.p>0?'positive':'negative';if(pred===d.m)correct++;}
+  }
+  return {cov:committed/POINTS.length, prec:committed?correct/committed:1, committed, committedN:committed};
+}
+
+function render(m){
+  const bx0=xOf(-m), bx1=xOf(m);
+  band.setAttribute('x',bx0);band.setAttribute('width',Math.max(0,bx1-bx0));
+  bandlab.setAttribute('x',(bx0+bx1)/2);
+  band.style.opacity = m<=0.001?0:1;
+  bandlab.style.opacity = m<=0.02?0:1;
+  // dim abstained points
+  ptsG.querySelectorAll('circle').forEach(c=>{
+    const d=POINTS[c.dataset.i];
+    const abst=Math.abs(d.p)<m;
+    c.setAttribute('fill-opacity',abst?0.18:0.92);
+    c.setAttribute('r',abst?3.4:4.6);
+  });
+  const s=stats(m);
+  mval.textContent=m.toFixed(3);
+  precEl.innerHTML=(s.committed? (s.prec*100).toFixed(0):'—')+'<small>%</small>';
+  covEl.innerHTML=(s.cov*100).toFixed(0)+'<small>%</small>';
+  slider.style.setProperty('--fill',(m/0.26*100)+'%');
+  const kept=s.committedN, human=POINTS.length-kept;
+  capEl.innerHTML = m<=0.001
+    ? `Commit to all ${POINTS.length} sentences and fidelity is just <b>${(s.prec*100).toFixed(0)}%</b> — the neutral middle drags it down.`
+    : `At m = ${m.toFixed(3)}, the rule answers <b>${kept}</b> of ${POINTS.length} sentences at <b>${(s.prec*100).toFixed(0)}%</b> precision and hands the ${human} ambiguous ones off — the same sentences ministral is unsure about.`;
+}
+capEl.style.setProperty('--x','0');
+slider.addEventListener('input',()=>render(parseFloat(slider.value)));
+document.getElementById('presets').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  slider.value=b.dataset.m;render(parseFloat(b.dataset.m));
+});
+render(parseFloat(slider.value));
+</script>

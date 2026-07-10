@@ -1,0 +1,1013 @@
+[
+  {
+    "text": "The new router significantly improved our home Wi-Fi signal.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Traffic delays made getting across town nearly impossible today.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "She spent hours researching local history for her paper.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "positive": 5,
+      "neutral": 2
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "These apples taste wonderfully crisp and sweet right now.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "My old laptop overheats whenever I run complex software.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "We should consider taking a day trip to the coast next month.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 4,
+      "positive": 3
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "The library remains open until six o\u2019clock this evening.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 1.0,
+    "votes": {
+      "neutral": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Rain clouds predicted heavy downpours for the weekend.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "His constant lateness strains our professional relationship.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I need to buy some fresh bread and organic milk soon.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 4,
+      "negative": 3
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Mastering foreign languages takes incredible dedication over time.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "positive": 4,
+      "neutral": 1,
+      "negative": 2
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The plumber charged an exorbitant fee for a simple leak fix.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The movie adaptation faithfully captured the book's spirit.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Running five miles felt surprisingly easy this morning.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "positive": 6,
+      "neutral": 1
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Our neighbor\u2019s loud parties disturb our peace every weekend.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The coffee shop offers free Wi-Fi and comfortable seating.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "She prefers hiking in mountain trails rather than forests.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "neutral": 6,
+      "negative": 1
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "I accidentally spilled coffee on my favorite new shirt.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "This inexpensive soap really exfoliates the skin perfectly.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "We must remember to renew the car's insurance policy soon.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "negative": 2,
+      "neutral": 5
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "High pollen counts can trigger seasonal allergy symptoms.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "negative": 6,
+      "neutral": 1
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The warm sunlight streaming through the window felt amazing.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Learning a new skill always brings such genuine joy.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "This amazing concert was the highlight of my year.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Exploring this ancient city was an incredible experience.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Our deep conversation strengthened our relationship greatly.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "I feel healthier and more energized after exercising.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Finding that perfect sweater made my morning shine.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The scent of freshly baked cinnamon rolls is divine.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Streaming movies at home is wonderfully relaxing tonight.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "This lovely weekend trip restored my entire spirit.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The stale coffee tastes terrible this afternoon.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "My laptop screen suddenly went completely black.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Traffic was unusually heavy, causing massive delays.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The complicated instructions were impossible to follow.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "These cheap headphones broke within a single day.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Our disagreement caused unnecessary emotional tension.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "negative": 5,
+      "neutral": 2
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I feel overwhelmed by the sheer amount of work.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The grocery store ran out of all my favorite items.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "That intense headache lasted for nearly an entire afternoon.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "This confusing paperwork process is highly frustrating.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Temperatures are predicted to drop below freezing soon.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "The syllabus requires reading chapters six through eight.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "neutral": 6,
+      "negative": 1
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Flight check-in closes two hours before departure time.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 3,
+      "negative": 4
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Rainfall levels exceed the average recorded yearly metric.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "negative": 5,
+      "positive": 2
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Most major rivers flow into the ocean basin eventually.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "positive": 3,
+      "neutral": 4
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Workers must wear safety helmets inside this facility.",
+    "t0": "neutral",
+    "maj": "negative",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "negative": 5,
+      "neutral": 2
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "The machine operates using a complex pulley system.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "neutral": 6,
+      "negative": 1
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Online courses provide flexible learning schedules for adults.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "positive": 6,
+      "neutral": 1
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Local ordinances prohibit parking near this corner.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "negative": 4,
+      "neutral": 3
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "Historical records suggest settlement predates current architecture.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 4,
+      "negative": 3
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "The sunset painted the sky with brilliant orange hues.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "My laptop finally updated after weeks of delay.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "positive": 6,
+      "negative": 1
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Please remember to bring your own reusable bags.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 1.0,
+    "votes": {
+      "neutral": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "We should try that new Italian restaurant downtown.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "She gave me a wonderful, thoughtful surprise gift.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Traffic was severely backed up due to an accident.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I wish this endless rain would just stop already.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The stale air in the office felt suffocating today.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Getting lost on unfamiliar streets always worries me.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "He canceled our plans at the last minute again.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Learning Mandarin requires intense daily commitment.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "negative": 6,
+      "neutral": 1
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "This checkout line moves painfully slowly right now.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I hope we can reschedule our meeting soon.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.42857142857142855,
+    "votes": {
+      "positive": 2,
+      "negative": 2,
+      "neutral": 3
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Remember to check the expiration date on milk.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 1.0,
+    "votes": {
+      "neutral": 7
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "The flight was delayed by unexpected severe fog.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "My smartphone battery drains way too quickly these days.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Studying for exams consumes all my free time.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "We absolutely deserve a relaxing weekend getaway trip.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "She always knows exactly what I need to hear.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "This stain on the couch is impossible to remove completely.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The grocery store flyer included excellent sales today.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The old washing machine finally gave up working entirely.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I love spending quiet mornings drinking coffee.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "It rained heavily enough to flood the basement once.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 3,
+      "negative": 4
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Wearing these worn-out shoes hurts my feet badly.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "He accidentally spilled paint on the clean carpet.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "My headache was severe after staring at screens.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Booking train tickets requires careful timing and effort.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 3,
+      "negative": 4
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "We need reliable internet for working from home.",
+    "t0": "neutral",
+    "maj": "negative",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 3,
+      "negative": 4
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "The local park featured vibrant flower gardens this spring.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Learning a new skill feels incredibly rewarding always.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Our friendship has weathered many difficult times successfully.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Please wash your hands thoroughly before eating dinner.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "neutral": 5,
+      "negative": 2
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Finding affordable housing in the city is extremely hard.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "The temperature dropped below freezing overnight last night.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I really enjoyed our deep, heart-to-heart conversation.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "These instructions for assembling furniture are unclear and vague.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Our car needs an oil change appointment next week promptly.",
+    "t0": "negative",
+    "maj": "neutral",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 4,
+      "negative": 3
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "He kept checking his phone despite knowing better manners.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 1.0,
+    "votes": {
+      "negative": 7
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "Sending personalized emails makes the work feel meaningful.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The library's quiet section is perfect for focused studying.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.8571428571428571,
+    "votes": {
+      "positive": 6,
+      "neutral": 1
+    },
+    "pred": "neutral"
+  },
+  {
+    "text": "A sudden thunderstorm made us run indoors quickly.",
+    "t0": "negative",
+    "maj": "negative",
+    "agree": 0.5714285714285714,
+    "votes": {
+      "neutral": 3,
+      "negative": 4
+    },
+    "pred": "negative"
+  },
+  {
+    "text": "I prefer cooking healthy meals at home after work.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 0.7142857142857143,
+    "votes": {
+      "positive": 5,
+      "neutral": 2
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "The museum exhibition showcased amazing historical artifacts today.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "We discovered a fantastic little hidden coffee shop nearby.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Remember to bring sunscreen when traveling outside now.",
+    "t0": "neutral",
+    "maj": "neutral",
+    "agree": 1.0,
+    "votes": {
+      "neutral": 7
+    },
+    "pred": "positive"
+  },
+  {
+    "text": "Making time for self-care is absolutely essential always.",
+    "t0": "positive",
+    "maj": "positive",
+    "agree": 1.0,
+    "votes": {
+      "positive": 7
+    },
+    "pred": "positive"
+  }
+]

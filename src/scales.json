@@ -1,0 +1,278 @@
+{
+  "urgency": {
+    "high": [
+      "now",
+      "urgent",
+      "immediate",
+      "critical",
+      "pressing",
+      "emergency",
+      "dire",
+      "acute",
+      "rapid",
+      "swift",
+      "prompt",
+      "hasten"
+    ],
+    "low": [
+      "leisurely",
+      "unhurried",
+      "slow",
+      "meandering",
+      "tranquil",
+      "relaxed",
+      "placid",
+      "calm",
+      "sedate",
+      "languid",
+      "diffuse",
+      "glacial"
+    ],
+    "heldout_acc": 0.8333333333333334,
+    "cohens_d": 1.6293118000030518
+  },
+  "politeness": {
+    "high": [
+      "esteemed",
+      "respectful",
+      "deferential",
+      "courteous",
+      "gracious",
+      "polite",
+      "reverent",
+      "decent",
+      "amiable",
+      "thoughtful",
+      "considerate",
+      "cordial"
+    ],
+    "low": [
+      "rude",
+      "crude",
+      "blunt",
+      "scoffing",
+      "disdain",
+      "snarky",
+      "abrasive",
+      "insolent",
+      "derisive",
+      "contemptuous",
+      "sarcastic",
+      "dismissive"
+    ],
+    "heldout_acc": 1.0,
+    "cohens_d": 1.916021704673767
+  },
+  "spookiness": {
+    "high": [
+      "ghastly",
+      "eerie",
+      "spectral",
+      "macabre",
+      "foreboding",
+      "ominous",
+      "chilling",
+      "sinister",
+      "creepy",
+      "haunting",
+      "phantom",
+      "wraithlike"
+    ],
+    "low": [
+      "bland",
+      "mundane",
+      "boring",
+      "plain",
+      "dull",
+      "ordinary",
+      "predictable",
+      "safe",
+      "calm",
+      "normal",
+      "beige",
+      "inoffensive"
+    ],
+    "heldout_acc": 1.0,
+    "cohens_d": 1.8675276041030884
+  },
+  "archaicness": {
+    "high": [
+      "ere",
+      "whither",
+      "hark",
+      "forsooth",
+      "prithee",
+      "anon",
+      "yore",
+      "betwixt",
+      "thou",
+      "thy",
+      "oft",
+      "verily"
+    ],
+    "low": [
+      "primitive",
+      "rudimentary",
+      "basic",
+      "crude",
+      "raw",
+      "simple",
+      "natural",
+      "plain",
+      "unrefined",
+      "elementary",
+      "nascent",
+      "untamed"
+    ],
+    "heldout_acc": 1.0,
+    "cohens_d": 1.8973681926727295
+  },
+  "irony": {
+    "high": [
+      "sarcastic",
+      "ironic",
+      "mockery",
+      "satire",
+      "facetious",
+      "wry",
+      "snarky",
+      "disdain",
+      "cynical",
+      "jocular",
+      "pompous",
+      "affected"
+    ],
+    "low": [
+      "understated",
+      "subtle",
+      "mild",
+      "temperate",
+      "reserved",
+      "muted",
+      "gentle",
+      "soft",
+      "slight",
+      "barely",
+      "whisper",
+      "meek"
+    ],
+    "heldout_acc": 0.8333333333333334,
+    "cohens_d": 1.6446179151535034
+  },
+  "concreteness": {
+    "high": [
+      "table",
+      "stone",
+      "hammer",
+      "bread",
+      "door",
+      "horse",
+      "tree",
+      "chair",
+      "knife",
+      "wagon",
+      "boot",
+      "candle"
+    ],
+    "low": [
+      "idea",
+      "notion",
+      "freedom",
+      "truth",
+      "belief",
+      "theory",
+      "essence",
+      "justice",
+      "virtue",
+      "concept",
+      "opinion",
+      "doubt"
+    ],
+    "heldout_acc": 1.0,
+    "cohens_d": 1.8391098976135254
+  },
+  "animacy": {
+    "high": [
+      "man",
+      "woman",
+      "child",
+      "dog",
+      "horse",
+      "soldier",
+      "girl",
+      "mother",
+      "king",
+      "servant",
+      "bird",
+      "farmer"
+    ],
+    "low": [
+      "stone",
+      "table",
+      "wall",
+      "book",
+      "iron",
+      "road",
+      "cloud",
+      "chair",
+      "glass",
+      "door",
+      "lamp",
+      "carpet"
+    ],
+    "heldout_acc": 0.8333333333333334,
+    "cohens_d": 1.6414598226547241
+  },
+  "meanness": {
+    "high": [
+      "cruel",
+      "vicious",
+      "spiteful",
+      "nasty",
+      "heartless",
+      "callous",
+      "brutal",
+      "malicious"
+    ],
+    "low": [
+      "kind",
+      "gentle",
+      "caring",
+      "warm",
+      "compassionate",
+      "tender",
+      "considerate",
+      "loving"
+    ],
+    "heldout_acc": 0.875,
+    "cohens_d": 1.8877928256988525
+  },
+  "formality": {
+    "high": [
+      "esteemed",
+      "honourable",
+      "respectfully",
+      "sincerely",
+      "gracious",
+      "obliged",
+      "courteous",
+      "distinguished",
+      "cordially",
+      "madam"
+    ],
+    "low": [
+      "yeah",
+      "gonna",
+      "wanna",
+      "hey",
+      "dude",
+      "kinda",
+      "sorta",
+      "nah",
+      "yep",
+      "okay"
+    ],
+    "heldout_acc": 0.9,
+    "cohens_d": 1.7063390016555786
+  }
+}

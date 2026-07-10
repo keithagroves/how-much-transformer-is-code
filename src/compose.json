@@ -1,0 +1,482 @@
+[
+  {
+    "text": "The meal was not fantastic.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The delivery was great.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The seat was not great.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The phone was superb.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The phone was not wonderful.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The staff was great.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The food was not awful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The meal was not superb.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The view was not wonderful.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The movie was not fantastic.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The coffee was amazing.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The phone was not terrible.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The staff was horrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel room was awful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was dreadful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was fantastic.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The phone was not lousy.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The delivery was terrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was not awful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel was not amazing.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The movie was amazing.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was not horrible.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The movie was great.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The staff was not wonderful.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The meal was horrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The service was not fantastic.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The service was dreadful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The seat was not amazing.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The staff was fantastic.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The coffee was not great.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The service was superb.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The coffee was lousy.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel room was not lousy.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The service was not amazing.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The delivery was not amazing.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The service was not terrible.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The meal was not amazing.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The movie was lousy.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The view was not awful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The view was not dreadful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The view was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The food was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel room was horrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The coffee was not dreadful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The phone was disappointing.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The coffee was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The staff was not terrible.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel was not fantastic.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel was not dreadful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The service was lousy.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The meal was not wonderful.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The phone was excellent.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The phone was not dreadful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The food was not lousy.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The staff was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The meal was excellent.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was not wonderful.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The view was great.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel was terrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was superb.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The phone was not amazing.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The meal was awful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The coffee was wonderful.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The staff was not excellent.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel room was superb.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The service was awful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The service was horrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The staff was superb.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The view was lousy.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel was disappointing.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The staff was not dreadful.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The food was terrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The meal was dreadful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The seat was awful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The food was excellent.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel was awful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel room was wonderful.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The seat was not wonderful.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The delivery was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The seat was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The seat was not excellent.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel room was terrible.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The hotel room was dreadful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The view was fantastic.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was excellent.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The movie was not excellent.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The meal was not great.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The hotel room was amazing.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The meal was not disappointing.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The phone was awful.",
+    "lex": -1,
+    "neg": 0
+  },
+  {
+    "text": "The coffee was excellent.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The delivery was not lousy.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The movie was not terrible.",
+    "lex": -1,
+    "neg": 1
+  },
+  {
+    "text": "The coffee was not fantastic.",
+    "lex": 1,
+    "neg": 1
+  },
+  {
+    "text": "The food was wonderful.",
+    "lex": 1,
+    "neg": 0
+  },
+  {
+    "text": "The movie was superb.",
+    "lex": 1,
+    "neg": 0
+  }
+]

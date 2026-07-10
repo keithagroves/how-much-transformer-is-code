@@ -1,0 +1,312 @@
+<title>The Legible Model</title>
+<style>
+  :root{
+    --bg:#f3efe8; --panel:#fbf9f4; --panel2:#efeadf; --ink:#23211b; --muted:#6f6a5c;
+    --faint:#9a947f; --line:#ddd5c2; --line2:#cfc6ae;
+    --accent:#a8620a; --accent-ink:#8a5008; --accent-soft:#f3e2c8;
+    --good:#3d7a34; --bad:#a33d2f;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#15161b; --panel:#1d1f26; --panel2:#23252e; --ink:#e9e6dc; --muted:#a49e8c;
+      --faint:#6e695c; --line:#33353f; --line2:#41434f; --accent:#e2933c; --accent-ink:#eda54e;
+      --accent-soft:#3a2f1c; --good:#7dbb6f; --bad:#d97b6c;}
+  }
+  :root[data-theme="light"]{--bg:#f3efe8; --panel:#fbf9f4; --panel2:#efeadf; --ink:#23211b;
+    --muted:#6f6a5c; --faint:#9a947f; --line:#ddd5c2; --line2:#cfc6ae; --accent:#a8620a;
+    --accent-ink:#8a5008; --accent-soft:#f3e2c8; --good:#3d7a34; --bad:#a33d2f;}
+  :root[data-theme="dark"]{--bg:#15161b; --panel:#1d1f26; --panel2:#23252e; --ink:#e9e6dc;
+    --muted:#a49e8c; --faint:#6e695c; --line:#33353f; --line2:#41434f; --accent:#e2933c;
+    --accent-ink:#eda54e; --accent-soft:#3a2f1c; --good:#7dbb6f; --bad:#d97b6c;}
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);margin:0;line-height:1.55;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:880px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,3vw,28px) 80px}
+
+  header h1{font-family:var(--mono);font-weight:600;font-size:clamp(24px,4.5vw,34px);
+    letter-spacing:-.02em;margin:0}
+  header h1 .cursor{color:var(--accent);animation:blink 1.2s steps(1) infinite}
+  @keyframes blink{50%{opacity:0}}
+  @media (prefers-reduced-motion:reduce){header h1 .cursor{animation:none}}
+  .sub{color:var(--muted);margin:.4em 0 0;max-width:60ch}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{font-family:var(--mono);font-size:12px;border:1px solid var(--line2);border-radius:6px;
+    padding:4px 10px;color:var(--muted);background:var(--panel)}
+  .chip b{color:var(--accent-ink);font-weight:600}
+
+  .tabs{display:flex;gap:0;margin-top:32px;border-bottom:2px solid var(--line)}
+  .tab{font-family:var(--mono);font-size:14px;padding:10px 18px;cursor:pointer;background:none;
+    border:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px}
+  .tab.active{color:var(--ink);border-bottom-color:var(--accent)}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+  .panel{display:none;padding-top:22px}
+  .panel.active{display:block}
+
+  .row{display:flex;gap:10px;flex-wrap:wrap}
+  input[type=text],select{font-family:var(--mono);font-size:14px;background:var(--panel);
+    color:var(--ink);border:1px solid var(--line2);border-radius:8px;padding:9px 12px}
+  input[type=text]{flex:1;min-width:220px}
+  input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  button.go{font-family:var(--mono);font-size:14px;background:var(--accent);color:#fff;
+    border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-weight:600}
+  button.go:hover{filter:brightness(1.08)}
+  button.go:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+  .examples{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .ex{font-family:var(--mono);font-size:12px;background:var(--panel);border:1px solid var(--line);
+    border-radius:999px;padding:4px 11px;cursor:pointer;color:var(--muted)}
+  .ex:hover{border-color:var(--accent);color:var(--accent-ink)}
+  .ex.unseen{border-style:dashed}
+
+  .answer{margin-top:20px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;font-size:17px;min-height:30px}
+  .answer .val{font-family:var(--mono);font-weight:600;color:var(--accent-ink)}
+  .answer.refuse .val{color:var(--bad)}
+  .answer .note{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+  .trace{margin-top:14px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    overflow-x:auto}
+  .trace h3{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--faint);margin:0;padding:10px 14px 0}
+  .trace table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12.5px;margin-top:6px}
+  .trace td,.trace th{padding:5px 14px;text-align:left;white-space:nowrap}
+  .trace th{color:var(--faint);font-weight:400;border-bottom:1px solid var(--line)}
+  .trace td.o{color:var(--accent-ink)} .trace td.t{font-weight:600}
+  .trace tr:nth-child(even) td{background:color-mix(in srgb, var(--panel) 55%, transparent)}
+
+  fieldset{border:1px solid var(--line);border-radius:10px;margin:0 0 14px;padding:12px 14px;
+    background:var(--panel)}
+  legend{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--faint);padding:0 6px}
+  .facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px}
+  .facts label{font-family:var(--mono);font-size:11px;color:var(--muted);display:block;min-width:0}
+  .facts input,.facts select{min-width:0}
+  .facts input,.facts select{width:100%;margin-top:3px;padding:7px 9px;font-size:13px}
+  .toner{display:flex;align-items:center;gap:12px;margin:6px 0 2px}
+  .toner label{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .out{margin-top:16px;background:var(--panel);border-left:3px solid var(--accent);
+    border-radius:0 10px 10px 0;padding:16px 18px;font-size:16.5px;line-height:1.65;min-height:40px}
+  .gtrace .fill{color:var(--accent-ink);font-weight:600}
+  .foot{margin-top:52px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);
+    font-size:13.5px;max-width:66ch}
+  .foot code{font-family:var(--mono);font-size:12px;background:var(--panel);padding:1px 5px;
+    border-radius:4px;border:1px solid var(--line)}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>the legible model<span class="cursor">▌</span></h1>
+  <p class="sub">A language model you can read. This page contains the <em>entire</em> model —
+    every rule, every template — and runs it in your browser. No neural network executes here:
+    the LLM taught the rules, then left.</p>
+  <div class="chips">
+    <span class="chip"><b id="c-rules">…</b> Q&amp;A rules</span>
+    <span class="chip"><b id="c-tpl">…</b> sentence templates</span>
+    <span class="chip"><b>0</b> LLM calls at runtime</span>
+    <span class="chip">teacher: ministral-3:3b</span>
+  </div>
+</header>
+
+<div class="tabs" role="tablist">
+  <button class="tab active" id="tab-ask" role="tab" aria-selected="true">Ask</button>
+  <button class="tab" id="tab-gen" role="tab" aria-selected="false">Generate</button>
+</div>
+
+<!-- ============ ASK ============ -->
+<section class="panel active" id="panel-ask">
+  <div class="row">
+    <input type="text" id="q" placeholder="What is the capital of Kenya?" aria-label="question">
+    <button class="go" id="askbtn">Ask</button>
+  </div>
+  <div class="examples" id="exq"></div>
+  <div class="answer" id="ans" hidden></div>
+  <div class="trace" id="qtrace" hidden></div>
+</section>
+
+<!-- ============ GENERATE ============ -->
+<section class="panel" id="panel-gen">
+  <fieldset>
+    <legend>schema &amp; facts</legend>
+    <div class="row" style="margin-bottom:10px">
+      <select id="schema" aria-label="schema">
+        <option value="weather">weather report</option>
+        <option value="recap">match recap</option>
+        <option value="product">product listing</option>
+      </select>
+    </div>
+    <div class="facts" id="facts"></div>
+  </fieldset>
+  <fieldset>
+    <legend>tone</legend>
+    <div class="toner">
+      <label>calm</label>
+      <input type="range" id="tone" min="-2" max="2" step="0.5" value="0" aria-label="tone">
+      <label>urgent</label>
+    </div>
+  </fieldset>
+  <div class="row">
+    <button class="go" id="genbtn">Generate</button>
+  </div>
+  <div class="out" id="gout" hidden></div>
+  <div class="trace gtrace" id="gtrace" hidden></div>
+</section>
+
+<p class="foot"><b>How it works.</b> The Ask engine is an n-gram rulebook distilled from a
+  local LLM's answers: a question becomes the context <code>… kenya ? a :</code> and the
+  rules complete it. If no rule deep enough to have seen your entity fires, it says
+  <em>I don't know</em> instead of guessing — abstention, not hallucination. The Generate
+  engine is a template automaton mined from schema-constrained LLM text: it picks sentence
+  frames it can fill from <em>your</em> facts (and stops when facts run out), with a tone
+  dial that re-weights frames along a validated urgency direction in embedding space.
+  Every output row cites the rule or template that produced it.</p>
+</div>
+
+<script>
+const DATA = __DATA_JSON__;
+document.getElementById("c-rules").textContent = DATA.meta.qa_rules.toLocaleString();
+document.getElementById("c-tpl").textContent = DATA.meta.n_templates;
+
+const tokre = /[a-z0-9]+|[^\w\s]/g;
+const tok = s => (s.toLowerCase().match(tokre) || []);
+
+/* ---------------- ASK ---------------- */
+const RB = DATA.qa.rb, MAXN = DATA.qa.maxn;
+function answer(q){
+  const ctx = ["q",":"].concat(tok(q)).concat(["a",":"]);
+  const out = [], trace = [];
+  for (let step=0; step<25; step++){
+    let w=null, fired=0, key="";
+    for (let o=MAXN; o>=2; o--){
+      const k = ctx.slice(-(o-1)).join(" ");
+      if (RB[k] !== undefined){ w=RB[k]; fired=o; key=k; break; }
+    }
+    if (step===0 && (w===null || fired<5))
+      return {refused:true, fired, trace:[{o:fired||"—", k:key||"(no rule)", w:"⟂ abstain"}]};
+    if (w===null || w==="<end>") break;
+    out.push(w); trace.push({o:fired, k:key, w}); ctx.push(w);
+  }
+  return {refused:false, text:out.join(" "), trace};
+}
+const EXAMPLES = [
+  ["What is the capital of Kenya?", false], ["How many legs does a crab have?", false],
+  ["What is 25 plus 16?", false], ["What is the opposite of loud?", false],
+  ["What is the capital of Mexico?", true], ["What is 14 plus 27?", true],
+];
+const exq = document.getElementById("exq");
+for (const [q, unseen] of EXAMPLES){
+  const b = document.createElement("button");
+  b.className = "ex" + (unseen ? " unseen" : ""); b.textContent = q + (unseen ? " (untrained)" : "");
+  b.onclick = () => { document.getElementById("q").value = q; ask(); };
+  exq.appendChild(b);
+}
+function ask(){
+  const q = document.getElementById("q").value.trim();
+  if (!q) return;
+  const r = answer(q);
+  const ans = document.getElementById("ans");
+  ans.hidden = false;
+  ans.className = "answer" + (r.refused ? " refuse" : "");
+  ans.innerHTML = r.refused
+    ? `<span class="val">I don't know.</span><div class="note">No rule deep enough to have seen this entity fired (needs order ≥ 5). Refusing beats guessing.</div>`
+    : `<span class="val">${r.text}</span><div class="note">answered by rule lookup — trace below</div>`;
+  const tr = document.getElementById("qtrace");
+  tr.hidden = false;
+  tr.innerHTML = `<h3>rule trace</h3><table><tr><th>#</th><th>order</th><th>matched context</th><th>→ token</th></tr>` +
+    r.trace.map((t,i)=>`<tr><td>${i}</td><td class="o">${t.o}</td><td>${t.k}</td><td class="t">${t.w}</td></tr>`).join("") +
+    `</table>`;
+}
+document.getElementById("askbtn").onclick = ask;
+document.getElementById("q").addEventListener("keydown", e => { if (e.key==="Enter") ask(); });
+
+/* ---------------- GENERATE ---------------- */
+const NLG = DATA.nlg;
+const FORMS = {
+  weather: [["<city>","city","Lisbon"],["<temp>","temperature °","21"],["<speed>","wind mph","9"],
+            ["<dir>","direction","southeast"],["<day>","day","tuesday"],["<time>","time of day","morning"]],
+  recap:   [["<team>","team 1","Falcons"],["<team>2","team 2","Bears"],["<team>3","team 3","Hawks"],
+            ["<score>","score 1","31"],["<score>2","score 2","24"],["<player>","player","Jones"],
+            ["<points>","points","18"],["<day>","day","saturday"]],
+  product: [["<name>","product","AeroPad"],["<price>","price $","89"],["<days>","ship days","2"],
+            ["<num>","extra number","3"],["<color>","color 1","blue"],["<color>2","color 2","white"]],
+};
+function renderFacts(){
+  const s = document.getElementById("schema").value;
+  const f = document.getElementById("facts"); f.innerHTML = "";
+  for (const [slot, label, dflt] of FORMS[s]){
+    const d = document.createElement("label");
+    d.innerHTML = `${label}<input type="text" data-slot="${slot.replace(/\d+$/,"")}" value="${dflt}">`;
+    f.appendChild(d);
+  }
+}
+renderFacts();
+document.getElementById("schema").onchange = renderFacts;
+
+let seed = 42;
+function rng(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed);
+  t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
+
+function realize(){
+  const s = document.getElementById("schema").value;
+  const tone = parseFloat(document.getElementById("tone").value);
+  const q = {};
+  document.querySelectorAll("#facts input").forEach(inp=>{
+    const k = inp.dataset.slot;
+    (q[k] = q[k] || []).push(inp.value.trim());
+  });
+  const tpls = NLG.templates[s], trans = NLG.trans[s], tones = NLG.tone[s];
+  const used = new Set(); let prev = "START";
+  const outWords = [], gtrace = [];
+  for (let sent=0; sent<4; sent++){
+    const tw = trans[prev] || {};
+    const cands = [];
+    for (let i=0; i<tpls.length; i++){
+      if (used.has(i) || tpls[i].t.length<=4) continue;
+      const need = {};
+      for (const tk of tpls[i].t) if (tk[0]==="<") need[tk]=(need[tk]||0)+1;
+      if (!Object.entries(need).every(([k,c])=>(q[k]||[]).length>=c)) continue;
+      let w = tpls[i].c * (1+(tw[i]||0));
+      if (tone) w *= Math.exp(tone * tones[i]);
+      cands.push([i, w]);
+    }
+    if (!cands.length) break;
+    const tot = cands.reduce((a,[,w])=>a+w,0);
+    let r = rng()*tot, pick = cands[0][0];
+    for (const [i,w] of cands){ r-=w; if (r<=0){ pick=i; break; } }
+    used.add(pick); prev = String(pick);
+    const fills = [];
+    for (const tk of tpls[pick].t){
+      if (tk[0]==="<" && q[tk] && q[tk].length){ const v=q[tk].shift(); outWords.push(v); fills.push(`${tk}=${v}`); }
+      else outWords.push(tk);
+    }
+    gtrace.push({i:pick, c:tpls[pick].c, u:tones[pick], fills});
+  }
+  // detokenize
+  let text = "", cap = true;
+  for (const w of outWords){
+    if (/^[,.!?;:)'’”]$/.test(w)) text += w;
+    else text += (text ? " " : "") + (cap && /^[a-z]/.test(w) ? w[0].toUpperCase()+w.slice(1) : w);
+    if (/[.!?]/.test(w)) cap = true; else if (/[a-z0-9]/i.test(w)) cap = false;
+  }
+  const out = document.getElementById("gout"); out.hidden = false; out.textContent = text;
+  const g = document.getElementById("gtrace"); g.hidden = false;
+  g.innerHTML = `<h3>template trace</h3><table><tr><th>#</th><th>template (seen in training)</th><th>urgency</th><th>slots filled</th></tr>` +
+    gtrace.map((t,i)=>`<tr><td>${i+1}</td><td>${t.c}×</td><td class="o">${t.u>0?"+":""}${t.u}</td><td class="fill">${t.fills.join("  ")||"—"}</td></tr>`).join("") +
+    `</table>`;
+}
+document.getElementById("genbtn").onclick = ()=>{ seed = (Date.now()%100000)|0; realize(); };
+
+/* tabs */
+for (const [tab, panel] of [["tab-ask","panel-ask"],["tab-gen","panel-gen"]]){
+  document.getElementById(tab).onclick = ()=>{
+    document.querySelectorAll(".tab").forEach(t=>{t.classList.remove("active");t.setAttribute("aria-selected","false");});
+    document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+    document.getElementById(tab).classList.add("active");
+    document.getElementById(tab).setAttribute("aria-selected","true");
+    document.getElementById(panel).classList.add("active");
+  };
+}
+</script>

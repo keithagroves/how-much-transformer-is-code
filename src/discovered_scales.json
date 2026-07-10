@@ -1,0 +1,978 @@
+[
+  {
+    "comp": 0,
+    "z": 7.6,
+    "coherence": 0.926,
+    "words": [
+      "on",
+      "and",
+      "of",
+      "en",
+      "je",
+      "ate",
+      "is",
+      "other"
+    ],
+    "name": "function-word hub"
+  },
+  {
+    "comp": 59,
+    "z": 6.7,
+    "coherence": 0.888,
+    "words": [
+      "cloths",
+      "clothes",
+      "clothing",
+      "garment",
+      "clothed",
+      "wardrobe",
+      "dress",
+      "garments"
+    ],
+    "name": "apparel"
+  },
+  {
+    "comp": 63,
+    "z": 6.7,
+    "coherence": 0.889,
+    "words": [
+      "xxxii",
+      "xxviii",
+      "xxvii",
+      "xxix",
+      "xxv",
+      "xxxvii",
+      "xxxix",
+      "lxiii"
+    ],
+    "name": "roman numerals"
+  },
+  {
+    "comp": 24,
+    "z": 6.3,
+    "coherence": 0.873,
+    "words": [
+      "resign",
+      "resigning",
+      "renounce",
+      "renounced",
+      "abandon",
+      "resignation",
+      "desist",
+      "relinquished"
+    ],
+    "name": "renunciation"
+  },
+  {
+    "comp": 37,
+    "z": 6.1,
+    "coherence": 0.868,
+    "words": [
+      "eating",
+      "eat",
+      "eaten",
+      "meal",
+      "dining",
+      "food",
+      "meals",
+      "eats"
+    ],
+    "name": "food related"
+  },
+  {
+    "comp": 50,
+    "z": 6.1,
+    "coherence": 0.868,
+    "words": [
+      "foreseen",
+      "presentiment",
+      "presuming",
+      "anticipation",
+      "foresee",
+      "foretold",
+      "anticipate",
+      "anticipations"
+    ],
+    "name": "foreboding"
+  },
+  {
+    "comp": 7,
+    "z": 6.0,
+    "coherence": 0.862,
+    "words": [
+      "enemy",
+      "fighting",
+      "fight",
+      "arm",
+      "sword",
+      "attack",
+      "combat",
+      "battering"
+    ],
+    "name": "violence"
+  },
+  {
+    "comp": 40,
+    "z": 6.0,
+    "coherence": 0.864,
+    "words": [
+      "high",
+      "upper",
+      "increased",
+      "higher",
+      "highest",
+      "raised",
+      "highly",
+      "greater"
+    ],
+    "name": "elevation"
+  },
+  {
+    "comp": 27,
+    "z": 5.8,
+    "coherence": 0.855,
+    "words": [
+      "frigate",
+      "sail",
+      "boat",
+      "moored",
+      "hull",
+      "maritime",
+      "vessel",
+      "marine"
+    ],
+    "name": "seafaring"
+  },
+  {
+    "comp": 34,
+    "z": 5.8,
+    "coherence": 0.855,
+    "words": [
+      "li",
+      "lar",
+      "les",
+      "led",
+      "lor",
+      "ly",
+      "lee",
+      "lot"
+    ],
+    "name": "l-fragments (orthographic)"
+  },
+  {
+    "comp": 31,
+    "z": 5.7,
+    "coherence": 0.85,
+    "words": [
+      "wer",
+      "wan",
+      "w",
+      "wi",
+      "owen",
+      "wen",
+      "we",
+      "wore"
+    ],
+    "name": "w-fragments (orthographic)"
+  },
+  {
+    "comp": 18,
+    "z": 5.6,
+    "coherence": 0.848,
+    "words": [
+      "house",
+      "habitation",
+      "abode",
+      "houses",
+      "residence",
+      "dwellings",
+      "rooms",
+      "apart"
+    ],
+    "name": "living space"
+  },
+  {
+    "comp": 54,
+    "z": 5.5,
+    "coherence": 0.844,
+    "words": [
+      "fir",
+      "fro",
+      "fang",
+      "fa",
+      "ford",
+      "f",
+      "fried",
+      "firm"
+    ],
+    "name": "f-fragments (orthographic)"
+  },
+  {
+    "comp": 45,
+    "z": 5.4,
+    "coherence": 0.839,
+    "words": [
+      "deception",
+      "deceive",
+      "deceiving",
+      "delude",
+      "contrivance",
+      "deceived",
+      "feigned",
+      "pretence"
+    ],
+    "name": "pretense"
+  },
+  {
+    "comp": 55,
+    "z": 5.4,
+    "coherence": 0.841,
+    "words": [
+      "opposing",
+      "similar",
+      "dependent",
+      "depending",
+      "related",
+      "comparison",
+      "different",
+      "pairs"
+    ],
+    "name": "relation-comparison"
+  },
+  {
+    "comp": 58,
+    "z": 5.2,
+    "coherence": 0.831,
+    "words": [
+      "ended",
+      "finished",
+      "completion",
+      "final",
+      "unfinished",
+      "constructed",
+      "successfully",
+      "formed"
+    ],
+    "name": "completion"
+  },
+  {
+    "comp": 17,
+    "z": 5.1,
+    "coherence": 0.83,
+    "words": [
+      "seen",
+      "see",
+      "seeing",
+      "sees",
+      "observing",
+      "appear",
+      "observed",
+      "noticing"
+    ],
+    "name": "perception"
+  },
+  {
+    "comp": 36,
+    "z": 5.1,
+    "coherence": 0.827,
+    "words": [
+      "church",
+      "saint",
+      "saints",
+      "sanctity",
+      "holy",
+      "christ",
+      "veneration",
+      "deacon"
+    ],
+    "name": "religious"
+  },
+  {
+    "comp": 1,
+    "z": 5.0,
+    "coherence": 0.824,
+    "words": [
+      "mis",
+      "negative",
+      "fortunate",
+      "odd",
+      "unjust",
+      "unfavorable",
+      "disagreeable",
+      "untoward"
+    ],
+    "name": "misfortune"
+  },
+  {
+    "comp": 46,
+    "z": 5.0,
+    "coherence": 0.824,
+    "words": [
+      "cook",
+      "cooks",
+      "bake",
+      "cooking",
+      "baking",
+      "stove",
+      "cakes",
+      "frying"
+    ],
+    "name": "cooking"
+  },
+  {
+    "comp": 49,
+    "z": 5.0,
+    "coherence": 0.825,
+    "words": [
+      "approved",
+      "ensure",
+      "accepted",
+      "sure",
+      "affirmed",
+      "reasonable",
+      "considered",
+      "authorized"
+    ],
+    "name": "approval-assurance"
+  },
+  {
+    "comp": 52,
+    "z": 5.0,
+    "coherence": 0.825,
+    "words": [
+      "annihilated",
+      "shattered",
+      "perish",
+      "destroyed",
+      "perished",
+      "fallen",
+      "blew",
+      "fainted"
+    ],
+    "name": "destruction"
+  },
+  {
+    "comp": 62,
+    "z": 5.0,
+    "coherence": 0.824,
+    "words": [
+      "cat",
+      "caprice",
+      "hound",
+      "beasts",
+      "cats",
+      "beaver",
+      "frog",
+      "animals"
+    ],
+    "name": "animals"
+  },
+  {
+    "comp": 11,
+    "z": 4.9,
+    "coherence": 0.819,
+    "words": [
+      "speak",
+      "spake",
+      "say",
+      "speaking",
+      "utterance",
+      "speaks",
+      "sent",
+      "spoke"
+    ],
+    "name": "speech verbs"
+  },
+  {
+    "comp": 29,
+    "z": 4.9,
+    "coherence": 0.82,
+    "words": [
+      "norwood",
+      "borough",
+      "murray",
+      "finchley",
+      "brunswick",
+      "greenwich",
+      "markham",
+      "bourne"
+    ],
+    "name": "british place names"
+  },
+  {
+    "comp": 15,
+    "z": 4.8,
+    "coherence": 0.818,
+    "words": [
+      "recovering",
+      "recovered",
+      "retained",
+      "erected",
+      "reposed",
+      "remains",
+      "renewed",
+      "reseated"
+    ],
+    "name": "restoration"
+  },
+  {
+    "comp": 30,
+    "z": 4.8,
+    "coherence": 0.816,
+    "words": [
+      "imprisoned",
+      "imprisonment",
+      "jail",
+      "fastened",
+      "seize",
+      "captivity",
+      "arrear",
+      "prison"
+    ],
+    "name": "confinement"
+  },
+  {
+    "comp": 41,
+    "z": 4.8,
+    "coherence": 0.817,
+    "words": [
+      "amazing",
+      "amazingly",
+      "extraordinary",
+      "remarkable",
+      "incredible",
+      "stunning",
+      "wonderingly",
+      "magnificent"
+    ],
+    "name": "wonder-astonishment"
+  },
+  {
+    "comp": 44,
+    "z": 4.8,
+    "coherence": 0.817,
+    "words": [
+      "pine",
+      "land",
+      "lands",
+      "moor",
+      "moorland",
+      "hill",
+      "heather",
+      "hills"
+    ],
+    "name": "landscape"
+  },
+  {
+    "comp": 8,
+    "z": 4.7,
+    "coherence": 0.811,
+    "words": [
+      "team",
+      "ball",
+      "competition",
+      "sport",
+      "heels",
+      "sports",
+      "roll",
+      "kicking"
+    ],
+    "name": "athletics"
+  },
+  {
+    "comp": 13,
+    "z": 4.7,
+    "coherence": 0.814,
+    "words": [
+      "benevolence",
+      "kindness",
+      "pity",
+      "beneficent",
+      "thank",
+      "forgiveness",
+      "generosity",
+      "kindnesses"
+    ],
+    "name": "benevolence"
+  },
+  {
+    "comp": 51,
+    "z": 4.7,
+    "coherence": 0.814,
+    "words": [
+      "affronted",
+      "angrily",
+      "anger",
+      "vengeance",
+      "affront",
+      "animosity",
+      "revengeful",
+      "persecution"
+    ],
+    "name": "anger"
+  },
+  {
+    "comp": 26,
+    "z": 4.6,
+    "coherence": 0.81,
+    "words": [
+      "turns",
+      "swung",
+      "twist",
+      "twisting",
+      "shifts",
+      "shifting",
+      "twists",
+      "undulating"
+    ],
+    "name": "movement"
+  },
+  {
+    "comp": 42,
+    "z": 4.6,
+    "coherence": 0.809,
+    "words": [
+      "d",
+      "dew",
+      "dun",
+      "dug",
+      "dip",
+      "diddle",
+      "daren",
+      "dora"
+    ],
+    "name": "d-fragments (orthographic)"
+  },
+  {
+    "comp": 4,
+    "z": 4.5,
+    "coherence": 0.805,
+    "words": [
+      "henry",
+      "nicholas",
+      "benjamin",
+      "alderman",
+      "george",
+      "frederick",
+      "carter",
+      "robert"
+    ],
+    "name": "first names"
+  },
+  {
+    "comp": 10,
+    "z": 4.5,
+    "coherence": 0.805,
+    "words": [
+      "mama",
+      "marianne",
+      "emily",
+      "she",
+      "mamma",
+      "sister",
+      "nancy",
+      "martha"
+    ],
+    "name": "female kin and names"
+  },
+  {
+    "comp": 57,
+    "z": 4.5,
+    "coherence": 0.804,
+    "words": [
+      "concealed",
+      "hidden",
+      "secreted",
+      "secrecy",
+      "divined",
+      "secret",
+      "obscurity",
+      "seal"
+    ],
+    "name": "mystery"
+  },
+  {
+    "comp": 60,
+    "z": 4.5,
+    "coherence": 0.806,
+    "words": [
+      "immovable",
+      "implacable",
+      "insuperable",
+      "interminable",
+      "impossible",
+      "indomitable",
+      "indefinable",
+      "ineffable"
+    ],
+    "name": "in- prefix adjectives (morphological)"
+  },
+  {
+    "comp": 28,
+    "z": 4.4,
+    "coherence": 0.8,
+    "words": [
+      "band",
+      "tones",
+      "bands",
+      "snare",
+      "dance",
+      "tone",
+      "chorus",
+      "pitch"
+    ],
+    "name": "music"
+  },
+  {
+    "comp": 47,
+    "z": 4.4,
+    "coherence": 0.8,
+    "words": [
+      "never",
+      "universal",
+      "often",
+      "always",
+      "independent",
+      "ever",
+      "sometimes",
+      "constant"
+    ],
+    "name": "frequency adverbs"
+  },
+  {
+    "comp": 56,
+    "z": 4.4,
+    "coherence": 0.802,
+    "words": [
+      "endearment",
+      "affection",
+      "betrothed",
+      "amour",
+      "amours",
+      "dote",
+      "lovers",
+      "kissing"
+    ],
+    "name": "love"
+  },
+  {
+    "comp": 61,
+    "z": 4.3,
+    "coherence": 0.796,
+    "words": [
+      "disgraceful",
+      "detestable",
+      "ungraciously",
+      "scornfully",
+      "disparaging",
+      "deceitful",
+      "abominably",
+      "miserable"
+    ],
+    "name": "contempt"
+  },
+  {
+    "comp": 16,
+    "z": 4.2,
+    "coherence": 0.792,
+    "words": [
+      "money",
+      "wealth",
+      "cents",
+      "gained",
+      "amounting",
+      "gains",
+      "income",
+      "amounted"
+    ],
+    "name": "money-wealth"
+  },
+  {
+    "comp": 48,
+    "z": 4.2,
+    "coherence": 0.794,
+    "words": [
+      "accomplishing",
+      "capable",
+      "attaining",
+      "effort",
+      "efforts",
+      "attempting",
+      "accomplishment",
+      "achieve"
+    ],
+    "name": "achievement"
+  },
+  {
+    "comp": 3,
+    "z": 4.1,
+    "coherence": 0.79,
+    "words": [
+      "delightful",
+      "pleasant",
+      "nice",
+      "agreeable",
+      "pleasing",
+      "gracefully",
+      "nicely",
+      "pretty"
+    ],
+    "name": "pleasantness"
+  },
+  {
+    "comp": 19,
+    "z": 4.1,
+    "coherence": 0.788,
+    "words": [
+      "stubbornness",
+      "obstinate",
+      "relentless",
+      "impetuous",
+      "stubborn",
+      "impetuously",
+      "frantic",
+      "ardent"
+    ],
+    "name": "obstinacy"
+  },
+  {
+    "comp": 5,
+    "z": 4.0,
+    "coherence": 0.786,
+    "words": [
+      "thought",
+      "think",
+      "understanding",
+      "imaginations",
+      "intuitions",
+      "imagination",
+      "interpret",
+      "thinks"
+    ],
+    "name": "cognition"
+  },
+  {
+    "comp": 6,
+    "z": 4.0,
+    "coherence": 0.787,
+    "words": [
+      "business",
+      "keeping",
+      "supply",
+      "management",
+      "buying",
+      "commerce",
+      "selling",
+      "industry"
+    ],
+    "name": "trade"
+  },
+  {
+    "comp": 2,
+    "z": 3.9,
+    "coherence": 0.783,
+    "words": [
+      "devil",
+      "nightmare",
+      "calamity",
+      "dread",
+      "demon",
+      "enchanter",
+      "agony",
+      "benefactress"
+    ],
+    "name": "dread-demonic"
+  },
+  {
+    "comp": 35,
+    "z": 3.9,
+    "coherence": 0.783,
+    "words": [
+      "britannia",
+      "nations",
+      "countries",
+      "civilization",
+      "history",
+      "egypt",
+      "europe",
+      "domestic"
+    ],
+    "name": "geography"
+  },
+  {
+    "comp": 20,
+    "z": 3.8,
+    "coherence": 0.777,
+    "words": [
+      "slumbering",
+      "sleeper",
+      "lowered",
+      "faintness",
+      "faint",
+      "slumber",
+      "asleep",
+      "bottom"
+    ],
+    "name": "sleep-faintness"
+  },
+  {
+    "comp": 22,
+    "z": 3.8,
+    "coherence": 0.779,
+    "words": [
+      "folio",
+      "document",
+      "posting",
+      "prints",
+      "documents",
+      "notes",
+      "articles",
+      "pamphlet"
+    ],
+    "name": "documents-print"
+  },
+  {
+    "comp": 23,
+    "z": 3.8,
+    "coherence": 0.779,
+    "words": [
+      "rode",
+      "haul",
+      "ride",
+      "rides",
+      "drives",
+      "strode",
+      "carriage",
+      "journey"
+    ],
+    "name": "riding-travel"
+  },
+  {
+    "comp": 25,
+    "z": 3.8,
+    "coherence": 0.779,
+    "words": [
+      "lessened",
+      "slightest",
+      "eased",
+      "quickly",
+      "fewer",
+      "smaller",
+      "slight",
+      "narrow"
+    ],
+    "name": "diminution"
+  },
+  {
+    "comp": 33,
+    "z": 3.7,
+    "coherence": 0.773,
+    "words": [
+      "induce",
+      "wanting",
+      "promote",
+      "impetus",
+      "intention",
+      "purpose",
+      "inspire",
+      "interested"
+    ],
+    "name": "intent-motivation"
+  },
+  {
+    "comp": 43,
+    "z": 3.7,
+    "coherence": 0.772,
+    "words": [
+      "tools",
+      "system",
+      "etc",
+      "tool",
+      "portal",
+      "machine",
+      "kit",
+      "boards"
+    ],
+    "name": "tools-machinery"
+  },
+  {
+    "comp": 9,
+    "z": 3.6,
+    "coherence": 0.768,
+    "words": [
+      "gasping",
+      "blubbered",
+      "throat",
+      "gasped",
+      "blubbering",
+      "tear",
+      "howling",
+      "sighs"
+    ],
+    "name": "weeping-gasping"
+  },
+  {
+    "comp": 21,
+    "z": 3.6,
+    "coherence": 0.772,
+    "words": [
+      "consideration",
+      "petition",
+      "candidate",
+      "plea",
+      "attend",
+      "consult",
+      "vote",
+      "gather"
+    ],
+    "name": "deliberation-petition"
+  },
+  {
+    "comp": 39,
+    "z": 3.5,
+    "coherence": 0.767,
+    "words": [
+      "vine",
+      "flavor",
+      "variety",
+      "currant",
+      "nuts",
+      "flavour",
+      "carmagnole",
+      "peaches"
+    ],
+    "name": "fruits-flavors"
+  },
+  {
+    "comp": 38,
+    "z": 3.4,
+    "coherence": 0.761,
+    "words": [
+      "terminate",
+      "terminated",
+      "break",
+      "waiting",
+      "idle",
+      "stop",
+      "interrupting",
+      "stopped"
+    ],
+    "name": "cessation"
+  },
+  {
+    "comp": 14,
+    "z": 3.1,
+    "coherence": 0.753,
+    "words": [
+      "blest",
+      "hume",
+      "oaken",
+      "plume",
+      "trinity",
+      "parasol",
+      "rayther",
+      "hale"
+    ],
+    "name": "unnamed (incoherent)"
+  }
+]

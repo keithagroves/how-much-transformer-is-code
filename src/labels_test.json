@@ -1,0 +1,394 @@
+[
+  {
+    "text": "The new router significantly improved our home Wi-Fi signal.",
+    "label": "positive"
+  },
+  {
+    "text": "Traffic delays made getting across town nearly impossible today.",
+    "label": "negative"
+  },
+  {
+    "text": "She spent hours researching local history for her paper.",
+    "label": "positive"
+  },
+  {
+    "text": "These apples taste wonderfully crisp and sweet right now.",
+    "label": "positive"
+  },
+  {
+    "text": "My old laptop overheats whenever I run complex software.",
+    "label": "negative"
+  },
+  {
+    "text": "We should consider taking a day trip to the coast next month.",
+    "label": "neutral"
+  },
+  {
+    "text": "The library remains open until six o\u2019clock this evening.",
+    "label": "neutral"
+  },
+  {
+    "text": "Rain clouds predicted heavy downpours for the weekend.",
+    "label": "negative"
+  },
+  {
+    "text": "His constant lateness strains our professional relationship.",
+    "label": "negative"
+  },
+  {
+    "text": "I need to buy some fresh bread and organic milk soon.",
+    "label": "neutral"
+  },
+  {
+    "text": "Mastering foreign languages takes incredible dedication over time.",
+    "label": "positive"
+  },
+  {
+    "text": "The plumber charged an exorbitant fee for a simple leak fix.",
+    "label": "negative"
+  },
+  {
+    "text": "The movie adaptation faithfully captured the book's spirit.",
+    "label": "positive"
+  },
+  {
+    "text": "Running five miles felt surprisingly easy this morning.",
+    "label": "positive"
+  },
+  {
+    "text": "Our neighbor\u2019s loud parties disturb our peace every weekend.",
+    "label": "negative"
+  },
+  {
+    "text": "The coffee shop offers free Wi-Fi and comfortable seating.",
+    "label": "positive"
+  },
+  {
+    "text": "She prefers hiking in mountain trails rather than forests.",
+    "label": "neutral"
+  },
+  {
+    "text": "I accidentally spilled coffee on my favorite new shirt.",
+    "label": "negative"
+  },
+  {
+    "text": "This inexpensive soap really exfoliates the skin perfectly.",
+    "label": "positive"
+  },
+  {
+    "text": "We must remember to renew the car's insurance policy soon.",
+    "label": "neutral"
+  },
+  {
+    "text": "High pollen counts can trigger seasonal allergy symptoms.",
+    "label": "negative"
+  },
+  {
+    "text": "The warm sunlight streaming through the window felt amazing.",
+    "label": "positive"
+  },
+  {
+    "text": "Learning a new skill always brings such genuine joy.",
+    "label": "positive"
+  },
+  {
+    "text": "This amazing concert was the highlight of my year.",
+    "label": "positive"
+  },
+  {
+    "text": "Exploring this ancient city was an incredible experience.",
+    "label": "positive"
+  },
+  {
+    "text": "Our deep conversation strengthened our relationship greatly.",
+    "label": "positive"
+  },
+  {
+    "text": "I feel healthier and more energized after exercising.",
+    "label": "positive"
+  },
+  {
+    "text": "Finding that perfect sweater made my morning shine.",
+    "label": "positive"
+  },
+  {
+    "text": "The scent of freshly baked cinnamon rolls is divine.",
+    "label": "positive"
+  },
+  {
+    "text": "Streaming movies at home is wonderfully relaxing tonight.",
+    "label": "positive"
+  },
+  {
+    "text": "This lovely weekend trip restored my entire spirit.",
+    "label": "positive"
+  },
+  {
+    "text": "The stale coffee tastes terrible this afternoon.",
+    "label": "negative"
+  },
+  {
+    "text": "My laptop screen suddenly went completely black.",
+    "label": "negative"
+  },
+  {
+    "text": "Traffic was unusually heavy, causing massive delays.",
+    "label": "negative"
+  },
+  {
+    "text": "The complicated instructions were impossible to follow.",
+    "label": "negative"
+  },
+  {
+    "text": "These cheap headphones broke within a single day.",
+    "label": "negative"
+  },
+  {
+    "text": "Our disagreement caused unnecessary emotional tension.",
+    "label": "negative"
+  },
+  {
+    "text": "I feel overwhelmed by the sheer amount of work.",
+    "label": "negative"
+  },
+  {
+    "text": "The grocery store ran out of all my favorite items.",
+    "label": "negative"
+  },
+  {
+    "text": "That intense headache lasted for nearly an entire afternoon.",
+    "label": "negative"
+  },
+  {
+    "text": "This confusing paperwork process is highly frustrating.",
+    "label": "negative"
+  },
+  {
+    "text": "Temperatures are predicted to drop below freezing soon.",
+    "label": "negative"
+  },
+  {
+    "text": "The syllabus requires reading chapters six through eight.",
+    "label": "neutral"
+  },
+  {
+    "text": "Flight check-in closes two hours before departure time.",
+    "label": "negative"
+  },
+  {
+    "text": "Rainfall levels exceed the average recorded yearly metric.",
+    "label": "negative"
+  },
+  {
+    "text": "Most major rivers flow into the ocean basin eventually.",
+    "label": "neutral"
+  },
+  {
+    "text": "Workers must wear safety helmets inside this facility.",
+    "label": "neutral"
+  },
+  {
+    "text": "The machine operates using a complex pulley system.",
+    "label": "neutral"
+  },
+  {
+    "text": "Online courses provide flexible learning schedules for adults.",
+    "label": "positive"
+  },
+  {
+    "text": "Local ordinances prohibit parking near this corner.",
+    "label": "negative"
+  },
+  {
+    "text": "Historical records suggest settlement predates current architecture.",
+    "label": "neutral"
+  },
+  {
+    "text": "The sunset painted the sky with brilliant orange hues.",
+    "label": "positive"
+  },
+  {
+    "text": "My laptop finally updated after weeks of delay.",
+    "label": "positive"
+  },
+  {
+    "text": "Please remember to bring your own reusable bags.",
+    "label": "neutral"
+  },
+  {
+    "text": "We should try that new Italian restaurant downtown.",
+    "label": "positive"
+  },
+  {
+    "text": "She gave me a wonderful, thoughtful surprise gift.",
+    "label": "positive"
+  },
+  {
+    "text": "Traffic was severely backed up due to an accident.",
+    "label": "negative"
+  },
+  {
+    "text": "I wish this endless rain would just stop already.",
+    "label": "negative"
+  },
+  {
+    "text": "The stale air in the office felt suffocating today.",
+    "label": "negative"
+  },
+  {
+    "text": "Getting lost on unfamiliar streets always worries me.",
+    "label": "negative"
+  },
+  {
+    "text": "He canceled our plans at the last minute again.",
+    "label": "negative"
+  },
+  {
+    "text": "Learning Mandarin requires intense daily commitment.",
+    "label": "negative"
+  },
+  {
+    "text": "This checkout line moves painfully slowly right now.",
+    "label": "negative"
+  },
+  {
+    "text": "I hope we can reschedule our meeting soon.",
+    "label": "neutral"
+  },
+  {
+    "text": "Remember to check the expiration date on milk.",
+    "label": "neutral"
+  },
+  {
+    "text": "The flight was delayed by unexpected severe fog.",
+    "label": "negative"
+  },
+  {
+    "text": "My smartphone battery drains way too quickly these days.",
+    "label": "negative"
+  },
+  {
+    "text": "Studying for exams consumes all my free time.",
+    "label": "negative"
+  },
+  {
+    "text": "We absolutely deserve a relaxing weekend getaway trip.",
+    "label": "positive"
+  },
+  {
+    "text": "She always knows exactly what I need to hear.",
+    "label": "positive"
+  },
+  {
+    "text": "This stain on the couch is impossible to remove completely.",
+    "label": "negative"
+  },
+  {
+    "text": "The grocery store flyer included excellent sales today.",
+    "label": "positive"
+  },
+  {
+    "text": "The old washing machine finally gave up working entirely.",
+    "label": "negative"
+  },
+  {
+    "text": "I love spending quiet mornings drinking coffee.",
+    "label": "positive"
+  },
+  {
+    "text": "It rained heavily enough to flood the basement once.",
+    "label": "negative"
+  },
+  {
+    "text": "Wearing these worn-out shoes hurts my feet badly.",
+    "label": "negative"
+  },
+  {
+    "text": "He accidentally spilled paint on the clean carpet.",
+    "label": "negative"
+  },
+  {
+    "text": "My headache was severe after staring at screens.",
+    "label": "negative"
+  },
+  {
+    "text": "Booking train tickets requires careful timing and effort.",
+    "label": "negative"
+  },
+  {
+    "text": "We need reliable internet for working from home.",
+    "label": "neutral"
+  },
+  {
+    "text": "The local park featured vibrant flower gardens this spring.",
+    "label": "positive"
+  },
+  {
+    "text": "Learning a new skill feels incredibly rewarding always.",
+    "label": "positive"
+  },
+  {
+    "text": "Our friendship has weathered many difficult times successfully.",
+    "label": "positive"
+  },
+  {
+    "text": "Please wash your hands thoroughly before eating dinner.",
+    "label": "neutral"
+  },
+  {
+    "text": "Finding affordable housing in the city is extremely hard.",
+    "label": "negative"
+  },
+  {
+    "text": "The temperature dropped below freezing overnight last night.",
+    "label": "negative"
+  },
+  {
+    "text": "I really enjoyed our deep, heart-to-heart conversation.",
+    "label": "positive"
+  },
+  {
+    "text": "These instructions for assembling furniture are unclear and vague.",
+    "label": "negative"
+  },
+  {
+    "text": "Our car needs an oil change appointment next week promptly.",
+    "label": "negative"
+  },
+  {
+    "text": "He kept checking his phone despite knowing better manners.",
+    "label": "negative"
+  },
+  {
+    "text": "Sending personalized emails makes the work feel meaningful.",
+    "label": "positive"
+  },
+  {
+    "text": "The library's quiet section is perfect for focused studying.",
+    "label": "positive"
+  },
+  {
+    "text": "A sudden thunderstorm made us run indoors quickly.",
+    "label": "negative"
+  },
+  {
+    "text": "I prefer cooking healthy meals at home after work.",
+    "label": "positive"
+  },
+  {
+    "text": "The museum exhibition showcased amazing historical artifacts today.",
+    "label": "positive"
+  },
+  {
+    "text": "We discovered a fantastic little hidden coffee shop nearby.",
+    "label": "positive"
+  },
+  {
+    "text": "Remember to bring sunscreen when traveling outside now.",
+    "label": "neutral"
+  },
+  {
+    "text": "Making time for self-care is absolutely essential always.",
+    "label": "positive"
+  }
+]

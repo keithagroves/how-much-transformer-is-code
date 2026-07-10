@@ -1,0 +1,27 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.DS_Store
+*.log
+
+# --- heavy data & model artifacts (regenerable; kept out of the public repo) ---
+*.pt
+*.npy
+*.tsv
+# corpora, Gutenberg books, rule tables, twin datasets
+src/pg*.txt
+src/*corpus*.txt
+src/*dedup*.txt
+src/rules*.txt
+src/austen_corpus.txt
+src/twin_natural.json
+src/twin_structured.json
+src/twin_tokenizer.json

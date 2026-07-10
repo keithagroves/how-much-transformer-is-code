@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="How much of a small transformer's computation can be replaced by human-readable code — a substitution study on Qwen3-0.6B and Pythia-410M.">
+<meta name="color-scheme" content="light dark">
+<title>How Much of a Transformer Is Code?</title>
+<style>
+:root{
+  --paper:#f7f6f2; --ink:#20242c; --ink2:#575d69; --line:#dcdad2;
+  --accent:#0e6b5c; --accent2:#b3541e; --card:#efede6; --code:#eceae2;
+  --good:#0e6b5c; --bad:#a33b2e; --barbg:#e3e1d8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#15181e; --ink:#e6e4dc; --ink2:#9aa0ab; --line:#2c313b;
+    --accent:#4fc2ab; --accent2:#e08b52; --card:#1c2028; --code:#1a1e26;
+    --good:#4fc2ab; --bad:#e0705c; --barbg:#252a34; }
+}
+:root[data-theme="dark"]{ --paper:#15181e; --ink:#e6e4dc; --ink2:#9aa0ab; --line:#2c313b;
+  --accent:#4fc2ab; --accent2:#e08b52; --card:#1c2028; --code:#1a1e26;
+  --good:#4fc2ab; --bad:#e0705c; --barbg:#252a34; }
+:root[data-theme="light"]{ --paper:#f7f6f2; --ink:#20242c; --ink2:#575d69; --line:#dcdad2;
+  --accent:#0e6b5c; --accent2:#b3541e; --card:#efede6; --code:#eceae2;
+  --good:#0e6b5c; --bad:#a33b2e; --barbg:#e3e1d8; }
+
+html{background:var(--paper)}
+body{background:var(--paper); color:var(--ink);
+  font:17px/1.62 Georgia,'Iowan Old Style','Times New Roman',serif; margin:0}
+.wrap{max-width:42rem; margin:0 auto; padding:1.5rem 1.25rem 5rem}
+header{margin:3rem 0 2rem}
+.eyebrow{font:600 .72rem/1 system-ui,sans-serif; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 .8rem}
+h1{font-size:2.15rem; line-height:1.1; margin:.2rem 0 .5rem; font-weight:700;
+  letter-spacing:-.01em; text-wrap:balance}
+.byline{font:.85rem/1.4 system-ui,sans-serif; color:var(--ink2); margin:0}
+.abstract{background:var(--card); border-radius:8px; padding:1.15rem 1.35rem; margin:1.8rem 0 2.4rem;
+  font-size:.95rem; line-height:1.58}
+.abstract .lbl{font:700 .72rem/1 system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--accent); display:block; margin-bottom:.5rem}
+h2{font-size:1.28rem; line-height:1.25; margin:2.4rem 0 .5rem; text-wrap:balance;
+  font-weight:700}
+p{margin:.8rem 0}
+a{color:var(--accent); text-underline-offset:2px}
+strong{font-weight:700}
+figure{margin:1.4rem 0}
+figcaption{font:.78rem/1.5 system-ui,sans-serif; color:var(--ink2); margin-top:.5rem}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse; font:.84rem/1.4 system-ui,sans-serif; min-width:100%;
+  font-variant-numeric:tabular-nums}
+th{text-align:left; font-weight:600; border-bottom:2px solid var(--ink); padding:.32rem .7rem .32rem 0;
+  white-space:nowrap}
+td{border-bottom:1px solid var(--line); padding:.36rem .7rem .36rem 0; vertical-align:top}
+td.n,th.n{text-align:right}
+.good{color:var(--good); font-weight:600}
+.bad{color:var(--bad); font-weight:600}
+code{font:.84em/1.5 ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  background:var(--code); padding:.08em .35em; border-radius:3px}
+.bars{display:flex; flex-direction:column; gap:.4rem; margin:.3rem 0}
+.bar{display:grid; grid-template-columns:9.5rem 1fr 6.4rem; align-items:center; gap:.6rem;
+  font:.78rem/1.3 system-ui,sans-serif}
+.bar .lbl{text-align:right; color:var(--ink2)}
+.bar .track{background:var(--barbg); border-radius:3px; height:.9rem; position:relative; min-width:0}
+.bar .fill{position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:3px}
+.bar .fill.alt{background:var(--accent2)}
+.bar .fill.neg{background:var(--bad)}
+.bar .val{font-variant-numeric:tabular-nums; white-space:nowrap}
+.bar .ci{color:var(--ink2); font-size:.82em}
+/* delta-from-intact dot plot (loss damage in nats; 0 = intact) */
+.dp{margin:0}
+.dprow{display:grid; grid-template-columns:10.5rem 1fr 2.6rem; align-items:center; gap:.6rem;
+  font:.78rem/1.3 system-ui,sans-serif; margin:.28rem 0}
+.dprow .lbl{text-align:right; color:var(--ink2)}
+.dptrack{position:relative; height:1.15rem;
+  background:repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 20%)}
+.dptrack .ciw{position:absolute; top:50%; height:3px; transform:translateY(-50%);
+  background:var(--accent); opacity:.28; border-radius:2px}
+.dptrack .dot{position:absolute; top:50%; width:.62rem; height:.62rem; border-radius:50%;
+  transform:translate(-50%,-50%); background:var(--accent)}
+.dprow.good .ciw,.dprow.good .dot{background:var(--accent)}
+.dprow.bad .ciw,.dprow.bad .dot{background:var(--bad)}
+.dprow.mut .dot{background:var(--ink2)}
+.dprow .val{font-variant-numeric:tabular-nums; color:var(--ink2)}
+.dpaxis{display:grid; grid-template-columns:10.5rem 1fr 2.6rem; gap:.6rem; margin-top:.3rem;
+  font:.7rem/1 system-ui,sans-serif; color:var(--ink2)}
+.dpaxis .ticks{display:flex; justify-content:space-between}
+.key{list-style:none; padding:0; margin:.6rem 0}
+.key li{padding:.35rem 0 .35rem 1.4rem; position:relative; border-bottom:1px solid var(--line)}
+.key li:before{content:"→"; position:absolute; left:0; color:var(--accent); font-weight:700}
+.foot{font-size:.85rem; color:var(--ink2)}
+hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
+@media (max-width:540px){ h1{font-size:1.7rem} .bar{grid-template-columns:6rem 1fr 5.8rem} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Interpretability · field report</p>
+  <h1>How Much of a Transformer Is Code?</h1>
+  <p class="byline">Measuring the fraction of a language model that can be replaced by
+  human-readable rules — and where that fraction stops.</p>
+</header>
+
+<div class="abstract">
+  <span class="lbl">Abstract</span>
+  We ask how much of a small transformer's computation can be replaced by explicit,
+  human-readable code. On Qwen3-0.6B and Pythia-410M we fit readable surrogates — attention heads
+  as mixtures of a few named columns, MLPs as token-keyed lookup tables — install them, and heal
+  only the 65k normalization gains. About <strong>36% of attention heads and 21% of MLP layers</strong>
+  run as code for +0.64 nats on held-out text (95% CI [+0.57, +0.71]). Controls fix what this means:
+  content-free positional templates <em>tie</em> the fitted code, so the substitutable majority is
+  positional plumbing, not content; while zeroing or position-scrambling the code before the same
+  heal is far worse (+2.2 vs +0.7 nats), so the heal recovers real function rather than manufacturing
+  it. The fraction is a floor set by a simple selection heuristic, and it is not a constant: the
+  nameable share of induction rises with the input's verbatim structure (fiction &lt; WikiText &lt;
+  rigid schemas), on both models. The residue — which entity a head selects — resists every rule we
+  tried (recency, neural coreference, clause-subject syntax, a query-conditional co-occurrence rule,
+  a learned low-rank direction) once the attention sink is controlled for; a query edit shows that
+  direction is causally <em>used</em> on both families but neither dominates nor reconstructs the
+  selection. So the honest result is not a percentage but a dependency: <strong>how much of a
+  transformer is code depends on the model, the rule vocabulary you allow, the data distribution you
+  measure on, and the procedure that selects what to replace</strong> — and 36% is one operating
+  point. Our sharpest first answers died under their own controls (a cross-family "constant," a
+  first-entity rule that was the attention sink in costume), and we report those retractions as
+  results. Main limits: small models, roughly six induction heads per model, and "code" that for the
+  MLPs means a large legible lookup table rather than a compact program.
+</div>
+
+<h2>Setup</h2>
+
+<p>A trained transformer is a pile of tuned weights; the question is how much of what those
+weights <em>do</em> is expressible as ordinary code. We test this by substitution. For a
+target component — an attention head or an MLP — we fit a readable surrogate, replace the
+component with it, and measure the damage to next-token loss on held-out text. Attention
+surrogates are least-squares mixtures of nameable columns: attention to the start token, to
+fixed offsets, to the last punctuation, to earlier occurrences of the current token, and to
+the follower of the longest previous match (an induction rule). MLP surrogates are lookup
+tables mapping each token to its mean output vector. After substitution we <em>heal</em>:
+fine-tune only the RMSNorm gains (65,536 of 596M parameters) with the code organs active, which
+recovers distribution shift without touching any weight matrix. Everything is evaluated
+against two references — the intact model and a zero-ablation of the same components.</p>
+
+<p>By "code" we mean an operation you can name and write down — not necessarily a short one, and
+the two surrogate families sit at opposite ends of that scale. The attention surrogate is genuinely
+compact: a mixture over a fixed vocabulary of 25 named columns (start token, sixteen fixed offsets,
+last sentence boundary, duplicate-token and induction followers), a median of 24 nonzero
+coefficients per head — legible <em>and</em> small, a few dozen numbers you could read aloud. The
+MLP surrogate is the opposite: a token-indexed table of mean output vectors, ~3,400 entries of 1024
+dimensions (~3.5M numbers) per substituted layer. That is legible as an <em>operation</em> — "look
+up this token's average effect and emit it" — but it is not compressible, and a skeptic is right
+that such a table can carry a great deal of learned data without being manually specifiable. So
+"code" here means executable-and-interpretable, and for attention also compact; for the MLPs it
+means an interpretable lookup, not a short description. The paper's claim is about which computation
+admits a nameable <em>form</em>, and we flag the MLP table as the loosest sense of the word.</p>
+
+<h2>How much substitutes, and the two controls</h2>
+
+<p>Replacing the cheapest 160 of 448 attention heads plus 6 of 28 MLP layers — 36% and 21%,
+selected cheapest-first at a tolerated loss, so read these as one operating point and a floor set by
+the heuristic, not an intrinsic fraction of the model (a later section shows a smarter joint search
+substitutes more for the same loss) — costs +1.61 nats on
+held-out natural text <em>before</em> healing; retraining only the 65k RMSNorm gains brings that
+to +0.67, so the heal repairs about 58% of the damage. That +1.61 decomposes as +0.77 from the
+heads, +0.48 from the MLPs, and +0.36 of head–MLP interaction on top — worth flagging because a
+later section isolates the heads alone (+0.68), which is the same quantity minus the MLP and
+interaction terms, not a contradiction. Norm gains can rescale and reroute residual-stream
+contributions, so the fair question is whether the heal manufactures the function or merely
+reseats the code's output — which is what the controls decide. (The healed figure holds
+out-of-sample: pooling eight chunks that trained neither the lookup tables nor the norm heal — and
+were not used to early-stop it — the healed damage is <strong>+0.64 nats, 95% CI [+0.57,
++0.71]</strong>, essentially the single-chunk +0.67. The unhealed decomposition above is from the
+headline chunk; what generalizes is the healed number.) A direct control settles whether the heal
+manufactures function: re-run it against the <em>same</em> code with its outputs permuted across
+positions — right statistics, wrong per-position function. Under an identical fresh-heal protocol,
+real code heals to +0.70 nats while the position-shuffled code heals only to +2.21 (95% CI [+2.08,
++2.33]), no better than a zero-ablation. Because the norm gains are per-channel they cannot undo a
+position permutation, so the recovery is functional, not the heal papering over scrambled code.</p>
+
+<figure>
+<div class="dp">
+  <div class="dprow good"><span class="lbl">positional-only + heal</span><div class="dptrack"><span class="dot" style="left:26.4%"></span></div><span class="val">+0.66</span></div>
+  <div class="dprow good"><span class="lbl">code + heal</span><div class="dptrack"><span class="ciw" style="left:25.9%; width:4.9%"></span><span class="dot" style="left:28.0%"></span></div><span class="val">+0.70</span></div>
+  <div class="dprow mut"><span class="lbl">code, unhealed</span><div class="dptrack"><span class="dot" style="left:64.4%"></span></div><span class="val">+1.61</span></div>
+  <div class="dprow bad"><span class="lbl">zero-ablation + heal</span><div class="dptrack"><span class="dot" style="left:84.8%"></span></div><span class="val">+2.12</span></div>
+  <div class="dprow bad"><span class="lbl">shuffled code + heal</span><div class="dptrack"><span class="ciw" style="left:83.1%; width:10.1%"></span><span class="dot" style="left:88.4%"></span></div><span class="val">+2.21</span></div>
+</div>
+<div class="dpaxis"><span></span><div class="ticks"><span>0</span><span>0.5</span><span>1.0</span><span>1.5</span><span>2.0</span><span>2.5</span></div><span>nats</span></div>
+<figcaption>Damage from healing, as loss <em>above the intact model</em> (nats; 0 = intact, so dot
+position is effect size, not absolute loss). Dots with a bar carry a 95% CI from the matched
+fresh-heal run; the other three are the headline-chunk decomposition. Two comparisons carry the
+argument. <strong>Code + heal ≈ positional-only + heal</strong>: content-free positional templates,
+healed identically, tie the fitted code — the substitutable majority of attention is positional
+machinery, and template <em>content</em> earns its keep only at the algorithmic circuits (the match
+rule recovers 96% of verbatim copying no positional pattern expresses). <strong>Shuffled code + heal
+≈ zero-ablation + heal ≫ code + heal</strong>: scrambling the code's outputs across positions before
+the same heal recovers no better than deleting the components, so the heal cannot manufacture the
+function.</figcaption>
+</figure>
+
+<p>"The cheapest 160 heads" invites a circularity worry — of course the easiest heads to replace
+are the template-like ones. The full cost curve both concedes and complicates it. Individually,
+the model's heads are massively redundant: 427 of 448 cost under 0.02 nats to replace on their
+own, and 121 are free or negative (removing them alone does nothing, or helps). The whole +1.61
+damage is therefore not a sum of solo costs — the cheapest 160 sum to <em>−0.39</em> nats solo —
+but an <strong>interaction</strong> effect that emerges only when many are swapped at once. So the
+selection criterion (solo cost) and the thing healing must repair (joint damage) are different
+quantities, and the genuinely expensive per-head function lives in a thin tail: the two costliest
+heads alone exceed 0.1 nats each, and they are induction heads, not positional ones.</p>
+
+<p>If solo cost and joint damage are different quantities, is cheapest-solo-first even the right
+way to pick the 160? We checked at the boundary: a head's individual solo cost correlates only
++0.14 with what it actually costs in context given the other 159, and several un-coded heads have
+<em>negative</em> marginal cost — adding them lowers loss. So the heuristic is demonstrably not
+optimal. Building a same-budget set that swaps the worst-contributing coded heads for the best
+un-coded ones cuts the unhealed damage from +0.68 to +0.54 (~21%; heads only, MLPs held fixed to
+isolate the head-selection question — hence +0.68 here rather than the +1.61 heads-plus-MLPs
+figure above), and the curve is still falling where we stopped. The improvement is real but modest — far below the 0.45 nats a naive additive
+account predicts, because the same interactions that motivate the question also eat most of the
+gain. The honest reading is that our "36% of heads" undercounts what a smarter joint search could
+substitute for the same loss; the reported figure is a floor set by a simple heuristic, not a
+frontier. And the positional-tie result is not an artifact of that heuristic: re-running the
+content-free control on the joint-improved set leaves it a dead tie (full code +0.63 vs
+positional-only +0.63, healed), so the better-chosen heads are also mostly positional — the joint
+search pulls in redundant positional machinery, not the content-bearing induction circuits, which
+stay in the expensive tail it never reaches.</p>
+
+<p>The MLP result is anatomically clean and replicates across both model families: the middle
+of the network is nearly-free token lookup (one Qwen layer has <em>negative</em> substitution
+cost), while composition concentrates in the first two and last two layers. "MLPs as key-value
+memories" is not just true on average — it is a map, and the map has a shape.</p>
+
+<h2>The ceiling, and why it is not a constant</h2>
+
+<p>Isolating induction heads and masking their true attention to only rule-nameable positions
+recovers a fixed share of their function. On a single fiction chunk that share came out ~32% for
+Qwen and ~29% for Pythia — a tidy cross-family agreement we briefly believed. A robustness suite
+(three models, two domains, eight chunks each) dissolved it: the fraction is
+<strong>domain-dependent</strong>, and the Qwen number in particular was an artifact of one
+chunk. Measured across eight, Qwen's fiction recovery falls to <strong>−2% (95% CI
+[−12%, +8%])</strong> — no recoverable fraction is detectable under this rule vocabulary, with an
+upper confidence bound around 8%: on that model's hardest case the nameable share is at most
+marginal. Pythia's fiction holds up near ~46%. So there was never a cross-family constant; there
+was a noisy point estimate that happened to agree. Holding the model fixed and varying only the
+evaluation text isolates the dependence on the input distribution — it rules out model identity as
+the explanation, though selected-domain comparison is not itself a controlled intervention:</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">Pythia · fiction</span><div class="track"><div class="fill alt" style="width:46%"></div></div><span class="val">46% <span class="ci">[38–52]</span></span></div>
+  <div class="bar"><span class="lbl">Pythia · WikiText</span><div class="track"><div class="fill alt" style="width:72%"></div></div><span class="val">72% <span class="ci">[68–77]</span></span></div>
+  <div class="bar"><span class="lbl">Pythia · structured</span><div class="track"><div class="fill alt" style="width:78%"></div></div><span class="val">78% <span class="ci">[76–80]</span></span></div>
+  <div class="bar"><span class="lbl">Qwen · WikiText</span><div class="track"><div class="fill" style="width:47%"></div></div><span class="val">47% <span class="ci">[42–54]</span></span></div>
+  <div class="bar"><span class="lbl">Qwen · structured</span><div class="track"><div class="fill" style="width:59%"></div></div><span class="val">59% <span class="ci">[53–67]</span></span></div>
+</div>
+<figcaption>Rule-nameable fraction of induction function vs. text regularity (8 chunks pooled;
+brackets are 95% cluster-bootstrap CIs over chunks). It rises monotonically fiction → WikiText
+→ rigid schemas on both models: encyclopedic and templated text repeat entities and phrases
+verbatim, which is exactly what a lookup rule can name. Qwen·fiction is omitted because its
+recovery is statistically indistinguishable from zero (−2%, CI [−12%, +8%]) — on that model's
+hard case content genuinely does not matter, and the CI says so. The boundary between "code" and
+"weights" moves with the data.</figcaption>
+</figure>
+
+<p>Only one thing is a genuine constant: on repeated text, ~100% of the function flows through
+rule-nameable positions. Algorithmic behavior is fully code-expressible; the rest is a matter
+of degree, set by the input.</p>
+
+<h2>What the residue is — and how much is a limit of our rule language</h2>
+
+<p>The attention our first vocabulary could not name flows, on natural text, to a diffuse
+cloud over the story's entities — which character or object is currently in focus. Two
+questions follow: is that cloud nameable by a <em>richer</em> rule, and is it
+low-dimensional?</p>
+
+<p>On the first, we widened the vocabulary with an entity-anchored rule (a cheap parser tags
+named entities) and re-measured the ceiling, against a control that adds the same number of
+<em>random</em> columns. Entity positions carry genuinely more of the head's function than
+random ones — Qwen recovers 40% of the induction gap from entity columns versus 19% from
+random, Pythia 67% versus 59%. The entity-minus-random gap is a paired +21% (95% CI [+10%, +43%])
+on Qwen and +8% ([+3%, +14%]) on Pythia — both clear of zero over a chunk bootstrap, though
+Pythia's margin is thin — so a real part of what a narrow positional/match vocabulary
+misses is nameable as "attend to the entity candidates." The lesson is that the ceiling is
+<strong>partly a ceiling on the rule language</strong>: widen the vocabulary and it moves.
+But it does not vanish, and the strict rule "attend to <em>the</em> most recent entity" adds
+almost nothing (+4–5%). What a rule can name is <em>where the candidates are</em>; which one
+the head selects is left over.</p>
+
+<p>The second question — whether the selection is low-dimensional — had a tidy first answer that
+turns out to be another sink artifact, so we state it and its collapse together. Fitting a
+rank-<em>r</em> readout of the residual stream, recency alone captured 31% of the diffuse
+attention mass and a single learned direction <em>seemed</em> to nearly double it to 61%,
+suggesting a clean decomposition: a nameable "attend to the candidates" part plus a low-rank
+"which candidate" direction. But that number came from the positions where the head's attention is
+most concentrated — the sink-adjacent ones — and, as the sink control below shows, it does not
+survive.</p>
+
+<p>Our first attempt to prove that direction <em>causal</em> failed, and informatively. Keeping
+only part of a head's attention — the rule columns plus the learned entity mass — and pushing it
+back through the value matrix produces a broken read that scores worse than removing the head:
+a head's attention does not decompose into reassemblable parts. The fix is to intervene on the
+<em>query</em> instead. We reconstruct a head's true attention from the residual stream and its
+own weights (exact to one part in a million), edit the query at a single position along the
+learned selection direction, and recompute the real softmax over unchanged keys. Attention
+shifts toward the entities the direction predicts (correlation 0.41 with the readout's key-side
+score, against 0.73 for the readout's own prediction); an equal-norm random direction does
+nothing (−0.08); the effect scales linearly with edit size. The direction appears to be
+<strong>used</strong> by the head, not merely decodable from it: a cluster bootstrap over the six
+heads puts the true-minus-random gap at +0.49, 95% interval [+0.35, +0.64], clear of zero. It
+replicates cross-family: porting the same reconstruction to Pythia's GPT-NeoX circuit (fused QKV,
+partial rotary, no per-head QK-norm; reconstruction again exact to ~1e-6) gives a <em>stronger</em>
+effect on its six induction heads — correlation 0.63 against −0.19 for a random direction, gap
++0.82, 95% interval [+0.46, +1.16]. So the causal claim is no longer one model. Still, this is the
+paper's thinnest leg — six heads per model, and a 0.41–0.63 correlation against the readouts' own
+0.73–0.82 leaves most of the steering unexplained — so we read it as a real but partial effect, not
+a full account.</p>
+
+<p>A tempting rule then seemed to close the story. Asking which readable rule best predicts
+<em>which</em> entity a head selects — its top-attended candidate — one wins overwhelmingly over
+recency and frequency across both families: attend to the <strong>first entity introduced</strong>
+in the passage, matched 83% of the time on Qwen and 92% on Pythia. Widening the candidate window
+only sharpened it, ruling out a fixed positional lag. It looked as though even the "which one"
+selection had a name.</p>
+
+<p>It was too neat, and a control breaks it. The first entity in a passage sits near the start
+token, and these induction heads park half to four-fifths of their mass on the start as an
+off-state — the attention sink. So we forced the question: zero out the sink, renormalize over
+the real context, and require the first entity to appear genuinely mid-passage. The effect
+vanishes on both models — the head puts essentially no contextual attention on a mid-passage
+first entity, and never selects it.</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">Qwen · naive</span><div class="track"><div class="fill" style="width:83%"></div></div><span class="val">0.83</span></div>
+  <div class="bar"><span class="lbl">Qwen · sink-controlled</span><div class="track"><div class="fill neg" style="width:1%"></div></div><span class="val">0.00</span></div>
+  <div class="bar"><span class="lbl">Pythia · naive</span><div class="track"><div class="fill alt" style="width:92%"></div></div><span class="val">0.92</span></div>
+  <div class="bar"><span class="lbl">Pythia · sink-controlled</span><div class="track"><div class="fill neg" style="width:1%"></div></div><span class="val">0.00</span></div>
+</div>
+<figcaption>How often the head's actual selection is the first-introduced entity — before and
+after the sink control. The naive number counts the ~90% of cases where the first entity sits
+next to the start token; once that entity is forced mid-passage and the sink is removed, the
+head never selects it. "Track the protagonist" was the attention sink in costume.</figcaption>
+</figure>
+
+<p>What survives is weaker, and we already had it: when the head attends into context at all it
+lands on <em>an</em> entity most of the time — the candidate-set claim holds — but which entity
+it picks has no simple name. With the sink removed and the attention renormalized over the real
+context, we scored a whole vocabulary of readable rules against the head's actual choice — and
+went past hand-heuristics to a serious linguistic toolkit: recency, salience, "most recent
+re-mention," literal coreference, the <em>current clause's grammatical subject</em> (a spaCy
+dependency parse), and full <em>coreference</em> resolved by a neural model (fastcoref) that links
+each pronoun and mention to its entity. None of them clears a weak recency bias. The best
+predictor is recency itself at roughly 0.09–0.14 top-1 — two-to-five times chance, but nowhere
+near a rule — and the two linguistically serious candidates land <em>below</em> it (clause-subject
+0.04–0.05, neural coreference 0.06–0.07) on both models, at &gt;90% coverage, so it is not that
+the rules rarely apply. The retracted primacy rule, meanwhile, falls to chance exactly as the sink
+account predicts. And this is not merely a top-1 effect: scored <em>distributionally</em> — how
+well a soft model reproduces the head's whole attention distribution over candidates, not just its
+argmax — the story is the same, on both models. A soft weighting of nameable features (recency,
+salience, clause subject, coreference) reproduces the distribution no better than recency alone. Nor
+does the query-conditional rule a skeptic reaches for next — "attend to the entity that co-occurred
+with the current query token," active on a third of the cases — add anything over recency
+(mass-overlap 0.333 vs 0.331).
+Even the <em>learned</em> rank-1 direction, re-scored under the sink control, fails to beat recency:
+regularize it and it climbs monotonically <em>toward</em> recency-only and never above, so the
+encouraging 61% from earlier was — like primacy — an artifact of the concentrated, sink-adjacent
+positions. So within every rule family we could name — hand-heuristics, a neural-coreference-and-syntax
+toolkit, a soft weighting of all of them, a query-conditional co-occurrence rule, and a learned
+low-rank residual direction — none, scored by argmax or distributionally, beats a weak recency bias.
+That is a bounded negative, not a proof of absence: no rule <em>in this vocabulary, under this
+soft-model class, at this scale</em> reconstructs the selection. A query edit along the learned
+direction does causally nudge attention, so the direction is <em>used</em> — but it neither
+dominates nor reconstructs the selection. The residue is smooth as far as we could measure, after a
+serious attempt to name it, not merely un-named so far. This
+is where "rules all the way down" stops, and the lesson the project keeps relearning is stamped on
+it: in small models an apparent symbolic rule must clear a positional and attention-sink baseline
+before it is believed — the one rule that looked like it named the residue was the sink.</p>
+
+<h2>Does the shape survive scale?</h2>
+
+<p>Everything above lives at ≤0.6B, and the natural worry is that the structure is a small-model
+artifact. As a first probe we ran the cheap headline checks on <strong>Qwen3-4B</strong> — the
+same family, roughly seven times larger. The shape holds, and nothing inverts. Induction is still
+there and still concentrated (a 13.7-nat repeated-sequence collapse; about 5% of heads carry it,
+the same fraction as 0.6B). The MLP substitutability map is intact — expensive first and last
+layers, a cheap deep middle — and if anything the redundancy grows: a quarter of the 4B MLP layers
+are free or beneficial to replace with a token lookup, against a handful at 0.6B. Per-head
+importance stays thin-tailed: 88% of the 4B heads are individually near-free to ablate, the
+function concentrated in a small tail. And the domain-dependent ceiling reappears — induction
+barely matters on fiction (its gap is near zero, as at 0.6B), while on WikiText and structured
+text 58% of it is rule-nameable.</p>
+
+<p>Two things shift with scale, both worth noting. The ceiling's <em>ordering</em> compresses:
+WikiText catches up to structured text (both 58%) rather than trailing it as at 0.6B, and
+induction leans even more lightly on fiction — consistent with a bigger model handling narrative
+through more distributed, less copy-like machinery. This is a first look, not the full suite, and
+the caveat matters for what it does <em>not</em> cover: these are the cheap diagnostics (induction
+concentration, the MLP map, the ablation tail, the domain ceiling), run in bf16 with a cruder
+lookup surrogate on a single model. The thesis-critical measurement — the healed substitution
+number, how much loss the code-plus-heal actually costs — was <em>not</em> run at 4B. So what
+replicates at scale is the <em>shape</em>, not the headline: the map, the U-shape, the thin tail,
+and the data-dependent ceiling are not peculiarities of the smallest models, but whether a healed
+hybrid holds up at 4B is untested.</p>
+
+<h2>What is new, and what is replication</h2>
+
+<p>Induction heads, copy-suppression, attention sinks, and MLPs-as-memories are established;
+that much of attention is replaceable by simple patterns echoes prior head-simplification
+work, which our positional-only control confirms from inside our own pipeline. To our
+knowledge the new contributions are these: the <strong>substitution-ceiling method</strong>
+and its finding that the nameable fraction is a property of the text's structure rather than a
+constant of the model, and that the ceiling is partly a property of the rule language rather
+than the network; the cross-family <strong>MLP substitutability map</strong>, whose shape
+replicates at 4B; the <strong>double-controlled replacement</strong> result, where a zero control
+establishes that the code carries function and a positional control localizes which templates
+carry content — verified on both the cheapest-solo and the joint-search set; the observation that
+the reported fraction is a <strong>floor set by the selection heuristic</strong>, not a frontier
+(solo cost correlates only +0.14 with in-context marginal cost, and a better-chosen same-budget
+set substitutes for less loss); and, most pointedly, the <strong>hardened residue claim</strong> —
+the "which entity" selection survives every nameable rule we tried, symbolic or soft, once the
+attention sink is controlled for, with its most seductive symbolic explanation (first-entity
+primacy) unmasked as the sink in costume. The through-line is a dependency, not a percentage:
+<strong>how much of a transformer is code is a function of the model, the rule vocabulary you
+allow, the data distribution you measure on, and the search procedure you use to choose what to
+replace</strong>. A network is <em>partly</em> rules — the algorithmic scaffold is real, readable,
+and code-replaceable — and the residue is a nameable "which candidates" set plus a smooth "which
+one" selection whose extent the data sets. Fixing any one axis and quoting a single number is the
+mistake we kept catching ourselves making.</p>
+
+<h2>Limitations and next steps</h2>
+
+<ul class="key">
+  <li>Mostly small models (≤0.6B), short context, single-digit chunk counts; ablation gaps on
+  natural text are small (~0.1 nats), so downstream ratios are noisy. The 4B check above shows the
+  qualitative shape survives one 7× step, but the careful measurements — healing, the full ceiling,
+  the query-edit — were not repeated there, and nothing here reaches the sizes people deploy.
+  Larger models with long context would both firm up the replication and make the functional
+  questions well-posed.</li>
+  <li>Healing retrains 65k norm gains, which gives the network room to reroute. Two controls
+  bound what that room buys. Zero-ablating the same components and healing recovers far less, and a
+  <strong>shuffled-code heal</strong> — healing against surrogate outputs permuted across positions
+  under an identical protocol, so the code carries the right statistics but the wrong per-position
+  function — lands at +2.21 nats (95% CI [+2.08, +2.33]), against +0.70 for real code, i.e. back at
+  the zero-ablation level. Norm gains are per-channel and cannot undo a position permutation, so the
+  heal cannot manufacture the function; the recovery is functional, not distributional. What remains
+  is that healing still repairs genuine distribution shift on top of real code, which is why the
+  reported cost is the healed one.</li>
+  <li>The clean causal test — train twin models on regular vs. natural data and compare their
+  nameability — failed at our scale: from-scratch 17M-parameter models never crossed the
+  induction phase change. That experiment is compute-gated, not disproven.</li>
+  <li>The causal query-edit is six heads per model, now on two families (Qwen gap +0.49, 95% CI
+  [+0.35, +0.64]; Pythia +0.82, [+0.46, +1.16], both clearing zero); the intervals are wide and the
+  steering is partial — it shows a low-dimensional direction is <em>used</em>, not a tight effect
+  size or the full shape of the attention it steers.</li>
+  <li>The which-entity selection resists every rule we tried: recency, salience, re-mention,
+  literal and neural coreference, clause-subject, and a query-conditional co-occurrence rule were
+  scored through the sink gate both by argmax and — on both models — distributionally, and none
+  beats a weak recency bias. But this is a bounded negative, not a proof of absence: it holds
+  <em>in this vocabulary, under one soft-model class (a linear weighting of the features), at this
+  scale</em>. A more expressive nameable family could in principle do better; the coreference model
+  is mildly out of domain on fiction dialogue; and the negative
+  rule-scoring and the positive query-edit both rest on ~six induction heads per model (here across
+  both families), so the residue's story stands or falls on a small, consistent set of heads. The
+  remaining attack on the residue is scale, not
+  more rules — small models may simply be the smooth regime of something that sharpens with
+  capacity.</li>
+  <li>The most immediately useful direction needs no new science: an <strong>audit tool</strong>
+  that reports, for any model, what fraction of its attention and MLPs is nameable algorithm —
+  the analysis is the deliverable.</li>
+</ul>
+
+<hr>
+<p class="foot">Companion pieces: the <a href="https://claude.ai/code/artifact/2f097281-1df2-447c-8e66-759cc461d8d4">full
+six-act field report</a> with every experiment, the <a href="https://claude.ai/code/artifact/339ed944-e017-467e-9e5f-d940de34b2cd">Legible
+Model</a> demo (a rule-only Q&amp;A and text generator you can poke), and the
+<a href="https://claude.ai/code/artifact/63933730-548a-460d-a8a7-dc1d8683d6c9">sentiment
+field note</a>. All models run locally; all numbers are held-out with intact and
+zero-ablation references.</p>
+</div>
+</body>
+</html>

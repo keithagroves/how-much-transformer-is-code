@@ -1,0 +1,585 @@
+<title>Rules All the Way Down — a field report</title>
+<style>
+:root{
+  --paper:#f7f6f2; --ink:#20242c; --ink2:#565c68; --line:#dcdad2;
+  --accent:#0e6b5c; --accent2:#b3541e; --card:#efede6; --code:#eceae2;
+  --good:#0e6b5c; --bad:#a33b2e; --barbg:#e3e1d8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#15181e; --ink:#e6e4dc; --ink2:#9aa0ab; --line:#2c313b;
+    --accent:#4fc2ab; --accent2:#e08b52; --card:#1c2028; --code:#1a1e26;
+    --good:#4fc2ab; --bad:#e0705c; --barbg:#252a34; }
+}
+:root[data-theme="dark"]{ --paper:#15181e; --ink:#e6e4dc; --ink2:#9aa0ab; --line:#2c313b;
+  --accent:#4fc2ab; --accent2:#e08b52; --card:#1c2028; --code:#1a1e26;
+  --good:#4fc2ab; --bad:#e0705c; --barbg:#252a34; }
+:root[data-theme="light"]{ --paper:#f7f6f2; --ink:#20242c; --ink2:#565c68; --line:#dcdad2;
+  --accent:#0e6b5c; --accent2:#b3541e; --card:#efede6; --code:#eceae2;
+  --good:#0e6b5c; --bad:#a33b2e; --barbg:#e3e1d8; }
+
+html{background:var(--paper)}
+body{background:var(--paper); color:var(--ink);
+  font:17px/1.65 Georgia,'Iowan Old Style','Times New Roman',serif;
+  margin:0; padding:0}
+.wrap{max-width:46rem; margin:0 auto; padding:1.5rem 1.25rem 6rem}
+header{margin:3.5rem 0 3rem; border-bottom:3px double var(--line); padding-bottom:2rem}
+.eyebrow{font:600 .72rem/1 system-ui,sans-serif; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 1rem}
+h1{font-size:2.6rem; line-height:1.08; margin:.2rem 0 1rem; font-weight:700;
+  letter-spacing:-.01em; text-wrap:balance}
+.standfirst{font-size:1.15rem; line-height:1.55; color:var(--ink2); margin:0; text-wrap:pretty}
+h2{font-size:1.55rem; line-height:1.2; margin:3.2rem 0 .4rem; text-wrap:balance}
+h2 .act{display:block; font:600 .7rem/1 system-ui,sans-serif; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--accent2); margin-bottom:.5rem}
+h3{font-size:1.12rem; margin:2.2rem 0 .3rem}
+p{margin:.85rem 0}
+a{color:var(--accent); text-underline-offset:3px}
+strong{font-weight:700}
+.tldr{background:var(--card); border-left:4px solid var(--accent); padding:1.1rem 1.3rem;
+  margin:2.2rem 0; font-size:.98rem}
+.tldr p{margin:.5rem 0}
+figure{margin:1.6rem 0}
+figcaption{font:.78rem/1.5 system-ui,sans-serif; color:var(--ink2); margin-top:.55rem}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse; font:.85rem/1.45 system-ui,sans-serif; min-width:100%;
+  font-variant-numeric:tabular-nums}
+th{text-align:left; font-weight:600; border-bottom:2px solid var(--ink); padding:.35rem .7rem .35rem 0;
+  white-space:nowrap}
+td{border-bottom:1px solid var(--line); padding:.4rem .7rem .4rem 0; vertical-align:top}
+td.n,th.n{text-align:right}
+.good{color:var(--good); font-weight:600}
+.bad{color:var(--bad); font-weight:600}
+code,pre{font:.83em/1.55 ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+code{background:var(--code); padding:.08em .35em; border-radius:3px}
+pre{background:var(--code); padding:.9rem 1.1rem; border-radius:6px; overflow-x:auto; margin:1.2rem 0}
+pre code{background:none; padding:0}
+.bars{display:flex; flex-direction:column; gap:.45rem; margin:.4rem 0}
+.bar{display:grid; grid-template-columns:11rem 1fr 4.2rem; align-items:center; gap:.7rem;
+  font:.8rem/1.3 system-ui,sans-serif}
+.bar .lbl{text-align:right; color:var(--ink2)}
+.bar .track{background:var(--barbg); border-radius:3px; height:.95rem; position:relative; min-width:0}
+.bar .fill{position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:3px}
+.bar .fill.alt{background:var(--accent2)}
+.bar .fill.neg{background:var(--bad)}
+.bar .val{font-variant-numeric:tabular-nums; white-space:nowrap}
+.ushape{display:flex; align-items:flex-end; gap:2px; height:110px; margin:.5rem 0 .2rem}
+.ushape div{flex:1; background:var(--accent); border-radius:2px 2px 0 0; min-width:3px; position:relative}
+.ushape div.hot{background:var(--accent2)}
+.ushape div.negcost{background:var(--good); outline:2px solid var(--good); outline-offset:1px}
+.axis{display:flex; justify-content:space-between; font:.7rem system-ui,sans-serif; color:var(--ink2)}
+.law{background:var(--card); border-radius:6px; padding:.9rem 1.15rem; margin:.8rem 0;
+  font-size:.95rem}
+.law b{color:var(--accent)}
+.callout{border:1px solid var(--line); border-radius:8px; padding:1rem 1.25rem; margin:1.6rem 0;
+  background:var(--card)}
+.verdict{font-size:1.05rem}
+hr{border:none; border-top:1px solid var(--line); margin:3rem 0}
+.kicker{font:600 .72rem/1 system-ui,sans-serif; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink2); margin:2.4rem 0 .3rem}
+.footnote{font-size:.85rem; color:var(--ink2)}
+.examples{font:.82rem/1.7 ui-monospace,'SF Mono',Menlo,monospace; background:var(--code);
+  border-radius:6px; padding:.9rem 1.1rem; overflow-x:auto}
+.examples b{color:var(--accent2); font-weight:600}
+@media (max-width:560px){
+  h1{font-size:2rem}
+  .bar{grid-template-columns:7.5rem 1fr 3.8rem}
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">Field report · explainable-ai · July 2026</p>
+  <h1>Rules All the Way Down</h1>
+  <p class="standfirst">We spent this project testing one stubborn idea: a neural network is
+  just rules — millions of tuned knobs that prove some configuration of ordinary code could do
+  the same job. We tried to write that code. This is what we found: where rules win outright,
+  where they hit a measurable ceiling, and how much of a real transformer we ultimately got
+  running as human-readable code.</p>
+</header>
+
+<div class="tldr">
+  <p><strong>TL;DR.</strong> Hand-built rulebooks plateau hard on open text (~0.22 next-token
+  accuracy) but jump 4.3× when the input is structured. Opening a real transformer
+  (Qwen3-0.6B), we located its induction circuitry, proved it causally, and replaced it with
+  explicit code at 96% fidelity for verbatim copying — then measured how much of those heads'
+  natural-text function is reachable by rules in our lookup class. The answer surprised us
+  twice: first measuring ~32% on our fiction corpus, then discovering under robustness
+  testing that the fraction is <em>domain-dependent</em> — ~45–70% on WikiText — and noisy
+  at small ablation gaps. Only the algorithmic regime gives a clean universal: ~100% of
+  repeated-text function flows through rule-nameable positions.
+  Generalizing, we replaced <strong>36% of all attention heads and 21% of MLP layers</strong>
+  with readable code, healed the network around the prosthetics by retraining 65k of 596M
+  parameters, and landed at +0.674 ± 0.007 nats (three seeds) on natural text with the
+  induction regime
+  <em>better than the intact model</em>. Two controls calibrate the claim: zeroing the same
+  parts and healing plateaus 3× worse (the prosthesis carries real function), while
+  content-free positional templates <em>tie</em> on natural text at this replacement depth —
+  the cheapest third of heads is positional machinery, and template <em>content</em> earns its
+  keep specifically at the algorithmic circuits, where positional attention cannot copy at
+  all.</p>
+</div>
+
+<h2><span class="act">Act I</span>Imitation by rulebook, and the wall</h2>
+
+<p>The project began small: could readable code replicate what a small language model does?
+First target: sentiment. We had <code>ministral-3:3b</code> label 72 sentences, embedded them
+with <code>qwen3-embedding:0.6b</code>, and hand-wrote a three-line rule over two discovered
+axes — a <em>polarity</em> direction and an <em>evaluativeness</em> gate. It hit 0.944
+leave-one-out fidelity, the same ceiling as logistic regression. On a held-out,
+independently authored test set the polarity axis generalized (0.951) while the neutral gate
+collapsed — an honest, instructive failure that set the project's tone: report the number
+that hurts.</p>
+
+<p>Then the real attempt: predict the next token, from rules alone. We distilled a 1M-word
+corpus out of ministral and compiled it into n-gram backoff rulebooks — order-7 down to
+order-2, longest match wins. The scaling law was clean and merciless:</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">76k words</span><div class="track"><div class="fill" style="width:26%"></div></div><span class="val">0.176</span></div>
+  <div class="bar"><span class="lbl">151k</span><div class="track"><div class="fill" style="width:28%"></div></div><span class="val">0.190</span></div>
+  <div class="bar"><span class="lbl">303k</span><div class="track"><div class="fill" style="width:30%"></div></div><span class="val">0.203</span></div>
+  <div class="bar"><span class="lbl">606k</span><div class="track"><div class="fill" style="width:33%"></div></div><span class="val">0.218</span></div>
+</div>
+<figcaption>Held-out next-token accuracy vs corpus size: +1.4 points per doubling, no bend in
+sight, and the late gains partly self-contamination from repeated prompts. The wall.</figcaption>
+</figure>
+
+<p>Around that wall we ran eight careful negative experiments — semantic re-rankers,
+embedding-distance scoring, polynomial context maps, grammar generalization, cache models,
+word profiles. Every post-hoc addition to the frequency-ordered rulebook <em>lost</em>. The
+graveyard taught us laws we kept re-meeting later, inside the network itself:</p>
+
+<div class="law"><b>Law 1.</b> Frequency order is unbeatable post-hoc. If your signal isn't in
+the conditioning context, re-ranking candidates with it only adds noise.</div>
+<div class="law"><b>Law 2.</b> Memorization beats smooth maps. A rule seen 3 times outperforms
+a polynomial fitted on 640,000 examples.</div>
+<div class="law"><b>Law 3.</b> Conditioning only pays when the state is discrete, known, and
+semantically massive.</div>
+
+<p>One genuine discovery came out of Act I's geometry: prediction and meaning live in
+<em>different spaces</em>. The qwen embedding space that separates sentiment beautifully
+collapses function words into a hub (mutual cosine 0.899); a distributional space built from
+PPMI + SVD predicts better. Transformers agree — that's why input and output embeddings
+differ.</p>
+
+<h2><span class="act">Act II</span>Structure changes the game</h2>
+
+<p>The turn came from a simple reframe: maybe the generator isn't weak — the input is lawless.
+We rebuilt the corpus under three rigid schemas (weather reports, sports recaps, market
+summaries) and watched the same machinery transform:</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">open-domain text</span><div class="track"><div class="fill alt" style="width:23%"></div></div><span class="val">0.157</span></div>
+  <div class="bar"><span class="lbl">structured corpus</span><div class="track"><div class="fill" style="width:85%"></div></div><span class="val">0.569</span></div>
+  <div class="bar"><span class="lbl">+ schema conditioning</span><div class="track"><div class="fill" style="width:87%"></div></div><span class="val">0.584</span></div>
+  <div class="bar"><span class="lbl">+ typed slots</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">0.669</span></div>
+</div>
+<figcaption>Same rulebook machinery, 4.3× the accuracy at a fraction of the data —
+structure beat scale.</figcaption>
+</figure>
+
+<p>Extracting the rules revealed an elegant anatomy: the corpus is a <strong>template
+automaton</strong> — 56% of transitions deterministic rails (confidence 0.94), 44% branch
+points (0.39). 140 templates own 52% of the text at 0.826 accuracy: a 25× compression of the
+rulebook at two points of cost. From there we distilled question-answering the same way:
+77 Q&amp;A pairs from ministral became lexical rules with an abstention gate (refuse unless a
+long-context rule fires). Result: 100% recall on trained facts, honest "I don't know" on
+everything else, zero neural network at runtime. It all ships as a self-contained page —
+<a href="https://claude.ai/code/artifact/339ed944-e017-467e-9e5f-d940de34b2cd">The Legible
+Model</a> — where you can watch every token get chosen by a named rule.</p>
+
+<h2><span class="act">Act III</span>Opening the weights</h2>
+
+<p>Act II proved rules can do the job when the world is regular. Act III asked the inverse
+question: is that what the network itself is doing? We moved from black-box imitation to
+white-box surgery on real weights — <code>Qwen3-0.6B</code>, 28 layers × 16 heads, run in
+fp32 on Apple silicon (GPT-2 first, as a warm-up; our head hunt reproduced the literature's
+induction heads exactly, which told us the instruments worked).</p>
+
+<h3>Finding the circuit</h3>
+
+<p>Feed the model 50 random tokens repeated twice and prediction on the second half is only
+possible by <em>find-the-last-occurrence-and-copy</em>. Qwen's loss on the repeated half
+collapses from 14.44 to 0.69 nats. (Second-half positions only; repeated-random numbers
+elsewhere in this report are full-sequence averages — unpredictable first half included —
+which is why the same regime reads ~7.5–8 in the finale table.) Scoring all 448 heads for
+the induction attention pattern found the circuit: L16.H14 spends 0.979 of its attention on
+exactly the copy-source position. Zero-ablating the top heads proved causality — and
+revealed the first anatomical surprise: <strong>Qwen distributes the mechanism</strong>.
+Killing 6 heads triples the repeated-half loss; a full kill takes ~60 of 448, and it is
+astonishingly surgical: the repeated half returns to the no-information level (12.94, vs
+0.73 intact) while the unpredictable first half of the very same sequences is untouched
+(14.37 ablated vs 14.30 intact).<sup>†</sup></p>
+
+<p class="footnote">† Why ~14.3 nats rather than the uniform-distribution baseline of
+ln&nbsp;151,936 ≈ 11.9: the strings are uniformly random rare tokens, and a trained language
+model concentrates its probability mass on plausible text — random junk sits exactly where
+it puts the least. Worse-than-uniform loss is the expected signature, not an error.</p>
+
+<h3>The veto</h3>
+
+<p>On natural text the circuit turned out to be smarter than the copy rule. Measuring its
+effect on the copy-candidate token directly: when the copy is the right continuation, the
+heads boost it (+0.19 nats). When it's wrong, they <em>suppress</em> it (−0.41) — remove
+them and the model likes the bad copy more. Per-head attribution split the circuit into a
+<strong>copier module</strong> and an <strong>inhibitor module</strong>, with a sharp
+asymmetry: copying has backups (ablate 8 copiers, others compensate); <strong>nothing backs
+up the veto</strong>. And the inhibitors aren't a separate organ — they're induction heads
+whose output is conditioned on match quality. The network hand-rolled the same
+abstention gate we built for our QA responder.</p>
+
+<h3>The prosthesis ladder</h3>
+
+<p>Then the experiment the whole project pointed at: excise the organ, substitute code,
+measure recovery.</p>
+
+<figure class="tablewrap">
+<table>
+<tr><th>prosthesis</th><th class="n">fitted params</th><th class="n">verbatim copy</th><th class="n">natural text</th></tr>
+<tr><td>v2 — boosts at the logits</td><td class="n">8</td><td class="n good">93%</td><td class="n">0%</td></tr>
+<tr><td>v4 — rule picks attention target, model's own value matrices write</td><td class="n">0</td><td class="n good">91%</td><td class="n bad">−286%</td></tr>
+<tr><td>v4 + per-order confidence gate</td><td class="n">8</td><td class="n good">96%</td><td class="n">26%</td></tr>
+<tr><td>v5 — soft attention over all matches</td><td class="n">9</td><td class="n good">96%</td><td class="n">30%</td></tr>
+<tr><td>v5 + fuzzy token equivalence</td><td class="n">9</td><td class="n">—</td><td class="n">31%</td></tr>
+<tr><td><strong>ceiling — any discrete-position rule</strong></td><td class="n">—</td><td class="n good">100%</td><td class="n"><strong>32%</strong></td></tr>
+</table>
+<figcaption>Share of the ablation gap recovered, held-out. v4's −286% is not noise: ungated,
+the rule slams a full-strength (usually wrong) copy into the residual stream at every weak
+match — actively worse than removing the heads outright. Adding the gate flips it to +26%,
+which is the point: the gate is where the intelligence is. And the gate parameters kept
+rediscovering the same abstention curve — near-zero trust at match length 1, saturating
+at 5+, the exact threshold we'd hand-picked for the QA responder.</figcaption>
+</figure>
+
+<p>The ceiling row is the finding — with a caveat we only earned later. On this evaluation
+chunk we took the heads' <em>true</em> attention, masked it to positions any lookup rule
+could name, and got 32% — our code was already there, and the remaining <strong>~two-thirds
+flowed through positions no induction rule would pick</strong>. (Robustness testing later
+showed this fraction is domain- and chunk-dependent — see below — but the decomposition
+itself, and what lives in the un-nameable part, holds up.) Inspecting those positions was
+the most fun this project has produced. A rare, readable tier of fuzzy induction:</p>
+
+<div class="examples">
+q='his'    → attends to what followed '<b>His</b>'        (case folding)<br>
+q=' Below' → attends to what followed '<b>Below</b>'      (tokenization variant)<br>
+q=' wasn'  → attends to '<b>'t</b>' after ' hadn'          (negated-auxiliary class)<br>
+q='Mrs. Hollow' → follower of '<b>Mrs. Holloway</b>'  (name prefix)
+</div>
+
+<p>…but the bulk was something else. On natural text these "induction heads" park 47–94% of
+their attention on the BOS sink — their off state — and their remaining value flows through
+a diffuse cloud whose favorite targets are, literally, the story's cast:
+<em>Liam, Elias, Mrs&nbsp;Holloway, Eleanor, the letter, the will, Detroit</em>. Entity
+tracking. But <em>query-selective</em> entity tracking — which character matters right now —
+and neither a recency kernel (5%) nor a uniform entity average (13%, redundant) captures the
+selection. That selection is the smooth core: the same wall as Act I, met this time from
+above.</p>
+
+<h2><span class="act">Act IV</span>The replacement frontier</h2>
+
+<p>If one circuit can be part-coded, how much of the whole network can? We built a template
+library of nameable attention patterns — BOS sink, self, fixed offsets, last-punctuation
+anchor, duplicate-token lookup, sentence-start/current-sentence/previous-sentence windows,
+and the gated fuzzy match rule — and least-squares fitted every one of the 448 heads as a
+mixture. Median fit: R² 0.82. Heads were selected for replacement by measured substitution
+cost in both regimes, and after surgery the network was <strong>healed</strong>: retrain
+only the RMSNorm gains — 65,536 of 596,049,920 parameters — with the code organs active.
+(Yes, exactly 2<sup>16</sup>; we checked. 28 layers × (two 1024-dim layer norms + 128-dim
+q-norm + 128-dim k-norm) + the 1024-dim final norm = 65,536. A genuine coincidence.)</p>
+
+<figure class="tablewrap">
+<table>
+<tr><th>configuration</th><th class="n">heads coded</th><th class="n">natural (+nats)</th><th class="n">repeated-random</th></tr>
+<tr><td>sweet spot</td><td class="n">160 (36%)</td><td class="n">+0.28</td><td class="n good">better than intact (−0.63)</td></tr>
+<tr><td>aggressive</td><td class="n">192 (43%)</td><td class="n">+0.44</td><td class="n good">better than intact (−0.34)</td></tr>
+<tr><td>too far / wrong selection</td><td class="n">256 (57%)</td><td class="n">+0.57</td><td class="n bad">+4.4</td></tr>
+</table>
+<figcaption>Healed frontier, held-out (intact = 3.232 nats). Damage at scale is
+interaction, not solo cost — heads fail together, echoing the redundancy findings.</figcaption>
+</figure>
+
+<p>Two clean negative results sharpened the method. Longer healing overfits past ~60 epochs
+(the constraint is data, not time). And unfreezing the 58M o_proj parameters diverges from
+epoch one — norms-only healing isn't a compromise, it's the recipe: touch the small
+calibration knobs, never the big matrices.</p>
+
+<h3>The MLP front</h3>
+
+<p>MLPs got their own prosthesis: replace a layer's output with a token-keyed lookup table.
+The per-layer cost curve is the crispest anatomical fact we found:</p>
+
+<figure>
+<div class="ushape">
+<div class="hot" style="height:35%" title="L0 +0.115"></div>
+<div style="height:19%" title="L1 +0.061"></div>
+<div class="hot" style="height:100%" title="L2 +0.328"></div>
+<div style="height:18%" title="L3 +0.058"></div>
+<div style="height:5%" title="L4 +0.013"></div>
+<div style="height:15%" title="L5 +0.049"></div>
+<div style="height:13%" title="L6 +0.041"></div>
+<div style="height:11%" title="L7 +0.034"></div>
+<div style="height:9%" title="L8 +0.027"></div>
+<div style="height:10%" title="L9 +0.032"></div>
+<div class="negcost" style="height:3%" title="L10 −0.007 (negative!)"></div>
+<div style="height:11%" title="L11 +0.036"></div>
+<div style="height:12%" title="L12 +0.038"></div>
+<div style="height:10%" title="L13 +0.032"></div>
+<div style="height:9%" title="L14 +0.030"></div>
+<div style="height:15%" title="L15 +0.048"></div>
+<div style="height:14%" title="L16 +0.045"></div>
+<div style="height:16%" title="L17 +0.053"></div>
+<div style="height:17%" title="L18 +0.055"></div>
+<div style="height:13%" title="L19 +0.042"></div>
+<div style="height:19%" title="L20 +0.062"></div>
+<div style="height:11%" title="L21 +0.037"></div>
+<div style="height:19%" title="L22 +0.062"></div>
+<div style="height:9%" title="L23 +0.029"></div>
+<div style="height:14%" title="L24 +0.045"></div>
+<div style="height:14%" title="L25 +0.046"></div>
+<div class="hot" style="height:49%" title="L26 +0.161"></div>
+<div class="hot" style="height:77%" title="L27 +0.252"></div>
+</div>
+<div class="axis"><span>L0</span><span>L13/14</span><span>L27</span></div>
+<figcaption>Solo cost of replacing each MLP with a token→vector lookup table. The middle of
+the network is nearly free — L10 is literally <em>negative</em> — while composition
+concentrates in the bottom two and top two layers. Mid-network MLPs really are token-keyed
+memories.</figcaption>
+</figure>
+
+<h3>The combined hybrid, and the two controls that calibrate it</h3>
+
+<p>Finale: 160 coded heads <em>plus</em> 6 lookup-table MLPs installed simultaneously, one
+healing pass. Then the two controls the claim needed. First: zero the same components and
+heal identically — if healing alone could do the work, our templates were decoration.
+Second, the sharper one: refit the same heads on <em>content-free</em> templates (BOS, self,
+fixed offsets only — nothing that reads tokens) and heal identically — if that ties, the
+content in our templates is decoration.</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">intact model</span><div class="track"><div class="fill" style="width:47%"></div></div><span class="val">3.23</span></div>
+  <div class="bar"><span class="lbl">positional-only + heal</span><div class="track"><div class="fill alt" style="width:56%"></div></div><span class="val">3.89</span></div>
+  <div class="bar"><span class="lbl">code + heal</span><div class="track"><div class="fill" style="width:57%"></div></div><span class="val">3.91</span></div>
+  <div class="bar"><span class="lbl">zero + heal</span><div class="track"><div class="fill neg" style="width:78%"></div></div><span class="val">5.35</span></div>
+</div>
+<figcaption>Held-out natural-text loss (nats), 160 heads + 6 MLPs replaced. Repeated-random:
+code+heal beats the <em>intact</em> model (7.47 vs 7.98), positional-only trails slightly
+(7.62), zero+heal is destroyed (15.17).</figcaption>
+</figure>
+
+<p class="verdict"><strong>The prosthesis is load-bearing; the content earns its keep only
+where the algorithms live.</strong> Against zeros, the verdict is decisive: healing recovers
+distribution shift but cannot manufacture function — the zero control plateaus 3× worse and
+its induction regime never recovers. Against positional-only templates, the verdict is
+humbling and clarifying: at this replacement depth the content columns tie on natural text.
+The 160 cheapest heads are cheap precisely <em>because</em> they are positional machinery —
+sinks and offsets — which cost-based selection finds first. We completed the comparison at
+k=192 and the tie holds there too (full +0.84 vs positional +0.80 natural), with content's
+edge appearing only as a small, consistent advantage on the induction regime (~0.15 nats at
+both depths). Template content matters exactly where Act III proved it does: at the
+algorithmic circuits, where the coded match rule recovers 96% of verbatim copying that no
+position-only pattern can express — position cannot say <em>where the match was</em> — with
+zero fitted parameters.</p>
+
+<hr>
+
+<h3>How far does it travel?</h3>
+
+<p>Everything above is fitted and evaluated on our own distilled corpus, so we took the
+hybrid — templates, lookup tables, healed norms, all frozen exactly as fitted — to
+WikiText-103 validation. The honest answer: it degrades. The full hybrid costs
++1.58&nbsp;±&nbsp;0.10 nats out of domain versus +0.674&nbsp;±&nbsp;0.007 at home.
+Decomposing the failure told two different stories. The <em>head</em> templates and their
+healing transfer: heads-only lands at +0.57, roughly double its at-home cost — degraded but
+functional. The <em>MLP lookup tables</em> are the real casualty, for a mechanical reason:
+only 61.5% of WikiText tokens were ever seen in the fit data, and unseen tokens fall back
+to a mean vector. Broadening the fit corpus to include WikiText train text raised coverage
+to 78.3% and cut the full-hybrid cost to +1.23 — a straight line from coverage to cost.
+The limitation is real and worth stating plainly: the code organs are only as general as
+the text they were fitted on. But it is a fit-data budget, not a conceptual ceiling.</p>
+
+<h3>Does it replicate? Yes, no, and instructively</h3>
+
+<p>Every Act III–IV number above comes from one checkpoint, so we ran the three headline
+measurements on a second family: <code>Pythia-410M</code> — GPT-NeoX architecture, different
+lab, different training data. The induction anatomy replicates (a near-pure head at 0.97;
+the mechanism distributed across 29 of 384 heads, though the cluster sits earlier in the
+network). The MLP result replicates in substance with a nuance worth keeping: the broad
+middle is cheap token-lookup everywhere (median +0.05) and the final layer is expensive in
+both models, but the expensive early "composition band" moves — layer 2 in Qwen, layers 5–6
+in Pythia. On the same fiction chunk, the ceiling read 29%/75% for Pythia versus Qwen's
+32%/67% — which briefly looked like a beautiful cross-family constant.</p>
+
+<p><strong>Then we stress-tested it, and the constant dissolved.</strong> A robustness suite
+— three models (adding Qwen3-1.7B, a 4× scale step), two text domains, eight chunks each —
+showed the "30/70 split" was substantially an artifact of measuring one shared fiction chunk.
+The nameable fraction is <em>domain-dependent</em>: on WikiText it rises to ~47% (Qwen-0.6B)
+and ~72% (Pythia) — encyclopedic text repeats entities and terminology verbatim, which is
+exactly what a lookup rule can name, while our entity-heavy fiction pushed function into
+diffuse entity-tracking. Per-chunk variance is large wherever the ablation gap is small
+(~0.1 nats), and at 1.7B the short-context gap nearly vanishes, making ratio estimates
+meaningless. What survives cleanly: the algorithmic regime (~98–100% of repeated-text
+function flows through rule-nameable positions, tight across all models), the rough
+additivity of the two components, and the qualitative anatomy. The quantitative lesson we
+paid for and pass on: never headline a ratio of two small numbers measured on one chunk.</p>
+
+<h2><span class="act">Act V</span>Moving the dial</h2>
+
+<p>Domain-dependence is a correlation — different texts, same models. Could we make it
+causal? The clean version is a twin study: train two identical tiny transformers, one on
+natural stories and one on a perfectly lawful world of slot-filled schemas, and measure each.
+We built the twins (17M parameters, matched 5M-token budgets, shared tokenizer) — and hit an
+honest wall: at this scale the models never crossed the <em>induction phase change</em>. No
+induction heads formed, more epochs only overfit, and you cannot measure the substitution
+ceiling of a circuit that does not exist. Reliably growing induction from scratch wants more
+data and compute than the experiment's budget allowed. We report the negative rather than
+bury it.</p>
+
+<p>So we tested the same hypothesis on the axis we <em>could</em> control: hold the model
+fixed (real induction heads, Qwen and Pythia) and vary the regularity of the evaluation text
+across three domains — narrative fiction, encyclopedic WikiText, and the maximally lawful
+Act-II schemas. The prediction was that the rule-nameable fraction should climb with the
+text's verbatim-repeatable structure. It did, monotonically, on both model families:</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">Pythia · fiction</span><div class="track"><div class="fill alt" style="width:46%"></div></div><span class="val">46%</span></div>
+  <div class="bar"><span class="lbl">Pythia · WikiText</span><div class="track"><div class="fill alt" style="width:72%"></div></div><span class="val">72%</span></div>
+  <div class="bar"><span class="lbl">Pythia · structured</span><div class="track"><div class="fill alt" style="width:78%"></div></div><span class="val">78%</span></div>
+  <div class="bar"><span class="lbl">Qwen · fiction</span><div class="track"><div class="fill" style="width:2%"></div></div><span class="val">~0%</span></div>
+  <div class="bar"><span class="lbl">Qwen · WikiText</span><div class="track"><div class="fill" style="width:47%"></div></div><span class="val">47%</span></div>
+  <div class="bar"><span class="lbl">Qwen · structured</span><div class="track"><div class="fill" style="width:59%"></div></div><span class="val">59%</span></div>
+</div>
+<figcaption>Rule-nameable fraction of induction-head function vs. text regularity, 8 chunks
+pooled per cell. Both families rise fiction → WikiText → structured. The induction ablation
+gap itself also grows with structure (Pythia 0.09 → 0.37 nats), so on lawful text the heads
+both matter more <em>and</em> are more nameable. (Qwen-fiction's near-zero sits in the
+small-gap noise band, 0.10 ± 0.05.)</figcaption>
+</figure>
+
+<p>This is the through-line closing on itself. Act II found, from <em>outside</em> the
+network, that structuring the input moved text generation into the regime where rules win.
+Act V finds, from <em>inside</em> the network, that the same structure moves the model's own
+circuitry into the regime where rules can name it. The boundary between "code" and "weights"
+is not fixed in the architecture — it is set by how much lawful, repeatable structure the
+data contains. That is one claim, measured from both sides.</p>
+
+<h2><span class="act">Act VI</span>What is the diffuse part made of?</h2>
+
+<p>The un-nameable majority — the attention that flows to no position a lookup rule would
+pick — looked, under inspection, like entity tracking. So we asked the sharper question: is
+it <em>low-dimensional</em>? For each induction head we stripped the rule-nameable columns
+from its true attention, kept the diffuse remainder over the recent entities, and asked how
+well a small learned readout of the residual stream reconstructs it. The answer is clean:</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">recency only</span><div class="track"><div class="fill" style="width:31%"></div></div><span class="val">0.31</span></div>
+  <div class="bar"><span class="lbl">+ random direction</span><div class="track"><div class="fill" style="width:37%"></div></div><span class="val">0.37</span></div>
+  <div class="bar"><span class="lbl">+ 1 learned direction</span><div class="track"><div class="fill alt" style="width:61%"></div></div><span class="val">0.61</span></div>
+  <div class="bar"><span class="lbl">+ 4 learned directions</span><div class="track"><div class="fill alt" style="width:64%"></div></div><span class="val">0.64</span></div>
+</div>
+<figcaption>Held-out attention-mass overlap with the head's true diffuse pattern. Recency
+alone catches the peak but not the shape; a single learned content direction nearly doubles
+the overlap; further directions add almost nothing; a random direction barely helps. The
+diffuse "which entity" signal is essentially <strong>recency plus one learned direction</strong>.</figcaption>
+</figure>
+
+<p>That is a real result about representation: the part rules cannot name is not
+high-dimensional noise, it is a low-rank, readable entity-selection signal. But we tried to
+push it one step further — to show that plugging this direction back in as a parameterized
+template <em>recovers the head's function downstream</em> — and there we hit an honest wall.
+On natural text the induction heads are near-inert (ablating them costs almost nothing), and
+where they do matter, keeping only <em>part</em> of a head's attention — the rule columns
+plus the learned entity mass — produces a broken, unnormalized read that scores worse than
+removing the head entirely, whatever the normalization. A head's attention does not
+decompose into "rule part + entity part" that can be reassembled through its value matrix.
+So the stronger claim — that rules plus one direction crack the <em>functional</em> ceiling —
+is <strong>unproven</strong>, defeated by a measurement that is ill-posed in this regime. We
+report the representational finding, and stop short of the functional one.</p>
+
+<h2>What we now believe</h2>
+
+<div class="law"><b>The two-regime law.</b> Wherever behavior is algorithmic and discrete —
+verbatim copying, template rails, memorized facts, positional routing, mid-network token
+enrichment — explicit code substitutes at 90–100%, sometimes with zero fitted parameters,
+sometimes better than the weights. Wherever behavior is smooth and query-conditional —
+which entity matters now, continuous relevance over context — code hits a ceiling. Act I met
+this wall from below; Act III measured it from above; Act V showed the boundary <em>moves</em>
+with how much verbatim-repeatable structure the text contains (fiction &lt; WikiText &lt;
+lawful schemas, monotonic on two model families); Act VI showed the smooth side is at least
+<em>low-dimensional</em> — recency plus one learned direction reconstructs the diffuse
+entity-selection attention — even though we could not prove that direction carries the
+head's function downstream. The boundary is real, it moves with the data, and the far side
+of it is readable representation whose functional role resists clean substitution.</div>
+
+<div class="law"><b>The abstention law.</b> Every route into the network found the same
+structure: a lookup mechanism plus a match-strength confidence gate. Fitted boost schedules,
+fitted attention gains, and the inhibitor heads all independently rediscovered the curve we
+had hand-built for our QA responder. Rules-plus-calibrated-refusal seems to be what this
+computation <em>is</em>.</div>
+
+<div class="law"><b>The redundancy law.</b> Capabilities the network can re-derive are
+stored redundantly (copying: backups everywhere); discriminative capabilities are not
+(the veto: no backups). Damage at scale is interaction, not solo failure.</div>
+
+<h2>Is any of this significant?</h2>
+
+<p>Calibrated honestly, as always. The induction-head anatomy, copy suppression, fuzzy
+induction, attention sinks, and "MLPs as key-value memories" are all documented phenomena —
+Act III's first half is careful replication on a modern model, not discovery. That much of
+attention is replaceable by simple patterns echoes the PAPA line of work; our positional-only
+control confirms it from inside our own pipeline. Three things are, to our knowledge, ours:
+the <strong>ceiling method</strong> for symbolic substitution — including the robustness
+result that the nameable fraction is a <em>property of the text's repeatable structure</em>,
+not a universal constant of transformers; the <strong>substitutability map</strong> of MLP
+layers; and the <strong>double-controlled replacement result</strong> — a third of a
+transformer's attention plus a fifth of its MLPs running as readable code after a
+65k-parameter heal, where the zero control proves the prosthesis carries function and the
+positional control localizes exactly <em>which</em> templates carry content: the algorithmic
+ones. Error bars are done (three seeds, ±0.007); the WikiText transfer test exposed a real,
+mechanical limitation (lookup-table coverage) reported above rather than hidden; and the
+robustness suite retired our own favorite number, the "30/70 constant," replacing it with
+the domain-dependence finding; and the entity probe (Act VI) delivered half of what we hoped
+— the diffuse part is a low-rank, readable direction, but we could not show it carries the
+head's function downstream, because partial-attention substitution turned out ill-posed. The
+rigor checklist we set ourselves is complete, negatives included. What remains before
+submitting anywhere is presentation work (positioning against PAPA and the pruning
+literature). The one experiment that could still turn Act VI's representational finding into
+a functional one is a cleaner probe — one that edits the head's <em>query</em> rather than
+reassembling its attention, sidestepping the decomposition that broke here.</p>
+
+<h2>What it could become</h2>
+
+<p>Nothing here ships at +0.68 nats on a 0.6B model. But the capability points somewhere:
+<strong>audit tooling</strong> (an X-ray reporting which fraction of a model is nameable
+algorithm — the analysis is the product, no hybrid deployment needed);
+<strong>behavior pinning</strong> (behaviors that live in code can't drift under fine-tuning
+and can be edited as diffs — our coded induction already beats the original heads); and,
+long-range, <strong>hybrid runtimes</strong> where the algorithmic scaffold is shared,
+cached, and inspectable, and only the smooth residue needs weights.</p>
+
+<hr>
+
+<p class="kicker">Artifacts</p>
+<p class="footnote">
+<a href="https://claude.ai/code/artifact/339ed944-e017-467e-9e5f-d940de34b2cd">The Legible
+Model</a> — the Act II system live in the browser: rule-lookup Q&amp;A with abstention, template
+generation with a tone dial, every token traced to its rule.<br>
+<a href="https://claude.ai/code/artifact/63933730-548a-460d-a8a7-dc1d8683d6c9">Two Axes of
+Sentiment</a> — the Act I field note on the surrogate sentiment model.</p>
+
+<p class="kicker">Methods, briefly</p>
+<p class="footnote">Models: qwen3-embedding:0.6b (geometry), ministral-3:3b (data source and
+distillation target), gemma4:e4b (corpus authoring), GPT-2 small and Qwen3-0.6B (surgery),
+all local. Surgery: PyTorch forward hooks on <code>o_proj</code>/<code>v_proj</code>/<code>mlp</code>,
+fp32 on MPS; ablation = zeroing head slices of the o_proj input; substitution = writing
+code-computed attention through the model's own value matrices. Healing: Adam on RMSNorm
+gains only, 24 natural + 2 repeated-random chunks, best-checkpoint on held-out. Every
+evaluation reported here is on held-out text; every headline number has an intact and a
+zero-ablation reference. All code lives in the project repo, one experiment per file, each
+importable by the next.</p>
+</div>

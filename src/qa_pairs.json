@@ -1,0 +1,387 @@
+[
+  {
+    "family": "capital",
+    "q": "What is the capital of France?",
+    "a": "Paris"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Germany?",
+    "a": "Berlin"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Italy?",
+    "a": "Roma"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Spain?",
+    "a": "Madrid"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Portugal?",
+    "a": "Lisboa"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Japan?",
+    "a": "Tokyo"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of China?",
+    "a": "Beijing"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of India?",
+    "a": "New Delhi"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Brazil?",
+    "a": "Bras\u00edlia"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Canada?",
+    "a": "Ottawa"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Egypt?",
+    "a": "Cairo"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Kenya?",
+    "a": "Nairobi"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Norway?",
+    "a": "Oslo"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Sweden?",
+    "a": "Stockholm"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Poland?",
+    "a": "Warszawa"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Greece?",
+    "a": "Athens"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Turkey?",
+    "a": "Ankara"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Thailand?",
+    "a": "Bangkok"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Vietnam?",
+    "a": "Hanoi"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Peru?",
+    "a": "Lima"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Chile?",
+    "a": "Santiago"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Cuba?",
+    "a": "Havana"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Ireland?",
+    "a": "Dublin"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Scotland?",
+    "a": "Edinburgh"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Austria?",
+    "a": "Vienna"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Hungary?",
+    "a": "Budapest"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Finland?",
+    "a": "Helsinki"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Denmark?",
+    "a": "Copenhagen"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Morocco?",
+    "a": "Rabat"
+  },
+  {
+    "family": "capital",
+    "q": "What is the capital of Argentina?",
+    "a": "Buenos Aires"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a spider have?",
+    "a": "8"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a ant have?",
+    "a": "6"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a bee have?",
+    "a": "6"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a dog have?",
+    "a": "4"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a cat have?",
+    "a": "4"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a horse have?",
+    "a": "4"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a cow have?",
+    "a": "4"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a chicken have?",
+    "a": "2"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a snake have?",
+    "a": "0"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a octopus have?",
+    "a": "8"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a crab have?",
+    "a": "8"
+  },
+  {
+    "family": "legs",
+    "q": "How many legs does a fly have?",
+    "a": "6"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of hot?",
+    "a": "Cold"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of big?",
+    "a": "Small"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of fast?",
+    "a": "Slow"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of up?",
+    "a": "down"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of light?",
+    "a": "Dark"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of happy?",
+    "a": "Sad"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of wet?",
+    "a": "Dry"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of hard?",
+    "a": "Soft"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of old?",
+    "a": "New"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of tall?",
+    "a": "Short"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of empty?",
+    "a": "Full"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of early?",
+    "a": "Late"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of loud?",
+    "a": "quiet"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of strong?",
+    "a": "Weak"
+  },
+  {
+    "family": "opposite",
+    "q": "What is the opposite of clean?",
+    "a": "Gritty"
+  },
+  {
+    "family": "sum",
+    "q": "What is 3 plus 4?",
+    "a": "7"
+  },
+  {
+    "family": "sum",
+    "q": "What is 3 plus 9?",
+    "a": "12"
+  },
+  {
+    "family": "sum",
+    "q": "What is 3 plus 16?",
+    "a": "19"
+  },
+  {
+    "family": "sum",
+    "q": "What is 3 plus 33?",
+    "a": "36"
+  },
+  {
+    "family": "sum",
+    "q": "What is 7 plus 4?",
+    "a": "11"
+  },
+  {
+    "family": "sum",
+    "q": "What is 7 plus 9?",
+    "a": "16"
+  },
+  {
+    "family": "sum",
+    "q": "What is 7 plus 16?",
+    "a": "23"
+  },
+  {
+    "family": "sum",
+    "q": "What is 7 plus 33?",
+    "a": "40"
+  },
+  {
+    "family": "sum",
+    "q": "What is 12 plus 4?",
+    "a": "16"
+  },
+  {
+    "family": "sum",
+    "q": "What is 12 plus 9?",
+    "a": "21"
+  },
+  {
+    "family": "sum",
+    "q": "What is 12 plus 16?",
+    "a": "28"
+  },
+  {
+    "family": "sum",
+    "q": "What is 12 plus 33?",
+    "a": "45"
+  },
+  {
+    "family": "sum",
+    "q": "What is 25 plus 4?",
+    "a": "29"
+  },
+  {
+    "family": "sum",
+    "q": "What is 25 plus 9?",
+    "a": "34"
+  },
+  {
+    "family": "sum",
+    "q": "What is 25 plus 16?",
+    "a": "41"
+  },
+  {
+    "family": "sum",
+    "q": "What is 25 plus 33?",
+    "a": "58"
+  },
+  {
+    "family": "sum",
+    "q": "What is 48 plus 4?",
+    "a": "52"
+  },
+  {
+    "family": "sum",
+    "q": "What is 48 plus 9?",
+    "a": "57"
+  },
+  {
+    "family": "sum",
+    "q": "What is 48 plus 16?",
+    "a": "64"
+  },
+  {
+    "family": "sum",
+    "q": "What is 48 plus 33?",
+    "a": "71"
+  }
+]
