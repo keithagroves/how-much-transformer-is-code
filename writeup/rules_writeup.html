@@ -489,17 +489,33 @@ diffuse "which entity" signal is essentially <strong>recency plus one learned di
 </figure>
 
 <p>That is a real result about representation: the part rules cannot name is not
-high-dimensional noise, it is a low-rank, readable entity-selection signal. But we tried to
-push it one step further — to show that plugging this direction back in as a parameterized
-template <em>recovers the head's function downstream</em> — and there we hit an honest wall.
-On natural text the induction heads are near-inert (ablating them costs almost nothing), and
-where they do matter, keeping only <em>part</em> of a head's attention — the rule columns
-plus the learned entity mass — produces a broken, unnormalized read that scores worse than
-removing the head entirely, whatever the normalization. A head's attention does not
-decompose into "rule part + entity part" that can be reassembled through its value matrix.
-So the stronger claim — that rules plus one direction crack the <em>functional</em> ceiling —
-is <strong>unproven</strong>, defeated by a measurement that is ill-posed in this regime. We
-report the representational finding, and stop short of the functional one.</p>
+high-dimensional noise, it is a low-rank, readable entity-selection signal — recency plus one
+learned direction. One honest caveat on the magnitude: the 0.61 above is inflated by the
+sink-adjacent positions where these heads park most of their mass. In the concise companion
+paper we redo this scoring with the attention sink zeroed and the distribution renormalized,
+and the same rank-1 direction then climbs only <em>toward</em> recency, not past it. So the
+durable claim is qualitative — a single low-dimensional direction exists and carries the
+diffuse "which entity" structure — not the specific reconstruction score.</p>
+
+<p>We then tried to push it one step further — to show that plugging this direction back in as
+a parameterized template <em>recovers the head's function downstream</em> — and ran the
+cleanest version we could before reporting the result. In a renormalized stage-2 test we
+reconstruct each head's true attention, keep the rule columns plus the learned entity mass,
+renormalize over the retained context, and push it back through the value matrix, measuring
+what fraction of the head's ablation gap the substitute recovers. It is <strong>negative</strong>:
+over five held-out chunks (pooled ablation gap 0.382 nats) the rule-only substitution recovers
+<strong>−25%</strong> of the gap and rule-plus-rank-1-probe <strong>−30%</strong> — both below
+zero, and the learned probe no better than (in fact slightly worse than) rules alone.
+Substituting <em>part</em> of a head's attention scores worse than deleting the head outright,
+whatever the normalization: a head's attention does not decompose into "rule part + entity
+part" that can be reassembled through its value matrix. So the stronger claim — that rules plus
+one direction crack the <em>functional</em> ceiling — is <strong>unproven</strong>, defeated by
+a substitution that is methodologically ill-posed in this regime. We report the representational
+finding and stop at it. (The functional question is answered a different way in the companion
+paper: a query-edit probe that intervenes on the head's <em>query</em> rather than reassembling
+its attention finds the direction is causally <em>used</em> on both model families, but neither
+dominates nor names the selection — a real but partial effect, not the clean functional
+substitution we hoped for here.)</p>
 
 <h2>What we now believe</h2>
 
@@ -546,11 +562,13 @@ robustness suite retired our own favorite number, the "30/70 constant," replacin
 the domain-dependence finding; and the entity probe (Act VI) delivered half of what we hoped
 — the diffuse part is a low-rank, readable direction, but we could not show it carries the
 head's function downstream, because partial-attention substitution turned out ill-posed. The
-rigor checklist we set ourselves is complete, negatives included. What remains before
-submitting anywhere is presentation work (positioning against PAPA and the pruning
-literature). The one experiment that could still turn Act VI's representational finding into
-a functional one is a cleaner probe — one that edits the head's <em>query</em> rather than
-reassembling its attention, sidestepping the decomposition that broke here.</p>
+rigor checklist we set ourselves is complete, negatives included. The cleaner probe we hoped
+might turn Act VI's representational finding into a functional one — editing the head's
+<em>query</em> rather than reassembling its attention, sidestepping the decomposition that
+broke here — has since been run in the companion paper: it shows the learned direction is
+causally <em>used</em> on both model families, but it neither dominates nor names the
+selection, so the functional ceiling stands. What remains before submitting anywhere is
+presentation work (positioning against PAPA and the pruning literature).</p>
 
 <h2>What it could become</h2>
 
