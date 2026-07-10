@@ -314,12 +314,15 @@ positional-only +0.63, healed), so the better-chosen heads are also mostly posit
 search pulls in redundant positional machinery, not the content-bearing induction circuits, which
 stay in the expensive tail it never reaches.</p>
 
-<p>This deserves stating without hedging: for the substituted set, the least-squares fit over content
-columns bought essentially nothing — a content-free positional template ties it. The honest headline
-for the attention half is that <strong>36% of heads are replaceable by positional templates</strong>;
-the fitted content terms (the duplicate-token and match-rule columns) earn their keep only in the
-ceiling experiments on repeated text, where induction heads do real copying — and those heads sit
-almost entirely in the expensive, un-substituted tail. So the "96% of verbatim copying" figure below
+<p>This deserves stating without hedging, and a budget sweep settles it. Dropping the two content
+columns (duplicate-token and match-rule) from the fitted surrogate and re-measuring across the whole
+range, the fitted and positional-only curves <strong>never separate</strong>: the gap is +0.003,
++0.002, +0.005, +0.003, +0.007 nats at 40, 80, 120, 160, 200 heads — indistinguishable from zero
+everywhere. So it is not that content ties at the chosen 36%; content buys essentially nothing
+<em>anywhere</em> in the substitutable range. The honest headline for the attention half is that
+<strong>36% of heads are replaceable by purely positional templates</strong>; the fitted content
+terms earn their keep only in the ceiling experiments on repeated text, where induction heads do real
+copying — and those heads sit almost entirely in the expensive, un-substituted tail. So the "96% of verbatim copying" figure below
 is a <em>ceiling</em> measurement (a match-rule column reconstructing induction on repeated
 sequences), not a component of the +0.64 substitution; we keep the two separate rather than let the
 copy-algorithm's success borrow credit for the positional headline.</p>
