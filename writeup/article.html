@@ -554,17 +554,18 @@ choices rather than the model alone.</p>
   components rather than featureless — "un-named," not proven smooth. Given the many exploratory rule
   families, a confirmatory untouched holdout would strengthen it; and the remaining attack is scale,
   not more rules.</li>
-  <li>Is code better than same-budget pruning? We deleted a set chosen for <em>prunability</em>
-  (the 160 lowest-ablation-cost heads, 53 different from the code set) and healed: it costs +3.81
-  nats — <em>worse</em> than deleting the code set (+2.12), because solo cost mispredicts joint
-  damage (the +0.14 correlation). Code + heal (+0.70) beats both by 3–5×, so the code carries
-  function no same-budget deletion recovers. Caveat: we did not run a full joint-optimized pruning
-  search, which could beat +2.12; the strongest pruning baseline we measured is still the code-set
-  zero-ablation.</li>
-  <li>Is the MLP "code" compressible? Partly. The full ~3,400-entry table costs +0.51 nats
-  (MLP-only, unhealed); a rank-128 SVD or a top-1000-token truncation ≈ matches it (+0.55, +0.57),
-  a ~10× reduction, but small truncations (rank-8, top-100) lose ~0.2 nats. So the table is
-  moderately low-rank — not a tiny program, but not the full 3.5M numbers either.</li>
+  <li>Is code better than same-budget pruning? We tried three deletion sets, healed. Solo-cost
+  pruning is <em>worse</em> than deleting the code set (+3.81 vs +2.12 — solo cost mispredicts joint
+  damage, the +0.14 correlation); but a <em>joint-informed</em> set, ranked by post-heal marginal
+  importance, heals to +1.27. So against the strongest pruning baseline, code + heal (+0.70) still
+  wins — but by ≈1.8×, not the 3–5× a weak baseline suggests. Code carries function no same-budget
+  deletion recovers, at a real but modest margin.</li>
+  <li>How compressible is the MLP "code"? A rate-distortion sweep (loss vs. parameters) gives it an
+  effective description length. SVD beats top-k truncation, with a knee around <strong>rank-32–64</strong>
+  (0.9–1.7M parameters, a ~12–24× reduction from the 20.7M full table) before returns flatten — but
+  damage never drops below the full table's +0.51 floor. So the layer is moderately low-rank with an
+  irreducible context-dependent residual: more program-like than a raw 3.5M-number table, but not a
+  short program, and not fully a token map either.</li>
   <li>The most immediately useful direction needs no new science: an <strong>audit tool</strong>
   that reports, for any model, what fraction of its attention and MLPs is nameable algorithm —
   the analysis is the deliverable.</li>
