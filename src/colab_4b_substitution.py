@@ -1,31 +1,33 @@
-"""Self-contained substitution + heal, model-parametric (Qwen3-0.6B locally to
-validate, Qwen3-4B on Colab). Answers the thesis-critical question the paper is
-missing at scale: is the +0.6-0.9 nat healed-substitution band a small-model fact?
+"""Self-contained substitution + heal, model-parametric (Qwen3-0.6B to validate,
+Qwen3-4B on Colab). Answers the thesis-critical question missing at scale: is the
++0.6-0.9 nat healed-substitution band a small-model fact?
 
-Uses POSITIONAL-ONLY templates (content-free: offsets, bos, punctuation, sentence/
-line structure) — justified because the paper's positional-vs-fitted sweep shows
-content columns buy ~nothing in the substitutable set, so positional-only ties the
-full fitted code. Pipeline: identify cheap heads by solo ablation cost, fit each a
-positional template (non-negative least squares to its true attention), replace a
-budget-matched fraction + the cheap MLP layers (token lookup tables), heal only the
-RMSNorm gains, and report healed damage against intact — plus the zero-ablation and
-intact-heal controls.
+POSITIONAL-ONLY templates (content-free: offsets, bos, punctuation, sentence/line
+structure) — justified because the paper's positional-vs-fitted sweep shows content
+columns buy ~nothing in the substitutable set, so positional-only ties fitted code.
 
-Colab: set MODEL='Qwen/Qwen3-4B'; Runtime = L4/A100 (24GB+). Uses WikiText-103 (public).
+Pipeline (fast, no per-head forward scan): fit each head a positional template by
+non-negative least squares to its true attention; SELECT the heads best reconstructed
+by positional templates (that IS codability) up to the budget; replace them + the
+cheap MLP layers (token lookup tables); heal only the RMSNorm gains; report healed
+damage vs intact, with zero-ablation and intact-heal (domain-adaptation) controls.
+Templates are cached per chunk so healing is cheap enough for 4B.
+
+Colab: MODEL='Qwen/Qwen3-4B', Runtime = L4/A100 (24GB+).
   pip install -q transformers datasets accelerate
 """
-import sys, math, gc, torch, torch.nn.functional as F
+import sys, math, gc, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 
-MODEL   = sys.argv[1] if len(sys.argv) > 1 else "Qwen/Qwen3-0.6B"
-FRAC_H  = float(sys.argv[2]) if len(sys.argv) > 2 else 0.36   # head budget (paper's 36%)
-FRAC_M  = 0.21                                                # MLP budget (paper's 21%)
-EPOCHS  = int(sys.argv[3]) if len(sys.argv) > 3 else 12
-DEV     = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
-DTYPE   = torch.bfloat16 if DEV == "cuda" else torch.float32
-NOFF    = 8                                                   # fixed-offset columns off1..off8
-print(f"model={MODEL} device={DEV} dtype={DTYPE} head-budget={FRAC_H:.0%} epochs={EPOCHS}")
+MODEL  = sys.argv[1] if len(sys.argv) > 1 else "Qwen/Qwen3-0.6B"
+FRAC_H = float(sys.argv[2]) if len(sys.argv) > 2 else 0.36
+FRAC_M = 0.21
+EPOCHS = int(sys.argv[3]) if len(sys.argv) > 3 else 12
+DEV    = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
+DTYPE  = torch.bfloat16 if DEV == "cuda" else torch.float32
+NOFF   = 8
+print(f"model={MODEL} device={DEV} dtype={DTYPE} head-budget={FRAC_H:.0%} epochs={EPOCHS}", flush=True)
 
 model = AutoModelForCausalLM.from_pretrained(MODEL, attn_implementation="eager", dtype=DTYPE).to(DEV).eval()
 tokz  = AutoTokenizer.from_pretrained(MODEL)
@@ -37,22 +39,37 @@ GROUP = NH // NKV
 V     = cfg.vocab_size
 layers = model.model.layers
 
-# ---- data: WikiText-103 (public); natural text, matches the paper's setting ----
-ds = load_dataset("wikitext", "wikitext-103-raw-v1", split="train")
-text = "\n".join(r["text"] for r in ds.select(range(20000)) if r["text"].strip())
+def get_wikitext():
+    from itertools import islice
+    last = None
+    for repo in ["Salesforce/wikitext", "wikitext", "iohadrubin/wikitext-103-raw-v1"]:
+        try:
+            ds = load_dataset(repo, "wikitext-103-raw-v1", split="train", streaming=True)
+            buf, n = [], 0
+            for r in islice(ds, 200000):
+                t = r.get("text", "")
+                if t and t.strip():
+                    buf.append(t); n += len(t)
+                    if n > 1_400_000: break
+            if n > 500_000:
+                print(f"loaded corpus from {repo} ({n} chars)", flush=True)
+                return "\n".join(buf)
+        except Exception as e:
+            last = e; print(f"  dataset repo {repo} failed: {type(e).__name__}", flush=True)
+    raise RuntimeError(f"could not load wikitext ({last})")
+text = get_wikitext()
 def chunks(a, b, step, n): return [tokz.encode(text[o:o+6000])[:n] for o in range(a, b, step)]
 TRAIN = [c for c in chunks(0, 700000, 28000, 512) if len(c) == 512][:24]
 EVAL  = [c for c in chunks(760000, 1200000, 40000, 300) if len(c) == 300][:8]
-print(f"train chunks {len(TRAIN)}, eval chunks {len(EVAL)}")
+print(f"train {len(TRAIN)}, eval {len(EVAL)} chunks", flush=True)
 
 SENT = {t for t in range(min(400, V)) if any(c in tokz.decode([t]) for c in ".!?\n")}
 LINE = {t for t in range(min(400, V)) if "\n" in tokz.decode([t])}
 
 def pos_columns(seq):
-    """content-free column basis: bos, self, off1..NOFF, punct, sstart, sent, lstart."""
     n = len(seq); cols = {}
     bos = torch.zeros(n, n); bos[:, 0] = 1; cols["bos"] = bos
-    slf = torch.eye(n); cols["self"] = slf
+    cols["self"] = torch.eye(n)
     for k in range(1, NOFF + 1):
         c = torch.zeros(n, n)
         for i in range(k, n): c[i, i - k] = 1
@@ -62,13 +79,13 @@ def pos_columns(seq):
         punct[i, last] = 1
         if seq[i] in SENT: last = i
     cols["punct"] = punct
-    sid = [0]*n; s = 0
+    sid = []; s = 0
     for i in range(n):
-        sid[i] = s
+        sid.append(s)
         if seq[i] in SENT: s += 1
-    lid = [0]*n; l = 0
+    lid = []; l = 0
     for i in range(n):
-        lid[i] = l
+        lid.append(l)
         if seq[i] in LINE: l += 1
     fs, fl = {}, {}
     for i in range(n): fs.setdefault(sid[i], i); fl.setdefault(lid[i], i)
@@ -82,103 +99,58 @@ def pos_columns(seq):
 
 COLNAMES = ["bos","self"] + [f"off{k}" for k in range(1, NOFF+1)] + ["punct","sstart","lstart","sent"]
 
-# ---- true attention + values via hooks ----
-def true_attn_and_v(seq):
-    with torch.no_grad():
-        out = model(torch.tensor([seq]).to(DEV), output_attentions=True)
-    A = [a[0].float().cpu() for a in out.attentions]     # [NH, n, n] per layer
-    del out; gc.collect()
-    return A
-
-# ---- induction heads (repeated random) to know where copying lives ----
-torch.manual_seed(0)
-sq = torch.randint(1000, V-1000, (6, 40)); ids = torch.cat([sq, sq], 1).to(DEV)
-with torch.no_grad(): o = model(ids, output_attentions=True)
-qp = torch.arange(40, 79); ind = torch.zeros(NL, NH)
-for l, a in enumerate(o.attentions): ind[l] = a.float().cpu()[:, :, qp, qp-39].mean(dim=(0,2))
-del o; gc.collect()
-
-# ---- fit a positional template per head on one train seq (non-neg least squares) ----
-print("fitting positional templates per head ...")
-fitseq = TRAIN[0]; n = len(fitseq)
-cols = pos_columns(fitseq); C = torch.stack([cols[k] for k in COLNAMES])   # [K, n, n]
-A_fit = true_attn_and_v(fitseq)
-W = {}                                    # (l,h) -> weight vector over COLNAMES
+# ---- fit a positional template per head + its reconstruction residual (codability) ----
+print("fitting positional templates + selecting by codability ...", flush=True)
+fitseq = TRAIN[0]
+with torch.no_grad():
+    out = model(torch.tensor([fitseq]).to(DEV), output_attentions=True)
+A_fit = [a[0].float().cpu() for a in out.attentions]; del out; gc.collect()
+cols = pos_columns(fitseq); C = torch.stack([cols[k] for k in COLNAMES])   # [K,n,n]
+Xc = C[:, 1:, :].reshape(len(COLNAMES), -1).T                              # [(n-1)*n, K]
+W = {}; resid = {}
 for l in range(NL):
     for h in range(NH):
-        tgt = A_fit[l][h]                 # [n,n]
-        # regress rows (i>=1) : minimize || sum_k w_k C[k] - tgt ||, w>=0
-        Xc = C[:, 1:, :].reshape(len(COLNAMES), -1).T     # [(n-1)*n, K]
+        tgt = A_fit[l][h]
         yc = tgt[1:, :].reshape(-1)
         w = torch.linalg.lstsq(Xc, yc).solution.clamp(min=0)
-        if w.sum() < 1e-6: w = torch.ones(len(COLNAMES)); w[0] = 3.0   # fallback ~ bos/offsets
+        if w.sum() < 1e-6: w = torch.zeros(len(COLNAMES)); w[0] = 1.0
         W[(l, h)] = w
+        recon = sum(w[k] * cols[COLNAMES[k]] for k in range(len(COLNAMES)))
+        recon = recon / recon.sum(-1, keepdim=True).clamp(min=1e-9)
+        resid[(l, h)] = (recon - tgt).abs().mean().item()      # lower = more positional/codable
 del A_fit; gc.collect()
+K_HEADS = int(FRAC_H * NL * NH)
+HEADS = sorted(resid, key=lambda k: resid[k])[:K_HEADS]        # best-reconstructed = substitutable
+BY_L = {}
+for l, h in HEADS: BY_L.setdefault(l, []).append(h)
+print(f"selected {K_HEADS} best-reconstructed heads ({FRAC_H:.0%}); "
+      f"median residual kept {sorted(resid.values())[K_HEADS]:.4f}", flush=True)
 
-def head_template(seq, l, h):
-    cols = pos_columns(seq); w = W[(l, h)]
-    M = sum(w[k] * cols[COLNAMES[k]] for k in range(len(COLNAMES)))
-    return (M / M.sum(-1, keepdim=True).clamp(min=1e-9)).to(DEV)
+def templates_for(seq):
+    cols = pos_columns(seq); out = {}
+    for (l, h) in HEADS:
+        w = W[(l, h)]
+        M = sum(w[k] * cols[COLNAMES[k]] for k in range(len(COLNAMES)))
+        out[(l, h)] = (M / M.sum(-1, keepdim=True).clamp(min=1e-9)).to(DEV)
+    return out
+print("caching templates per chunk ...", flush=True)
+TT_TRAIN = [templates_for(sq) for sq in TRAIN]
+TT_EVAL  = [templates_for(sq) for sq in EVAL]
 
-# ---- solo ablation cost per head (replace with its template, measure delta) ----
-def loss_of(seq, hook_fns):
-    hs = [layers[l].self_attn.o_proj.register_forward_pre_hook(fn) for l, fn in hook_fns]
-    vh = [layers[l].self_attn.v_proj.register_forward_hook(vfn) for l, vfn in _vhooks(hook_fns)]
-    with torch.no_grad():
-        lp = torch.log_softmax(model(torch.tensor([seq]).to(DEV)).logits[0,:-1].float(), -1)
-    for x in hs+vh: x.remove()
-    return -lp.gather(-1, torch.tensor(seq[1:]).to(DEV).unsqueeze(-1)).mean().item()
-
-VCACHE = {}
-def _vhooks(hook_fns):
-    ls = set(l for l,_ in hook_fns)
-    return [(l, (lambda m,i,o,l=l: VCACHE.__setitem__(l, o[0].detach()))) for l in ls]
-
-def sub_hook(l, hmap):
-    """hmap: {head: template[n,n]}; replaces those heads' attention@V."""
-    def fn(mod, inp, l=l, hmap=hmap):
-        x = inp[0].clone()
-        for h, T in hmap.items():
-            g = h // GROUP
-            x[0, :, h*DH:(h+1)*DH] = (T @ VCACHE[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
-        return (x,) + inp[1:]
-    return fn
-
+# ---- MLP lookup tables on the cheapest layers (cheap: NL zero-ablation probes) ----
 def intact_loss(seq):
     with torch.no_grad():
         lp = torch.log_softmax(model(torch.tensor([seq]).to(DEV)).logits[0,:-1].float(), -1)
     return -lp.gather(-1, torch.tensor(seq[1:]).to(DEV).unsqueeze(-1)).mean().item()
-
-print("scoring per-head solo cost ...")
-seq0 = EVAL[0]; base0 = intact_loss(seq0)
-solo = {}
-Tcache0 = {(l,h): head_template(seq0, l, h) for l in range(NL) for h in range(NH)}
+seq0 = EVAL[0]; b0 = intact_loss(seq0); mlp_cost = {}
 for l in range(NL):
-    for h in range(NH):
-        c = loss_of(seq0, [(l, sub_hook(l, {h: Tcache0[(l,h)]}))]) - base0
-        solo[(l, h)] = c
-    if l % max(1, NL//6) == 0: print(f"  layer {l}/{NL}", flush=True)
-K_HEADS = int(FRAC_H * NL * NH)
-HEADS = sorted(solo, key=lambda k: solo[k])[:K_HEADS]
-BY_L = {}
-for l, h in HEADS: BY_L.setdefault(l, {})[h] = None
-print(f"selected {K_HEADS} cheapest heads ({FRAC_H:.0%})")
-
-# ---- MLP lookup tables on the cheapest layers ----
-mlp_cost = {}
-capM = {}
-for l in range(NL):
-    hh = layers[l].mlp.register_forward_hook(lambda m,i,o,l=l: capM.__setitem__(l, o))
-    b = intact_loss(seq0)
-    def zero(m,i,o,l=l): return torch.zeros_like(o)
-    hz = layers[l].mlp.register_forward_hook(zero)
-    mlp_cost[l] = intact_loss(seq0) - b
-    hz.remove(); hh.remove()
+    hz = layers[l].mlp.register_forward_hook(lambda m,i,o: torch.zeros_like(o))
+    mlp_cost[l] = intact_loss(seq0) - b0; hz.remove()
 K_MLP = max(1, int(FRAC_M * NL))
 MLPS = sorted(mlp_cost, key=lambda l: mlp_cost[l])[:K_MLP]
-print(f"selected {K_MLP} cheapest MLP layers ({FRAC_M:.0%}): {sorted(MLPS)}")
+print(f"selected {K_MLP} cheapest MLP layers ({FRAC_M:.0%}): {sorted(MLPS)}", flush=True)
 
-print("building MLP lookup tables ...")
+print("building MLP lookup tables ...", flush=True)
 SUM = {l: {} for l in MLPS}; tot = {l: None for l in MLPS}; cap = {}
 hk = [layers[l].mlp.register_forward_hook((lambda m,i,o,l=l: cap.__setitem__(l, o[0].detach().float()))) for l in MLPS]
 cnt = 0
@@ -193,42 +165,39 @@ with torch.no_grad():
         cnt += len(sq_)
 for h in hk: h.remove()
 MEAN = {l: tot[l]/cnt for l in MLPS}; LUT = {l: {t: v/nn for t,(v,nn) in SUM[l].items()} for l in MLPS}
-def lut_mat(seq, l): return torch.stack([LUT[l].get(t, MEAN[l]) for t in seq]).to(DEV)
+LMAT_TRAIN = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).to(DEV) for l in MLPS} for sq_ in TRAIN]
+LMAT_EVAL  = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).to(DEV) for l in MLPS} for sq_ in EVAL]
 
-# ---- install hybrid (heads+MLPs) / zero / intact, then heal, and evaluate ----
-SEQ = {"s": None}
-def install(mode):
-    hooks = []
-    for l in set(BY_L) | set(MLPS):
-        if l in BY_L:
-            attn = layers[l].self_attn
-            hooks.append(attn.v_proj.register_forward_hook(lambda m,i,o,l=l: VCACHE.__setitem__(l, o[0].detach())))
-            def oh(mod, inp, l=l):
-                x = inp[0].clone()
-                for h in BY_L[l]:
-                    g = h // GROUP
-                    if mode == "zero": x[0,:,h*DH:(h+1)*DH] = 0
-                    else:
-                        T = head_template(SEQ["s"], l, h)
-                        x[0,:,h*DH:(h+1)*DH] = (T @ VCACHE[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
-                return (x,) + inp[1:]
-            hooks.append(attn.o_proj.register_forward_pre_hook(oh))
-        if l in MLPS and mode != "zero_heads_only":
-            def mh(mod, i, o, l=l):
-                if mode == "zero": return torch.zeros_like(o)
-                return lut_mat(SEQ["s"], l).unsqueeze(0).to(o.dtype)
-            hooks.append(layers[l].mlp.register_forward_hook(mh))
-    return hooks
+# ---- install hooks once; mode in {"code","zero","off"}; templates+LUTs cached ----
+HOLD = {"T": None, "L": None, "mode": "off"}
+VC = {}
+hooks = []
+for l in set(BY_L):
+    attn = layers[l].self_attn
+    hooks.append(attn.v_proj.register_forward_hook(lambda m,i,o,l=l: VC.__setitem__(l, o[0].detach())))
+    def oh(mod, inp, l=l):
+        if HOLD["mode"] == "off": return None
+        x = inp[0].clone()
+        for h in BY_L[l]:
+            g = h // GROUP
+            if HOLD["mode"] == "zero": x[0,:,h*DH:(h+1)*DH] = 0
+            else: x[0,:,h*DH:(h+1)*DH] = (HOLD["T"][(l,h)] @ VC[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
+        return (x,) + inp[1:]
+    hooks.append(attn.o_proj.register_forward_pre_hook(oh))
+for l in MLPS:
+    def mh(mod, i, o, l=l):
+        if HOLD["mode"] == "off": return None
+        if HOLD["mode"] == "zero": return torch.zeros_like(o)
+        return HOLD["L"][l].unsqueeze(0).to(o.dtype)
+    hooks.append(layers[l].mlp.register_forward_hook(mh))
 
-def evloss(mode):
-    hks = install(mode); tot = 0.0
-    for sq_ in EVAL:
-        SEQ["s"] = sq_
-        with torch.no_grad():
-            lp = torch.log_softmax(model(torch.tensor([sq_]).to(DEV)).logits[0,:-1].float(), -1)
-        tot += -lp.gather(-1, torch.tensor(sq_[1:]).to(DEV).unsqueeze(-1)).mean().item()
-    for h in hks: h.remove()
-    return tot / len(EVAL)
+def loss_seq(sq_, T, L, mode):
+    HOLD["mode"], HOLD["T"], HOLD["L"] = mode, T, L
+    with torch.no_grad():
+        lp = torch.log_softmax(model(torch.tensor([sq_]).to(DEV)).logits[0,:-1].float(), -1)
+    return -lp.gather(-1, torch.tensor(sq_[1:]).to(DEV).unsqueeze(-1)).mean().item()
+def run(mode):
+    return sum(loss_seq(sq_, TT_EVAL[i], LMAT_EVAL[i], mode) for i, sq_ in enumerate(EVAL)) / len(EVAL)
 
 norm = [p for n_, p in model.named_parameters() if "norm" in n_.lower()]
 orig = [p.detach().clone() for p in norm]
@@ -237,39 +206,30 @@ def heal(mode):
     for p in norm: p.requires_grad_(True)
     opt = torch.optim.Adam(norm, lr=3e-4); model.train()
     for ep in range(EPOCHS):
-        hks = install(mode)
-        for sq_ in TRAIN:
-            SEQ["s"] = sq_; ids = torch.tensor([sq_]).to(DEV)
+        for i, sq_ in enumerate(TRAIN):
+            HOLD["mode"], HOLD["T"], HOLD["L"] = mode, TT_TRAIN[i], LMAT_TRAIN[i]
+            ids = torch.tensor([sq_]).to(DEV)
             out = model(ids, labels=ids); opt.zero_grad(); out.loss.backward(); opt.step()
-        for h in hks: h.remove()
     model.eval()
-    d = evloss(mode)
-    for p, o in zip(norm, orig): p.data.copy_(o)
-    return d
 
-intact = sum(intact_loss(sq_) for sq_ in EVAL)/len(EVAL)
-print("\n==== RESULTS (held-out, nats above intact) ====")
-print(f"intact loss: {intact:.4f}  (perplexity {math.exp(intact):.1f})")
-code_unhealed = evloss("code") - intact
-print(f"code, unhealed:        {code_unhealed:+.3f}")
-code_healed = heal("code") - intact
-print(f"code + heal:           {code_healed:+.3f}  (perplexity {math.exp(intact+code_healed):.1f})")
-zero_healed = heal("zero") - intact
-print(f"zero-ablation + heal:  {zero_healed:+.3f}   <- control: code should be << this")
-# intact-heal offset (domain adaptation) -> fair number
-def heal_intact():
-    for p, o in zip(norm, orig): p.data.copy_(o)
-    for p in norm: p.requires_grad_(True)
-    opt = torch.optim.Adam(norm, lr=3e-4); model.train()
-    for ep in range(EPOCHS):
-        for sq_ in TRAIN:
-            ids = torch.tensor([sq_]).to(DEV); out = model(ids, labels=ids)
-            opt.zero_grad(); out.loss.backward(); opt.step()
-    model.eval(); d = sum(intact_loss(sq_) for sq_ in EVAL)/len(EVAL) - intact
-    for p, o in zip(norm, orig): p.data.copy_(o);
-    return d
-offset = heal_intact()
-print(f"intact-heal offset:    {offset:+.3f}   (domain adaptation the heal earns for free)")
-print(f"FAIR cost (code - offset): {code_healed - offset:+.3f}  <- compare to 0.6B's ~+0.88")
-print("\nread: if code+heal and the fair cost sit in the +0.6-0.9 band, the headline is NOT a")
-print("      small-model artifact; if much lower/higher, scale changes the substitutable fraction.")
+print("\n==== RESULTS (held-out, nats above intact) ====", flush=True)
+intact = run("off")
+print(f"intact loss: {intact:.4f}  (perplexity {math.exp(intact):.1f})", flush=True)
+code_unhealed = run("code") - intact
+print(f"code, unhealed:        {code_unhealed:+.3f}", flush=True)
+heal("code"); code_healed = run("code") - intact
+print(f"code + heal:           {code_healed:+.3f}  (perplexity {math.exp(intact+code_healed):.1f})", flush=True)
+heal("zero"); zero_healed = run("zero") - intact
+print(f"zero-ablation + heal:  {zero_healed:+.3f}   <- control: code should be << this", flush=True)
+heal("off"); offset = run("off") - intact
+for p, o in zip(norm, orig): p.data.copy_(o)
+print(f"intact-heal offset:    {offset:+.3f}   (domain adaptation the heal earns for free)", flush=True)
+print(f"FAIR cost (code - offset): {code_healed - offset:+.3f}", flush=True)
+print("\n==== HOW TO READ ====")
+print("This protocol (WikiText, POSITIONAL-ONLY templates, %d epochs) is NOT the paper's" % EPOCHS)
+print("fiction/fitted/20-epoch +0.88 — do not compare directly to +0.88. Instead run this SAME")
+print("notebook on the 0.6B model (dropdown) and compare the two numbers head to head:")
+print("  * zero+heal should be >> code+heal on both (control: the code carries function)")
+print("  * if 4B's code+heal / fair-cost is <= 0.6B's under this identical protocol, the")
+print("    substitutability is NOT a small-model artifact — it holds or improves with scale.")
+print("  * a much larger 4B cost would mean scale shrinks the substitutable fraction.")
