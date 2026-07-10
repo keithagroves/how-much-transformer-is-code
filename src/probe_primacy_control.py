@@ -111,6 +111,11 @@ mean = lambda x: sum(x) / len(x)
 print(f"{'POOLED':>9}{'':>6}{'':>9}{mean(agg['bos_raw']):>8.2f}{mean(agg['a_first']):>9.3f}"
       f"{mean(agg['base_local']):>9.4f}{mean(agg['ratio']):>7.1f}"
       f"{mean(agg['argmax_entity']):>7.2f}{mean(agg['argmax_first']):>9.2f}")
+tot_n = sum(N[hd] for hd in HEADS)
+tot_first = sum(M[hd]["argmax_first"] for hd in HEADS)   # count, not rate
+print(f"\nTOTAL forced-mid-passage samples: {tot_n} across {sum(1 for hd in HEADS if N[hd])} heads")
+print(f"of those, argmax-over-context landed on the mid-passage first entity: {int(tot_first)} "
+      f"({tot_first/tot_n:.4f} = {'exactly 0' if tot_first==0 else 'nonzero'})")
 print("\namFirst (argmax over context lands on the mid-passage first entity):")
 print("  high  => entity-anchored, primacy survives the sink control")
 print("  ~0    => sink in costume; the first entity only won by sitting near BOS")

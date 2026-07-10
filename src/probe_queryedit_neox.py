@@ -232,5 +232,22 @@ for name, key in [("r_true", "r_true"), ("r_rand", "r_rand")]:
     c, lo, hi = sample_ci([STAT[hd][key] for hd in SEL if STAT[hd]["r_true"]])
     print(f"  {name:>16}  sample  {c:+.3f} [{lo:+.3f}, {hi:+.3f}]")
 print("  gap CI excludes 0 => effect real above the random-direction control.")
+
+# --- small-n tests (cluster bootstrap with n=6 is anti-conservative) ---
+import itertools
+k = len(gap_heads)
+npos = sum(1 for d in gap_heads if d > 0)
+# exact sign test (two-sided): prob of >= npos same-sign under fair coin
+from math import comb
+tail = sum(comb(k, j) for j in range(npos, k + 1)) / 2**k
+sign_p = min(1.0, 2 * tail)
+# exact sign-flip permutation test on per-head gaps (H0: symmetric about 0)
+obs = abs(sum(gap_heads) / k)
+perm = [abs(sum(s * d for s, d in zip(signs, gap_heads)) / k)
+        for signs in itertools.product([1, -1], repeat=k)]
+perm_p = sum(1 for m in perm if m >= obs - 1e-12) / len(perm)
+print(f"\nsmall-n tests on {k} per-head gaps ({npos}/{k} positive):")
+print(f"  sign test (two-sided) p = {sign_p:.4f}")
+print(f"  exact sign-flip permutation p = {perm_p:.4f}  (2^{k}={2**k} assignments)")
 for hk in hooks:
     hk.remove()

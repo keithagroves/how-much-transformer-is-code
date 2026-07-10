@@ -100,7 +100,9 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   human-readable code. On Qwen3-0.6B and Pythia-410M we fit readable surrogates — attention heads
   as mixtures of a few named columns, MLPs as token-keyed lookup tables — install them, and heal
   only the 65k normalization gains. About <strong>36% of attention heads and 21% of MLP layers</strong>
-  run as code for +0.64 nats on held-out text (95% CI [+0.57, +0.71]). Controls fix what this means:
+  run as code for +0.64 nats on held-out text (95% CI [+0.57, +0.71]) — a real cost, not near-parity:
+  it lifts held-out perplexity from ≈29 to ≈55, and is ≈+0.88 once we net out the domain-adaptation
+  the norm-heal earns on its own (healing an intact no-code model gains −0.24 nats). Controls fix what this means:
   content-free positional templates <em>tie</em> the fitted code, so the substitutable majority is
   positional plumbing, not content; while zeroing or position-scrambling the code before the same
   heal is far worse (+2.2 vs +0.7 nats), so the heal recovers real function rather than manufacturing
@@ -182,11 +184,48 @@ position is effect size, not absolute loss). Dots with a bar carry a 95% CI from
 fresh-heal run; the other three are the headline-chunk decomposition. Two comparisons carry the
 argument. <strong>Code + heal ≈ positional-only + heal</strong>: content-free positional templates,
 healed identically, tie the fitted code — the substitutable majority of attention is positional
-machinery, and template <em>content</em> earns its keep only at the algorithmic circuits (the match
-rule recovers 96% of verbatim copying no positional pattern expresses). <strong>Shuffled code + heal
+machinery, and template <em>content</em> earns its keep only at the algorithmic circuits — on
+repeated text a match-rule column reconstructs 96% of verbatim copying no positional pattern
+expresses, but that is a ceiling measurement, not part of this substitution set. <strong>Shuffled code + heal
 ≈ zero-ablation + heal ≫ code + heal</strong>: scrambling the code's outputs across positions before
 the same heal returns roughly to the level of deleting the components, so the heal cannot manufacture
 the function.</figcaption>
+</figure>
+
+<p>Read the headline against the base rate: intact held-out loss is <strong>3.38 nats</strong>, so
++0.64 is a real degradation — perplexity rises from ≈29 to ≈55, close to a doubling — not near-parity.
+The claim is about what is substitutable <em>at all</em> at a fixed tolerance, and the controls show
+the recovery is functional; the number is not a free lunch. We report the +0.6–0.7 nat band as the
+operating point because that is where the norm-heal has converged and the zero, positional, and
+shuffle controls separate cleanly; tighten the tolerance and the substitutable set shrinks, loosen
+it and the headline inflates.</p>
+
+<p>There is one more asymmetry to net out, and it moves the number. The healed hybrid fine-tuned 65k
+norm gains on the corpus; the intact reference did not. Running the <em>same</em> heal on the intact
+model with <em>no</em> code installed improves its held-out loss by <strong>−0.24 nats</strong> (95%
+CI [−0.27, −0.21]) — pure domain adaptation, a discount the healed-code number collects for free
+against the raw-intact reference. Measured instead against an identically-healed no-code baseline —
+the fair comparison — the code substitution costs about <strong>+0.88 nats</strong>, not +0.64. We
+report both, and quote +0.64 as the raw-intact figure with this offset stated. The controls are
+unaffected: the zero-ablation and shuffled-code conditions are healed on the same corpus and share
+the same discount, so their <em>gaps</em> from the code condition — the load-bearing comparisons —
+stand exactly as reported. Several loss numbers recur across the paper, each tied to a protocol:</p>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th>number (nats)</th><th>protocol</th></tr></thead>
+<tbody>
+<tr><td>+1.61</td><td>unhealed damage, single headline chunk</td></tr>
+<tr><td>+0.67</td><td>healed, same single chunk (norms early-stopped on it)</td></tr>
+<tr><td>+0.64 [+0.57, +0.71]</td><td>healed, pooled over 8 held-out chunks, vs <em>raw</em> intact — the out-of-sample headline</td></tr>
+<tr><td>+0.70 [+0.65, +0.77]</td><td>healed, fresh matched-protocol run — the basis for the shuffle/zero controls</td></tr>
+<tr><td>−0.24 [−0.27, −0.21]</td><td>intact model, norm-heal only, no code — the domain-adaptation offset</td></tr>
+<tr><td>≈+0.88</td><td>code cost net of that offset — vs an identically-healed no-code baseline (the fair reference)</td></tr>
+</tbody>
+</table></div>
+<figcaption>The same substitution, measured several ways. +0.64 is the out-of-sample headline against
+the raw intact model; +0.88 is its fair counterpart net of the norm-heal's domain-adaptation discount;
++0.70 is the matched-protocol twin used wherever a control needs the same fresh heal.</figcaption>
 </figure>
 
 <p>"The cheapest 160 heads" invites a circularity worry — of course the easiest heads to replace
@@ -216,10 +255,27 @@ positional-only +0.63, healed), so the better-chosen heads are also mostly posit
 search pulls in redundant positional machinery, not the content-bearing induction circuits, which
 stay in the expensive tail it never reaches.</p>
 
+<p>This deserves stating without hedging: for the substituted set, the least-squares fit over content
+columns bought essentially nothing — a content-free positional template ties it. The honest headline
+for the attention half is that <strong>36% of heads are replaceable by positional templates</strong>;
+the fitted content terms (the duplicate-token and match-rule columns) earn their keep only in the
+ceiling experiments on repeated text, where induction heads do real copying — and those heads sit
+almost entirely in the expensive, un-substituted tail. So the "96% of verbatim copying" figure below
+is a <em>ceiling</em> measurement (a match-rule column reconstructing induction on repeated
+sequences), not a component of the +0.64 substitution; we keep the two separate rather than let the
+copy-algorithm's success borrow credit for the positional headline.</p>
+
 <p>The MLP result is anatomically clean and replicates across both model families: the middle
 of the network is nearly-free token lookup (one Qwen layer has <em>negative</em> substitution
 cost), while composition concentrates in the first two and last two layers. "MLPs as key-value
-memories" is not just true on average — it is a map, and the map has a shape.</p>
+memories" is not just true on average — it is a map, and the map has a shape. It is worth naming
+what the token-keyed table actually measures: <strong>context-independence</strong> — how much of
+a layer's output is a function of the current token alone, ignoring the rest of the stream.
+Read that way, "21% of MLP layers substitute" says a fifth of the layers are largely context-free
+per-token enrichment, which is a cleaner and more falsifiable claim than "run as code." Its
+compressibility is a separate axis we flag but do not fully resolve here: the table holds ~3,400
+token entries, and whether a low-rank or top-k-frequent truncation preserves the result is the
+measurement that would decide how program-like it really is.</p>
 
 <h2>The ceiling, and why it is not a constant</h2>
 
@@ -246,11 +302,13 @@ the explanation, though selected-domain comparison is not itself a controlled in
 </div>
 <figcaption>Rule-nameable fraction of induction function vs. text regularity (8 chunks pooled;
 brackets are 95% cluster-bootstrap CIs over chunks). It rises monotonically fiction → WikiText
-→ rigid schemas on both models: encyclopedic and templated text repeat entities and phrases
-verbatim, which is exactly what a lookup rule can name. Qwen·fiction is omitted because its
-recovery is statistically indistinguishable from zero (−2%, CI [−12%, +8%]) — on that model's
-hardest case no rule-nameable recovery is detectable under this vocabulary, and the CI says so. The
-boundary between "code" and "weights" moves with the data.</figcaption>
+→ rigid schemas on both models. Because the induction gap itself is small on natural text (0.09–0.37
+nats), we checked the trend holds in absolute nats recovered, not just as a fraction of a shrinking
+denominator: Pythia 0.04 → 0.18 → 0.29 nats, Qwen −0.00 → 0.07 → 0.11 nats — monotone both ways.
+Qwen·fiction is omitted because its recovery is indistinguishable from zero in both units (−2%,
+CI [−12%, +8%]; −0.002 nats, [−0.012, +0.007]) — on that model's hardest case no rule-nameable
+recovery is detectable under this vocabulary, and neither the fraction nor the absolute figure finds
+one. The boundary between "code" and "weights" moves with the data.</figcaption>
 </figure>
 
 <p>On our repeated-sequence benchmark, nearly all measured induction function flows through
@@ -301,10 +359,13 @@ heads puts the true-minus-random gap at +0.49, 95% interval [+0.35, +0.64], clea
 replicates cross-family: porting the same reconstruction to Pythia's GPT-NeoX circuit (fused QKV,
 partial rotary, no per-head QK-norm; reconstruction again exact to ~1e-6) gives a <em>stronger</em>
 effect on its six induction heads — correlation 0.63 against −0.19 for a random direction, gap
-+0.82, 95% interval [+0.46, +1.16]. So the causal claim is no longer one model. Still, this is the
-paper's thinnest leg — six heads per model, and a 0.41–0.63 correlation against the readouts' own
-0.73–0.82 leaves most of the steering unexplained — so we read it as a real but partial effect, not
-a full account.</p>
++0.82, 95% interval [+0.46, +1.16]. A cluster bootstrap on six clusters is anti-conservative, so we
+lean on an exact test instead: on <em>both</em> models all six heads individually show a positive
+true-minus-random gap (6/6), which a two-sided sign test and an exact sign-flip permutation test
+both put at p = 0.031 — significant without trusting the interval width. So the causal claim is no
+longer one model. Still, this is the paper's thinnest leg — six heads per model, and a 0.41–0.63
+correlation against the readouts' own 0.73–0.82 leaves most of the steering unexplained — so we read
+it as a real but partial effect, not a full account.</p>
 
 <p>A tempting rule then seemed to close the story. Asking which readable rule best predicts
 <em>which</em> entity a head selects — its top-attended candidate — one wins overwhelmingly over
@@ -317,8 +378,9 @@ selection had a name.</p>
 token, and these induction heads park half to four-fifths of their mass on the start as an
 off-state — the attention sink. So we forced the question: zero out the sink, renormalize over
 the real context, and require the first entity to appear genuinely mid-passage. The effect
-vanishes on both models — the head puts essentially no contextual attention on a mid-passage
-first entity, and never selects it.</p>
+vanishes on both models — across <strong>281</strong> forced mid-passage cases (Qwen, six heads),
+the head's renormalized argmax lands on the first entity in <strong>exactly 0</strong> of them
+(0/281, not a rounded small fraction): once it is not the sink, it is never selected.</p>
 
 <figure>
 <div class="bars">
@@ -433,14 +495,18 @@ mistake we kept catching ourselves making.</p>
   under an identical protocol, so the code carries the right statistics but the wrong per-position
   function — lands at +2.21 nats (95% CI [+2.08, +2.33]), against +0.70 for real code, approximately
   the zero-ablation level (+2.12). Norm gains are per-channel and cannot undo a position permutation, so the
-  heal cannot manufacture the function; the recovery is functional, not distributional. What remains
-  is that healing still repairs genuine distribution shift on top of real code, which is why the
-  reported cost is the healed one.</li>
+  heal cannot manufacture the function; the recovery is functional, not distributional. A second
+  asymmetry we now measure rather than argue: the heal also earns generic domain adaptation the intact
+  reference never got — norm-healing an intact no-code model gains −0.24 nats on held-out text — so the
+  code's cost against that fair baseline is ≈+0.88, not +0.64. We report both; the control gaps are
+  unaffected since they share the discount.</li>
   <li>The clean causal test — train twin models on regular vs. natural data and compare their
   nameability — failed at our scale: from-scratch 17M-parameter models never crossed the
   induction phase change. That experiment is compute-gated, not disproven.</li>
   <li>The causal query-edit is six heads per model, now on two families (Qwen gap +0.49, 95% CI
-  [+0.35, +0.64]; Pythia +0.82, [+0.46, +1.16], both clearing zero); the intervals are wide and the
+  [+0.35, +0.64]; Pythia +0.82, [+0.46, +1.16]). The cluster bootstrap at n=6 is anti-conservative,
+  so significance rests instead on an exact test — 6/6 heads positive on both models, sign and
+  sign-flip permutation p = 0.031. The intervals are wide and the
   steering is partial — it shows a low-dimensional direction is <em>used</em>, not a tight effect
   size or the full shape of the attention it steers.</li>
   <li>The which-entity selection resists every rule we tried: recency, salience, re-mention,
@@ -455,16 +521,23 @@ mistake we kept catching ourselves making.</p>
   remaining attack on the residue is scale, not
   more rules — small models may simply be the smooth regime of something that sharpens with
   capacity.</li>
+  <li>The zero-ablation baseline deletes the <em>code-selected</em> set, which was chosen for
+  codability, not prunability. The fairer alternative baseline — a same-budget set chosen to be
+  <em>most prunable</em>, then healed — is named here and not yet run; it is the comparison that
+  would say how much the code beats "just delete redundant heads and heal," and it is the question an
+  audit tool actually answers. The +0.14 solo-vs-marginal correlation suggests the two sets differ,
+  but we have not measured the gap. Likewise the MLP table's compressibility (low-rank or top-k
+  truncation) is named but unmeasured.</li>
   <li>The most immediately useful direction needs no new science: an <strong>audit tool</strong>
   that reports, for any model, what fraction of its attention and MLPs is nameable algorithm —
   the analysis is the deliverable.</li>
 </ul>
 
 <hr>
-<p class="foot">Companion pieces: the <a href="https://claude.ai/code/artifact/2f097281-1df2-447c-8e66-759cc461d8d4">full
-six-act field report</a> with every experiment, the <a href="https://claude.ai/code/artifact/339ed944-e017-467e-9e5f-d940de34b2cd">Legible
-Model</a> demo (a rule-only Q&amp;A and text generator you can poke), and the
-<a href="https://claude.ai/code/artifact/63933730-548a-460d-a8a7-dc1d8683d6c9">sentiment
-field note</a>. All models run locally; all numbers are held-out with intact and
-zero-ablation references.</p>
+<p class="foot">Code, seeds, chunk definitions, and the exact column vocabulary are in the
+<a href="https://github.com/keithagroves/how-much-transformer-is-code">repository</a>; the
+<a href="https://github.com/keithagroves/how-much-transformer-is-code/blob/main/writeup/rules_writeup.html">full
+six-act field report</a> there carries every experiment, including the ones this note only
+summarizes. All models run locally; all numbers are held-out with intact and zero-ablation
+references.</p>
 </div>

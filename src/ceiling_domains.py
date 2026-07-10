@@ -120,7 +120,14 @@ def measure(name, dtype):
             idx = torch.randint(0, n, (n,), generator=g)
             bs.append((rm[idx].sum()/gap[idx].sum()).item())
         bs.sort(); lo, hi = bs[int(.025*B)], bs[int(.975*B)]
-        print(f"  {dom:<11} gap {gap.mean():.3f}±{gap.std():.3f}  masked-to-rule {pm:.0%}  95%CI [{lo:.0%},{hi:.0%}]", flush=True)
+        # absolute nats recovered (report alongside % since the gap denominator is tiny on fiction)
+        nb = []
+        g2 = torch.Generator().manual_seed(1)
+        for _ in range(B):
+            idx = torch.randint(0, n, (n,), generator=g2); nb.append(rm[idx].mean().item())
+        nb.sort()
+        print(f"  {dom:<11} gap {gap.mean():.3f}  nats-recovered {rm.mean():+.3f} [{nb[int(.025*B)]:+.3f},{nb[int(.975*B)]:+.3f}]  "
+              f"frac {pm:.0%} [{lo:.0%},{hi:.0%}]", flush=True)
     del model; gc.collect(); torch.mps.empty_cache()
 
 for name, dt in [("Qwen/Qwen3-0.6B", torch.float32), ("EleutherAI/pythia-410m", torch.float32)]:
