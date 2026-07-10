@@ -169,9 +169,7 @@ the heuristic, not an intrinsic fraction of the model (a later section shows a s
 substitutes more for the same loss) — costs +1.61 nats on
 held-out natural text <em>before</em> healing; retraining only the 65k RMSNorm gains brings that
 to +0.67, so the heal repairs about 58% of the damage. That +1.61 decomposes as +0.77 from the
-heads, +0.48 from the MLPs, and +0.36 of head–MLP interaction on top — worth flagging because a
-later section isolates the heads alone (+0.68), which is the same quantity minus the MLP and
-interaction terms, not a contradiction. Healing changes which part dominates: healed separately,
+heads, +0.48 from the MLPs, and +0.36 of head–MLP interaction on top. Healing changes which part dominates: healed separately,
 heads-only falls to <strong>+0.14</strong> and MLPs-only to <strong>+0.28</strong> (the heal repairs
 82% of the head damage), yet the full hybrid still heals to only +0.70 — so the residual cost is
 almost entirely the <strong>interaction</strong> (+0.29), the coupling between coded heads and coded
@@ -187,10 +185,8 @@ positions — right statistics, wrong per-position function. Under an identical 
 real code heals to +0.70 nats while the position-shuffled code heals only to +2.21 (95% CI [+2.08,
 +2.33]), approximately returning to the zero-ablation level (+2.12). Because the norm gains are
 per-channel they cannot undo a position permutation, so the recovery is functional, not the heal
-papering over scrambled code. One more protocol check: substituting the components gradually —
-replace a batch, heal, replace the next, carrying the healed norms forward (a Ship-of-Theseus
-schedule) — reaches the same place as doing it all at once (+0.702 vs +0.705 at a matched heal
-budget). The heal is expressive enough that substitution order does not matter.</p>
+papering over scrambled code. (Substitution order does not matter: healing gradually, carrying the
+norms forward, ties healing all at once — +0.702 vs +0.705.)</p>
 
 <figure>
 <div class="dp">
@@ -398,10 +394,8 @@ suggesting a clean decomposition: a nameable "attend to the candidates" part plu
 most concentrated — the sink-adjacent ones — and, as the sink control below shows, it does not
 survive.</p>
 
-<p>Our first attempt to prove that direction <em>causal</em> failed, and informatively. Keeping
-only part of a head's attention — the rule columns plus the learned entity mass — and pushing it
-back through the value matrix produces a broken read that scores worse than removing the head:
-a head's attention does not decompose into reassemblable parts. The fix is to intervene on the
+<p>Reassembling part of a head's attention through its value matrix scores worse than deleting the
+head — attention does not decompose into reassemblable parts — so we intervene on the
 <em>query</em> instead. We reconstruct a head's true attention from the residual stream and its
 own weights (exact to one part in a million), edit the query at a single position along the
 learned selection direction, and recompute the real softmax over unchanged keys. Attention
@@ -526,13 +520,10 @@ the reported fraction is a <strong>floor set by the selection heuristic</strong>
 set substitutes for less loss); and, most pointedly, the <strong>hardened residue claim</strong> —
 the "which entity" selection survives every nameable rule we tried, symbolic or soft, once the
 attention sink is controlled for, with its most seductive symbolic explanation (first-entity
-primacy) unmasked as the sink in costume. The through-line is a dependency, not a percentage:
-<strong>how much of a transformer is code is a function of the model, the rule vocabulary you
-allow, the data distribution you measure on, and the search procedure you use to choose what to
-replace</strong>. A network is <em>partly</em> rules — the algorithmic scaffold is real, readable,
-and code-replaceable — and the residue is a nameable "which candidates" set plus a smooth "which
-one" selection whose extent the data sets. Fixing any one axis and quoting a single number is the
-mistake we kept catching ourselves making.</p>
+primacy) unmasked as the sink in costume. Taken together these are less a percentage than a
+<strong>method</strong>: a way to measure which computations admit a short executable description,
+at what cost, under a stated vocabulary — with the replaceable fraction falling out of those
+choices rather than the model alone.</p>
 
 <h2>Limitations and next steps</h2>
 
@@ -543,17 +534,11 @@ mistake we kept catching ourselves making.</p>
   the query-edit — were not repeated there, and nothing here reaches the sizes people deploy.
   Larger models with long context would both firm up the replication and make the functional
   questions well-posed.</li>
-  <li>Healing retrains 65k norm gains, which gives the network room to reroute. Two controls
-  bound what that room buys. Zero-ablating the same components and healing recovers far less, and a
-  <strong>shuffled-code heal</strong> — healing against surrogate outputs permuted across positions
-  under an identical protocol, so the code carries the right statistics but the wrong per-position
-  function — lands at +2.21 nats (95% CI [+2.08, +2.33]), against +0.70 for real code, approximately
-  the zero-ablation level (+2.12). Norm gains are per-channel and cannot undo a position permutation, so the
-  heal cannot manufacture the function; the recovery is functional, not distributional. A second
-  asymmetry we now measure rather than argue: the heal also earns generic domain adaptation the intact
-  reference never got — norm-healing an intact no-code model gains −0.24 nats on held-out text — so the
-  code's cost against that fair baseline is ≈+0.88, not +0.64. We report both; the control gaps are
-  unaffected since they share the discount.</li>
+  <li>Healing gives the network room to reroute; the shuffle and zero controls bound what that room
+  buys (it recovers function, not distribution) and the −0.24-nat domain-adaptation offset is why we
+  report the fair +0.88. The caveat those controls leave open: healing produces a hybrid adapted
+  <em>around</em> the surrogate, so this measures substitutability, not that the original network
+  implemented the rule.</li>
   <li>The clean causal test — train twin models on regular vs. natural data and compare their
   nameability — failed at our scale: from-scratch 17M-parameter models never crossed the
   induction phase change. That experiment is compute-gated, not disproven.</li>
@@ -563,18 +548,12 @@ mistake we kept catching ourselves making.</p>
   sign-flip permutation p = 0.031. The intervals are wide and the
   steering is partial — it shows a low-dimensional direction is <em>used</em>, not a tight effect
   size or the full shape of the attention it steers.</li>
-  <li>The which-entity selection resists every rule we tried: recency, salience, re-mention,
-  literal and neural coreference, clause-subject, and a query-conditional co-occurrence rule were
-  scored through the sink gate both by argmax and — on both models — distributionally, and none
-  beats a weak recency bias. But this is a bounded negative, not a proof of absence: it holds
-  <em>in this vocabulary, under one soft-model class (a linear weighting of the features), at this
-  scale</em>. A more expressive nameable family could in principle do better; the coreference model
-  is mildly out of domain on fiction dialogue; and the negative
-  rule-scoring and the positive query-edit both rest on ~six induction heads per model (here across
-  both families), so the residue's story stands or falls on a small, consistent set of heads. The
-  remaining attack on the residue is scale, not
-  more rules — small models may simply be the smooth regime of something that sharpens with
-  capacity.</li>
+  <li>The which-entity residue resists every rule we tried, but that is a bounded negative (argued
+  above): it holds in this vocabulary, one soft-model class, at this scale, and rests on ~six
+  induction heads per model. It could be higher-dimensional, nonlinear, or a circuit spanning
+  components rather than featureless — "un-named," not proven smooth. Given the many exploratory rule
+  families, a confirmatory untouched holdout would strengthen it; and the remaining attack is scale,
+  not more rules.</li>
   <li>Is code better than same-budget pruning? We deleted a set chosen for <em>prunability</em>
   (the 160 lowest-ablation-cost heads, 53 different from the code set) and healed: it costs +3.81
   nats — <em>worse</em> than deleting the code set (+2.12), because solo cost mispredicts joint
