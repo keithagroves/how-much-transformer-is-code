@@ -279,7 +279,12 @@ figure above), and the curve is still falling where we stopped. The improvement 
 account predicts, because the same interactions that motivate the question also eat most of the
 gain. The honest reading is that our "36% of heads" undercounts what a smarter joint search could
 substitute for the same loss; the reported figure is a floor set by a simple heuristic, not a
-frontier. And the positional-tie result is not an artifact of that heuristic: re-running the
+frontier. Measuring that gap directly: heal a 200-head superset, rank every head by its
+<em>post-heal</em> marginal harm (leave-one-out on the healed model — the criterion that matters,
+since healing rescues most head damage), then re-heal the best subset. The 160 least-harmful heads
+heal to <strong>+0.57</strong> against the fixed cheapest-160's +0.70 — a 19% better frontier at the
+same budget — and the best 120 reach +0.45. The floor is real, and a post-heal-ranked selection
+beats it. And the positional-tie result is not an artifact of that heuristic: re-running the
 content-free control on the joint-improved set leaves it a dead tie (full code +0.63 vs
 positional-only +0.63, healed), so the better-chosen heads are also mostly positional — the joint
 search pulls in redundant positional machinery, not the content-bearing induction circuits, which
