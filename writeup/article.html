@@ -156,7 +156,11 @@ held-out natural text <em>before</em> healing; retraining only the 65k RMSNorm g
 to +0.67, so the heal repairs about 58% of the damage. That +1.61 decomposes as +0.77 from the
 heads, +0.48 from the MLPs, and +0.36 of head–MLP interaction on top — worth flagging because a
 later section isolates the heads alone (+0.68), which is the same quantity minus the MLP and
-interaction terms, not a contradiction. Norm gains can rescale and reroute residual-stream
+interaction terms, not a contradiction. Healing changes which part dominates: healed separately,
+heads-only falls to <strong>+0.14</strong> and MLPs-only to <strong>+0.28</strong> (the heal repairs
+82% of the head damage), yet the full hybrid still heals to only +0.70 — so the residual cost is
+almost entirely the <strong>interaction</strong> (+0.29), the coupling between coded heads and coded
+MLPs that the per-channel norm heal cannot fully reconcile, not the organs in isolation. Norm gains can rescale and reroute residual-stream
 contributions, so the fair question is whether the heal manufactures the function or merely
 reseats the code's output — which is what the controls decide. (The healed figure holds
 out-of-sample: pooling eight chunks that trained neither the lookup tables nor the norm heal — and
@@ -168,7 +172,10 @@ positions — right statistics, wrong per-position function. Under an identical 
 real code heals to +0.70 nats while the position-shuffled code heals only to +2.21 (95% CI [+2.08,
 +2.33]), approximately returning to the zero-ablation level (+2.12). Because the norm gains are
 per-channel they cannot undo a position permutation, so the recovery is functional, not the heal
-papering over scrambled code.</p>
+papering over scrambled code. One more protocol check: substituting the components gradually —
+replace a batch, heal, replace the next, carrying the healed norms forward (a Ship-of-Theseus
+schedule) — reaches the same place as doing it all at once (+0.702 vs +0.705 at a matched heal
+budget). The heal is expressive enough that substitution order does not matter.</p>
 
 <figure>
 <div class="dp">
@@ -237,6 +244,29 @@ but an <strong>interaction</strong> effect that emerges only when many are swapp
 selection criterion (solo cost) and the thing healing must repair (joint damage) are different
 quantities, and the genuinely expensive per-head function lives in a thin tail: the two costliest
 heads alone exceed 0.1 nats each, and they are induction heads, not positional ones.</p>
+
+<p>Sweeping the budget makes the "one operating point, not a constant" claim concrete. Substituting
+the cheapest-first <em>k</em> heads and measuring the damage traces a sharply <strong>convex</strong>
+curve: the first ~40 heads are essentially free, and the cost only accelerates as the budget reaches
+the expensive tail. So a smaller fraction genuinely costs less — steeply so — and 36% is a chosen
+tolerance on a rising curve.</p>
+
+<figure>
+<div class="bars">
+  <div class="bar"><span class="lbl">10 heads</span><div class="track"><div class="fill" style="width:0%"></div></div><span class="val">+0.00</span></div>
+  <div class="bar"><span class="lbl">40 heads</span><div class="track"><div class="fill" style="width:1%"></div></div><span class="val">+0.02</span></div>
+  <div class="bar"><span class="lbl">80 heads</span><div class="track"><div class="fill" style="width:7%"></div></div><span class="val">+0.15</span></div>
+  <div class="bar"><span class="lbl">120 heads</span><div class="track"><div class="fill" style="width:18%"></div></div><span class="val">+0.40</span></div>
+  <div class="bar"><span class="lbl">160 heads</span><div class="track"><div class="fill alt" style="width:34%"></div></div><span class="val">+0.74</span></div>
+  <div class="bar"><span class="lbl">200 heads</span><div class="track"><div class="fill" style="width:57%"></div></div><span class="val">+1.25</span></div>
+  <div class="bar"><span class="lbl">256 heads</span><div class="track"><div class="fill" style="width:75%"></div></div><span class="val">+1.63</span></div>
+  <div class="bar"><span class="lbl">320 heads</span><div class="track"><div class="fill" style="width:100%"></div></div><span class="val">+2.18</span></div>
+</div>
+<figcaption>Damage vs. substitution budget (heads-only, unhealed; cheapest-first order; 160 = the
+operating point, highlighted). Nearly flat to ~40 heads, then convex — the expensive induction tail
+dominates. Healed, the same shape holds: +0.45 / +0.70 / +1.08 nats at 80 / 160 / 240 heads (with
+the 6 MLPs). The fraction is a dial, not a fact about the model.</figcaption>
+</figure>
 
 <p>If solo cost and joint damage are different quantities, is cheapest-solo-first even the right
 way to pick the 160? We checked at the boundary: a head's individual solo cost correlates only
@@ -521,13 +551,17 @@ mistake we kept catching ourselves making.</p>
   remaining attack on the residue is scale, not
   more rules — small models may simply be the smooth regime of something that sharpens with
   capacity.</li>
-  <li>The zero-ablation baseline deletes the <em>code-selected</em> set, which was chosen for
-  codability, not prunability. The fairer alternative baseline — a same-budget set chosen to be
-  <em>most prunable</em>, then healed — is named here and not yet run; it is the comparison that
-  would say how much the code beats "just delete redundant heads and heal," and it is the question an
-  audit tool actually answers. The +0.14 solo-vs-marginal correlation suggests the two sets differ,
-  but we have not measured the gap. Likewise the MLP table's compressibility (low-rank or top-k
-  truncation) is named but unmeasured.</li>
+  <li>Is code better than same-budget pruning? We deleted a set chosen for <em>prunability</em>
+  (the 160 lowest-ablation-cost heads, 53 different from the code set) and healed: it costs +3.81
+  nats — <em>worse</em> than deleting the code set (+2.12), because solo cost mispredicts joint
+  damage (the +0.14 correlation). Code + heal (+0.70) beats both by 3–5×, so the code carries
+  function no same-budget deletion recovers. Caveat: we did not run a full joint-optimized pruning
+  search, which could beat +2.12; the strongest pruning baseline we measured is still the code-set
+  zero-ablation.</li>
+  <li>Is the MLP "code" compressible? Partly. The full ~3,400-entry table costs +0.51 nats
+  (MLP-only, unhealed); a rank-128 SVD or a top-1000-token truncation ≈ matches it (+0.55, +0.57),
+  a ~10× reduction, but small truncations (rank-8, top-100) lose ~0.2 nats. So the table is
+  moderately low-rank — not a tiny program, but not the full 3.5M numbers either.</li>
   <li>The most immediately useful direction needs no new science: an <strong>audit tool</strong>
   that reports, for any model, what fraction of its attention and MLPs is nameable algorithm —
   the analysis is the deliverable.</li>
