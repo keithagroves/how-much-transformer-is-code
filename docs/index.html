@@ -114,17 +114,15 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   heal is far worse (+2.2 vs +0.7 nats), so the heal recovers real function rather than manufacturing
   it. The fraction is a floor set by a simple selection heuristic, and it is not a constant: the
   nameable share of induction rises with the input's verbatim structure (fiction &lt; WikiText &lt;
-  rigid schemas), on both models. The residue — which entity a head selects — resists every rule we
-  tried (recency, neural coreference, clause-subject syntax, a query-conditional co-occurrence rule,
-  a learned low-rank direction) once the attention sink is controlled for; a query edit shows that
-  direction is causally <em>used</em> on both families but neither dominates nor reconstructs the
-  selection. So the honest result is not a percentage but a dependency: <strong>how much of a
-  transformer is code depends on the model, the rule vocabulary you allow, the data distribution you
-  measure on, and the procedure that selects what to replace</strong> — and 36% is one operating
-  point. Our sharpest first answers died under their own controls (a cross-family "constant," a
-  first-entity rule that was the attention sink in costume), and we report those retractions as
-  results. Main limits: small models, roughly six induction heads per model, and "code" that for the
-  MLPs means a large legible lookup table rather than a compact program.
+  rigid schemas), on both models. The residue — which entity a head selects — resists every nameable
+  rule we tried once the attention sink is controlled for; a query edit shows a learned direction is
+  causally <em>used</em> but does not name the choice. So the honest result is not a percentage but a
+  dependency: <strong>how much of a transformer is code depends on the model, the rule vocabulary you
+  allow, the data distribution you measure on, and the procedure that selects what to replace</strong>
+  — and 36% is one operating point. Sharpest first answers of ours died under their own controls (a
+  cross-family "constant," a first-entity rule that was the attention sink in costume). Main limits:
+  small models, roughly six induction heads per model, and "code" that for the MLPs means a large
+  legible lookup table rather than a compact program.
 </div>
 
 <h2>Setup</h2>
@@ -174,8 +172,9 @@ headline chunk; what generalizes is the healed number.) A direct control settles
 manufactures function: re-run it against the <em>same</em> code with its outputs permuted across
 positions — right statistics, wrong per-position function. Under an identical fresh-heal protocol,
 real code heals to +0.70 nats while the position-shuffled code heals only to +2.21 (95% CI [+2.08,
-+2.33]), no better than a zero-ablation. Because the norm gains are per-channel they cannot undo a
-position permutation, so the recovery is functional, not the heal papering over scrambled code.</p>
++2.33]), approximately returning to the zero-ablation level (+2.12). Because the norm gains are
+per-channel they cannot undo a position permutation, so the recovery is functional, not the heal
+papering over scrambled code.</p>
 
 <figure>
 <div class="dp">
@@ -194,8 +193,8 @@ healed identically, tie the fitted code — the substitutable majority of attent
 machinery, and template <em>content</em> earns its keep only at the algorithmic circuits (the match
 rule recovers 96% of verbatim copying no positional pattern expresses). <strong>Shuffled code + heal
 ≈ zero-ablation + heal ≫ code + heal</strong>: scrambling the code's outputs across positions before
-the same heal recovers no better than deleting the components, so the heal cannot manufacture the
-function.</figcaption>
+the same heal returns roughly to the level of deleting the components, so the heal cannot manufacture
+the function.</figcaption>
 </figure>
 
 <p>"The cheapest 160 heads" invites a circularity worry — of course the easiest heads to replace
@@ -258,13 +257,13 @@ brackets are 95% cluster-bootstrap CIs over chunks). It rises monotonically fict
 → rigid schemas on both models: encyclopedic and templated text repeat entities and phrases
 verbatim, which is exactly what a lookup rule can name. Qwen·fiction is omitted because its
 recovery is statistically indistinguishable from zero (−2%, CI [−12%, +8%]) — on that model's
-hard case content genuinely does not matter, and the CI says so. The boundary between "code" and
-"weights" moves with the data.</figcaption>
+hardest case no rule-nameable recovery is detectable under this vocabulary, and the CI says so. The
+boundary between "code" and "weights" moves with the data.</figcaption>
 </figure>
 
-<p>Only one thing is a genuine constant: on repeated text, ~100% of the function flows through
-rule-nameable positions. Algorithmic behavior is fully code-expressible; the rest is a matter
-of degree, set by the input.</p>
+<p>On our repeated-sequence benchmark, nearly all measured induction function flows through
+rule-nameable positions: in this setting the algorithmic copying behavior is almost fully
+code-expressible. Away from it, the fraction is a matter of degree, set by the input.</p>
 
 <h2>What the residue is — and how much is a limit of our rule language</h2>
 
@@ -440,8 +439,8 @@ mistake we kept catching ourselves making.</p>
   bound what that room buys. Zero-ablating the same components and healing recovers far less, and a
   <strong>shuffled-code heal</strong> — healing against surrogate outputs permuted across positions
   under an identical protocol, so the code carries the right statistics but the wrong per-position
-  function — lands at +2.21 nats (95% CI [+2.08, +2.33]), against +0.70 for real code, i.e. back at
-  the zero-ablation level. Norm gains are per-channel and cannot undo a position permutation, so the
+  function — lands at +2.21 nats (95% CI [+2.08, +2.33]), against +0.70 for real code, approximately
+  the zero-ablation level (+2.12). Norm gains are per-channel and cannot undo a position permutation, so the
   heal cannot manufacture the function; the recovery is functional, not distributional. What remains
   is that healing still repairs genuine distribution shift on top of real code, which is why the
   reported cost is the healed one.</li>

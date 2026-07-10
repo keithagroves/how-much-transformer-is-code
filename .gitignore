@@ -11,6 +11,7 @@ env/
 .ipynb_checkpoints/
 .DS_Store
 *.log
+.firecrawl/
 
 # --- heavy data & model artifacts (regenerable; kept out of the public repo) ---
 *.pt
