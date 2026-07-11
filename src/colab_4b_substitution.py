@@ -16,6 +16,8 @@ Templates are cached per chunk so healing is cheap enough for 4B.
 Colab: MODEL='Qwen/Qwen3-4B', Runtime = L4/A100 (24GB+).
   pip install -q transformers datasets accelerate
 """
+import os
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 import sys, math, gc, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
@@ -59,8 +61,9 @@ def get_wikitext():
     raise RuntimeError(f"could not load wikitext ({last})")
 text = get_wikitext()
 def chunks(a, b, step, n): return [tokz.encode(text[o:o+6000])[:n] for o in range(a, b, step)]
-TRAIN = [c for c in chunks(0, 700000, 28000, 512) if len(c) == 512][:24]
-EVAL  = [c for c in chunks(760000, 1200000, 40000, 300) if len(c) == 300][:8]
+T_TR = 384 if DEV == "cuda" else 512     # shorter train seqs on GPU to fit activation memory
+TRAIN = [c for c in chunks(0, 700000, 28000, T_TR) if len(c) == T_TR][:16]
+EVAL  = [c for c in chunks(760000, 1200000, 40000, 256) if len(c) == 256][:8]
 print(f"train {len(TRAIN)}, eval {len(EVAL)} chunks", flush=True)
 
 SENT = {t for t in range(min(400, V)) if any(c in tokz.decode([t]) for c in ".!?\n")}
@@ -131,7 +134,7 @@ def templates_for(seq):
     for (l, h) in HEADS:
         w = W[(l, h)]
         M = sum(w[k] * cols[COLNAMES[k]] for k in range(len(COLNAMES)))
-        out[(l, h)] = (M / M.sum(-1, keepdim=True).clamp(min=1e-9)).to(DEV)
+        out[(l, h)] = (M / M.sum(-1, keepdim=True).clamp(min=1e-9)).to(torch.float16)  # CPU, moved per-hook
     return out
 print("caching templates per chunk ...", flush=True)
 TT_TRAIN = [templates_for(sq) for sq in TRAIN]
@@ -165,8 +168,8 @@ with torch.no_grad():
         cnt += len(sq_)
 for h in hk: h.remove()
 MEAN = {l: tot[l]/cnt for l in MLPS}; LUT = {l: {t: v/nn for t,(v,nn) in SUM[l].items()} for l in MLPS}
-LMAT_TRAIN = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).to(DEV) for l in MLPS} for sq_ in TRAIN]
-LMAT_EVAL  = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).to(DEV) for l in MLPS} for sq_ in EVAL]
+LMAT_TRAIN = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).half() for l in MLPS} for sq_ in TRAIN]  # CPU
+LMAT_EVAL  = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).half() for l in MLPS} for sq_ in EVAL]
 
 # ---- install hooks once; mode in {"code","zero","off"}; templates+LUTs cached ----
 HOLD = {"T": None, "L": None, "mode": "off"}
@@ -181,14 +184,14 @@ for l in set(BY_L):
         for h in BY_L[l]:
             g = h // GROUP
             if HOLD["mode"] == "zero": x[0,:,h*DH:(h+1)*DH] = 0
-            else: x[0,:,h*DH:(h+1)*DH] = (HOLD["T"][(l,h)] @ VC[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
+            else: x[0,:,h*DH:(h+1)*DH] = (HOLD["T"][(l,h)].to(x.device).float() @ VC[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
         return (x,) + inp[1:]
     hooks.append(attn.o_proj.register_forward_pre_hook(oh))
 for l in MLPS:
     def mh(mod, i, o, l=l):
         if HOLD["mode"] == "off": return None
         if HOLD["mode"] == "zero": return torch.zeros_like(o)
-        return HOLD["L"][l].unsqueeze(0).to(o.dtype)
+        return HOLD["L"][l].unsqueeze(0).to(o.device, o.dtype)
     hooks.append(layers[l].mlp.register_forward_hook(mh))
 
 def loss_seq(sq_, T, L, mode):
@@ -205,11 +208,17 @@ def heal(mode):
     for p, o in zip(norm, orig): p.data.copy_(o)
     for p in norm: p.requires_grad_(True)
     opt = torch.optim.Adam(norm, lr=3e-4); model.train()
-    for ep in range(EPOCHS):
+    if DEV == "cuda":                      # gradient checkpointing: trade compute for memory
+        model.config.use_cache = False
+        try: model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+        except Exception: model.gradient_checkpointing_enable()
+    for _ in range(EPOCHS):
         for i, sq_ in enumerate(TRAIN):
             HOLD["mode"], HOLD["T"], HOLD["L"] = mode, TT_TRAIN[i], LMAT_TRAIN[i]
             ids = torch.tensor([sq_]).to(DEV)
             out = model(ids, labels=ids); opt.zero_grad(); out.loss.backward(); opt.step()
+    if DEV == "cuda":
+        model.gradient_checkpointing_disable()
     model.eval()
 
 print("\n==== RESULTS (held-out, nats above intact) ====", flush=True)
