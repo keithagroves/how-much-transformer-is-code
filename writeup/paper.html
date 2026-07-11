@@ -104,19 +104,25 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   declared, restricted instruction set, and at what loss. On Qwen3-0.6B we replace the attention
   <em>routing</em> of heads (the QK-derived pattern; value and output projections are retained)
   with mixtures of 25 named positional operators, and MLP layers with context-free token tables,
-  then adapt only 65k normalization gains. At one operating point — the routing of 36% of heads
-  and 21% of MLP layers — the cost against an identically adapted intact model is
-  <strong>+0.88 nats</strong> (perplexity roughly doubles). Zero-ablation and position-shuffle
-  controls show the replacements carry real position-specific function; a positional-only control
-  shows content-aware operators add nothing in the substitutable set; a joint-informed pruning
-  baseline shows the programs beat matched deletion by ≈1.8×. A preliminary three-scale check
-  (0.6B/1.7B/4B) finds the healed cost roughly flat (fair +1.83/+1.38/+1.92) while the zero
-  control's margin varies non-monotonically (4.1×/6.2×/1.2×), collapsing where heads-per-layer
-  doubles — a deletion control's power is a property of the model, not the method. The residue
-  resists naming: after controlling the attention sink, no rule we tested reconstructs which
-  entity an induction head selects. The replaceable fraction is a dial — of the instruction set,
-  selection procedure, adaptation budget, evaluation distribution, and tolerated loss — not a
-  constant of the model.
+  then adapt only 65k normalization gains. At one operating point we report two distinct
+  quantities: the attention routing of 36% of heads is <em>template-replaceable</em>, and 21% of
+  MLP layers are <em>context-free</em> (memoizable) — different senses of "replaceable," priced
+  together but not summed. The cost against an identically adapted intact model is
+  <strong>+0.88 nats</strong> — perplexity roughly doubles, a material price: this is an audit
+  instrument for what components compute, not a compression technique. Zero-ablation and
+  position-shuffle controls show the replacements carry real position-specific function; a
+  positional-only control shows content-aware operators add nothing in the substitutable set; a
+  joint-informed pruning baseline shows the programs beat matched deletion by ≈1.8×. A
+  preliminary three-scale check (0.6B/1.7B/4B) finds the healed cost within a ±0.3-nat band
+  (fair +1.83/+1.38/+1.92; three points with a non-monotone middle — consistent with flat, not
+  proof of it) while the zero control's margin varies non-monotonically (4.1×/6.2×/1.2×),
+  collapsing where heads-per-layer doubles — a deletion control's power is a property of the
+  model, not the method. The most seductive residue rule — attend to the first entity introduced,
+  matching 83–92% of head selections — was the attention sink in costume (0 of 281 once
+  controlled); beyond it, no rule we tested reconstructs which entity an induction head selects.
+  The contribution is less the fraction than the pricing apparatus: the fraction is a dial — of
+  the instruction set, selection procedure, adaptation budget, evaluation distribution, and
+  tolerated loss — not a constant of the model.
 </div>
 
 <h2>1 · Introduction</h2>
@@ -178,6 +184,21 @@ faster algorithms; we search a declared instruction set for <em>approximate, leg
 replacements and measure the loss, a rate–distortion rather than correctness objective.
 Distillation [12] also replaces computation, but into an opaque student; our student is required
 to be readable, which is the point.</p>
+
+<p>Two prior lines require direct confrontation. <strong>PAPA</strong> [13] replaces attention in
+pretrained transformers with constant, input-independent matrices post-hoc and finds performance
+largely survives — the closest anticipation of our positional finding. The differences are the
+discipline, not the phenomenon: our replacement is a named, legible program rather than an
+unconstrained matrix; adaptation is a 65k-parameter norm heal priced against an identically
+healed intact model rather than fine-tuning; and shuffle, positional, and matched-deletion
+controls price what the replacement carries. PAPA shows attention is often input-independent; we
+show <em>which</em> named function each substitutable head computes and what naming it costs.
+<strong>Causal scrubbing</strong> [14] and circuit-faithfulness testing [15, 16] are stricter
+epistemics for whether an explanation carries a function — scrubbing resamples activations under
+the hypothesis's equivalence classes, whereas substitute-and-heal deliberately lets the model
+adapt around the surrogate (a concession we make explicitly: we measure substitutability, not
+mechanistic equivalence). We trade that strictness for executable surrogates and cost accounting
+against controls; the approaches are complements.</p>
 
 <h2>3 · Methodology</h2>
 
@@ -314,7 +335,7 @@ a rank-64 global map plus exact corrections for the 500 most frequent tokens mat
 frequent-token exception list — memoization, not a short program, and we label the layers
 <em>context-free</em> rather than "code."</p>
 
-<p><strong>Error analysis: the residue.</strong> What resists substitution is concentrated and
+<p><strong>Error analysis: the sink in costume.</strong> What resists substitution is concentrated and
 specific. Induction heads (~5% of heads) do real copying — a match-rule ceiling reconstructs 96%
 of verbatim copy on repeated text — but their natural-text function is dominated by selecting
 <em>which entity</em> to attend to, and that selection has defeated every name we tried. A
@@ -342,7 +363,10 @@ a published curve.</p>
 <ul class="key">
   <li>Small models (≤4B), short contexts (≤900 tokens), one seed and one calibration sequence per
   protocol; single-domain fits. The healed pipeline has run only on the Qwen family; Pythia
-  replication covers the ceiling and query-edit.</li>
+  replication covers the ceiling and query-edit. The headline corpus is synthetic fiction
+  generated by a 3B model; the only natural-text runs (WikiText, under the weaker scale protocol)
+  price the same budget higher (+1.83 at 0.6B). Part of that gap is protocol, but we cannot rule
+  out that real text is simply harder — the quotable +0.88 is tied to the synthetic corpus.</li>
   <li>Healing measures <em>substitutability</em>, not mechanistic equivalence: the healed hybrid
   is adapted around the surrogate, so the result does not show the original network implemented
   the rule.</li>
@@ -365,10 +389,13 @@ fair cost of +0.88 nats — real function, honestly priced, carried by programs 
 The fraction is not a property of the model alone: it moves with the instruction set (measured by
 a nested frontier), the selection procedure (floor vs frontier), the adaptation budget, the
 evaluation distribution (the induction ceiling runs from ~0% on fiction to ~78% on structured
-text), and the tolerated loss. The measurement generalizes: run the same recipe with the same
-controls on any model, and read off what fraction of it is, under your vocabulary, code. What
-does not reduce — the entity selection at the heads that matter most — is where the next
-vocabulary has to grow.</p>
+text), and the tolerated loss. We read the apparatus, not the fraction, as the contribution: a
+way to price interpretability claims — including where the apparatus itself breaks, since the
+zero-ablation control that much of the pruning literature leans on loses its separating power on
+redundant architectures and must be re-established per model. The measurement generalizes: run
+the same recipe with the same controls on any model, and read off what fraction of it is, under
+your vocabulary, code. What does not reduce — the entity selection at the heads that matter most
+— is where the next vocabulary has to grow.</p>
 
 <h2>References</h2>
 
@@ -390,6 +417,14 @@ vocabulary has to grow.</p>
   arXiv:2310.04625, 2023.</li>
   <li>Hinton, Vinyals &amp; Dean. <em>Distilling the Knowledge in a Neural Network.</em>
   arXiv:1503.02531, 2015.</li>
+  <li>Hassid et al. <em>How Much Does Attention Actually Attend? Questioning the Importance of
+  Attention in Pretrained Transformers.</em> Findings of EMNLP 2022.</li>
+  <li>Chan et al. <em>Causal Scrubbing: A Method for Rigorously Testing Interpretability
+  Hypotheses.</em> Redwood Research / Alignment Forum, 2022.</li>
+  <li>Conmy et al. <em>Towards Automated Circuit Discovery for Mechanistic Interpretability.</em>
+  NeurIPS 2023.</li>
+  <li>Wang et al. <em>Interpretability in the Wild: A Circuit for Indirect Object Identification
+  in GPT-2 Small.</em> ICLR 2023.</li>
 </ol>
 
 <h2>Appendix A · Extra material in the long version</h2>

@@ -116,14 +116,18 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   instruction set, at a stated description-length and loss cost. On Qwen3-0.6B and Pythia-410M we
   replace the attention <em>routing</em> of heads — the QK-derived pattern, retaining each head's
   value and output projections — with mixtures of named positional operators, and MLP layers with
-  context-free token maps, then adapt only 65k normalization gains. At one operating point, the
-  routing of 36% of attention heads and 21% of MLP layers is replaceable. The cost is substantial:
+  context-free token maps, then adapt only 65k normalization gains. At one operating point we
+  report two distinct quantities — the routing of 36% of attention heads is template-replaceable,
+  and 21% of MLP layers are context-free (memoizable) — different senses of "replaceable," priced
+  together but not summed. The cost is substantial:
   against an identically adapted intact model it is <strong>+0.88 nats</strong> on held-out text,
   roughly doubling perplexity (+0.64 [95% CI +0.57, +0.71] against the raw intact model, a
-  comparison that pockets a domain-adaptation discount). Zero and
+  comparison that pockets a domain-adaptation discount) — a price that suits an audit instrument,
+  not a compression technique. Zero and
   position-shuffle controls show that the replacements preserve real position-specific function.
   A preliminary check at three sizes (Qwen3-0.6B/1.7B/4B) under a weaker matched protocol finds
-  the healed cost roughly flat across the 6.7× parameter range (fair +1.83, +1.38, +1.92 nats)
+  the healed cost within a ±0.3-nat band across the 6.7× parameter range (fair +1.83, +1.38,
+  +1.92 nats; three points with a non-monotone middle — consistent with flat, not proof of it)
   while the zero control's margin varies by an order of magnitude, non-monotonically (4.1×, 6.2×,
   1.2×), collapsing where heads-per-layer doubles — a deletion control's separating power is a
   property of the model, not the method, and must be re-established per architecture.
@@ -132,10 +136,12 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   and induction operators add none in the substitutable set. The replaceable fraction is a dial, not
   a model constant: it depends on the evaluation distribution, permitted instructions, component
   search, adaptation budget, and tolerated loss. On induction heads, the rule-nameable share rises
-  from fiction to encyclopedic to rigidly structured text. The remaining entity selection resists
-  recency, syntax, coreference, co-occurrence, and a learned rank-1 rule after controlling the
-  attention sink; a query edit shows a low-dimensional direction is used but does not reconstruct the
-  choice. We therefore call the residue <em>un-named under this DSL</em>, not intrinsically smooth.
+  from fiction to encyclopedic to rigidly structured text. The most seductive residue rule —
+  attend to the first entity introduced, matching 83–92% of head selections — was the attention
+  sink in costume (0 of 281 once controlled); beyond it the entity selection resists recency,
+  syntax, coreference, co-occurrence, and a learned rank-1 rule, and a query edit shows a
+  low-dimensional direction is used but does not reconstruct the choice. We therefore call the
+  residue <em>un-named under this DSL</em>, not intrinsically smooth.
 </div>
 
 <h2>Setup</h2>
@@ -315,7 +321,10 @@ The claim is about what is substitutable <em>at all</em> at a fixed tolerance, a
 the recovery is functional; the number is not a free lunch. We report the +0.6–0.7 nat band as the
 operating point because that is where the norm-heal has converged and the zero, positional, and
 shuffle controls separate cleanly; tighten the tolerance and the substitutable set shrinks, loosen
-it and the headline inflates.</p>
+it and the headline inflates. The regime where this price makes sense is <em>audit</em> — a
+calibrated statement of what a component computes and what naming it costs — not deployment
+compression; a reader who needs near-parity should read the fraction at their own tolerance off
+the published curve.</p>
 
 <p>There is one more asymmetry to net out, and it moves the number. The healed hybrid fine-tuned 65k
 norm gains on the corpus; the intact reference did not. Running the <em>same</em> heal on the intact
@@ -585,6 +594,8 @@ But it does not vanish, and the strict rule "attend to <em>the</em> most recent 
 almost nothing (+4–5%). What a rule can name is <em>where the candidates are</em>; which one
 the head selects is left over.</p>
 
+<h3>The sink in costume</h3>
+
 <p>Which candidate the head selects, though, has resisted every name we tried — including one
 that looked decisive and died by control. A learned rank-1 readout of the residual stream at
 first seemed to explain the selection (61% of the diffuse mass); a primacy rule — attend to the
@@ -738,7 +749,15 @@ instance of solo rankings mispredicting in-context marginal cost.</p>
 
 <p>Induction heads, copy-suppression, attention sinks, and MLPs-as-memories are established;
 that much of attention is replaceable by simple patterns echoes prior head-simplification
-work, which our positional-only control confirms from inside our own pipeline. To our
+work, which our positional-only control confirms from inside our own pipeline. The closest prior
+is PAPA (Hassid et al. 2022), which swaps pretrained attention for constant input-independent
+matrices post-hoc with modest loss — the same phenomenon as our positional finding, under a looser
+discipline: PAPA's replacement is an unconstrained matrix and its adaptation full fine-tuning,
+where ours is a named program, a 65k-gain heal priced against an identically healed intact model,
+and shuffle/positional/matched-deletion controls. Causal scrubbing (Chan et al. 2022) and
+circuit-faithfulness testing (Wang et al. 2023; Conmy et al. 2023) are stricter epistemics for
+whether an explanation carries function; substitute-and-heal deliberately trades that strictness
+for executable surrogates and explicit cost accounting — complements, not competitors. To our
 knowledge the new contributions are these: the <strong>substitution-ceiling method</strong>
 and its finding that the nameable fraction is a property of the text's structure rather than a
 constant of the model, and that the ceiling is partly a property of the rule language rather
@@ -769,8 +788,11 @@ choices rather than the model alone.</p>
   the qualitative shape and a roughly flat healed substitution cost across 0.6B/1.7B/4B (under a
   weaker matched protocol), but the full ceiling and the query-edit were not repeated there, the
   4B zero control loses most of its separating power at the 36% budget, and nothing here reaches
-  the sizes people deploy. Larger models with long context would both firm up the replication and
-  make the functional questions well-posed.</li>
+  the sizes people deploy. The headline corpus is synthetic fiction generated by a 3B model; the
+  only natural-text runs (WikiText, weaker scale protocol) price the same budget higher (+1.83 at
+  0.6B) — part protocol, but we cannot rule out that real text is simply harder, and the quotable
+  +0.88 is tied to the synthetic corpus. Larger models with long context would both firm up the
+  replication and make the functional questions well-posed.</li>
   <li>Healing gives the network room to reroute; the shuffle and zero controls bound what that room
   buys (it recovers function, not distribution) and the −0.24-nat domain-adaptation offset is why we
   report the fair +0.88. The caveat those controls leave open: healing produces a hybrid adapted
