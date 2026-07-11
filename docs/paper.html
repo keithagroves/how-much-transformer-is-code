@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Short paper: measuring transformer component substitutability under a declared instruction set — costs, controls, and scale.">
+<meta name="color-scheme" content="light dark">
+<title>How Much of a Transformer Is Code? — Short Paper</title>
+<style>
+:root{
+  --paper:#f7f6f2; --ink:#20242c; --ink2:#575d69; --line:#dcdad2;
+  --accent:#0e6b5c; --accent2:#b3541e; --card:#efede6; --code:#eceae2;
+  --good:#0e6b5c; --bad:#a33b2e; --barbg:#e3e1d8;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#15181e; --ink:#e6e4dc; --ink2:#9aa0ab; --line:#2c313b;
+    --accent:#4fc2ab; --accent2:#e08b52; --card:#1c2028; --code:#1a1e26;
+    --good:#4fc2ab; --bad:#e0705c; --barbg:#252a34; }
+}
+:root[data-theme="dark"]{ --paper:#15181e; --ink:#e6e4dc; --ink2:#9aa0ab; --line:#2c313b;
+  --accent:#4fc2ab; --accent2:#e08b52; --card:#1c2028; --code:#1a1e26;
+  --good:#4fc2ab; --bad:#e0705c; --barbg:#252a34; }
+:root[data-theme="light"]{ --paper:#f7f6f2; --ink:#20242c; --ink2:#575d69; --line:#dcdad2;
+  --accent:#0e6b5c; --accent2:#b3541e; --card:#efede6; --code:#eceae2;
+  --good:#0e6b5c; --bad:#a33b2e; --barbg:#e3e1d8; }
+
+html{background:var(--paper)}
+body{background:var(--paper); color:var(--ink);
+  font:17px/1.62 Georgia,'Iowan Old Style','Times New Roman',serif; margin:0}
+.wrap{max-width:42rem; margin:0 auto; padding:1.5rem 1.25rem 5rem}
+header{margin:3rem 0 2rem}
+.eyebrow{font:600 .72rem/1 system-ui,sans-serif; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--accent); margin:0 0 .8rem}
+h1{font-size:2.15rem; line-height:1.1; margin:.2rem 0 .5rem; font-weight:700;
+  letter-spacing:-.01em; text-wrap:balance}
+.byline{font:.85rem/1.4 system-ui,sans-serif; color:var(--ink2); margin:0}
+.abstract{background:var(--card); border-radius:8px; padding:1.15rem 1.35rem; margin:1.8rem 0 2.4rem;
+  font-size:.95rem; line-height:1.58}
+.abstract .lbl{font:700 .72rem/1 system-ui,sans-serif; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--accent); display:block; margin-bottom:.5rem}
+h2{font-size:1.28rem; line-height:1.25; margin:2.4rem 0 .5rem; text-wrap:balance;
+  font-weight:700}
+h3{font-size:1.03rem; line-height:1.3; margin:1.7rem 0 .45rem; font-weight:700}
+p{margin:.8rem 0}
+a{color:var(--accent); text-underline-offset:2px}
+strong{font-weight:700}
+figure{margin:1.4rem 0}
+figcaption{font:.78rem/1.5 system-ui,sans-serif; color:var(--ink2); margin-top:.5rem}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse; font:.84rem/1.4 system-ui,sans-serif; min-width:100%;
+  font-variant-numeric:tabular-nums}
+th{text-align:left; font-weight:600; border-bottom:2px solid var(--ink); padding:.32rem .7rem .32rem 0;
+  white-space:nowrap}
+td{border-bottom:1px solid var(--line); padding:.36rem .7rem .36rem 0; vertical-align:top}
+td.n,th.n{text-align:right}
+.good{color:var(--good); font-weight:600}
+.bad{color:var(--bad); font-weight:600}
+code{font:.84em/1.5 ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  background:var(--code); padding:.08em .35em; border-radius:3px}
+pre{font:.78rem/1.55 ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  background:var(--code); padding:.9rem 1rem; border-radius:6px; overflow:auto;
+  border:1px solid var(--line)}
+.bars{display:flex; flex-direction:column; gap:.4rem; margin:.3rem 0}
+.bar{display:grid; grid-template-columns:9.5rem 1fr 6.4rem; align-items:center; gap:.6rem;
+  font:.78rem/1.3 system-ui,sans-serif}
+.bar .lbl{text-align:right; color:var(--ink2)}
+.bar .track{background:var(--barbg); border-radius:3px; height:.9rem; position:relative; min-width:0}
+.bar .fill{position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:3px}
+.bar .fill.alt{background:var(--accent2)}
+.bar .fill.neg{background:var(--bad)}
+.bar .val{font-variant-numeric:tabular-nums; white-space:nowrap}
+.bar .ci{color:var(--ink2); font-size:.82em}
+/* delta-from-intact dot plot (loss damage in nats; 0 = intact) */
+.dp{margin:0}
+.dprow{display:grid; grid-template-columns:10.5rem 1fr 2.6rem; align-items:center; gap:.6rem;
+  font:.78rem/1.3 system-ui,sans-serif; margin:.28rem 0}
+.dprow .lbl{text-align:right; color:var(--ink2)}
+.dptrack{position:relative; height:1.15rem;
+  background:repeating-linear-gradient(to right, var(--line) 0 1px, transparent 1px 20%)}
+.dptrack .ciw{position:absolute; top:50%; height:3px; transform:translateY(-50%);
+  background:var(--accent); opacity:.28; border-radius:2px}
+.dptrack .dot{position:absolute; top:50%; width:.62rem; height:.62rem; border-radius:50%;
+  transform:translate(-50%,-50%); background:var(--accent)}
+.dprow.good .ciw,.dprow.good .dot{background:var(--accent)}
+.dprow.bad .ciw,.dprow.bad .dot{background:var(--bad)}
+.dprow.mut .dot{background:var(--ink2)}
+.dprow .val{font-variant-numeric:tabular-nums; color:var(--ink2)}
+.dpaxis{display:grid; grid-template-columns:10.5rem 1fr 2.6rem; gap:.6rem; margin-top:.3rem;
+  font:.7rem/1 system-ui,sans-serif; color:var(--ink2)}
+.dpaxis .ticks{display:flex; justify-content:space-between}
+.key{list-style:none; padding:0; margin:.6rem 0}
+.key li{padding:.35rem 0 .35rem 1.4rem; position:relative; border-bottom:1px solid var(--line)}
+.key li:before{content:"→"; position:absolute; left:0; color:var(--accent); font-weight:700}
+.foot{font-size:.85rem; color:var(--ink2)}
+hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
+@media (max-width:540px){ h1{font-size:1.7rem} .bar{grid-template-columns:6rem 1fr 5.8rem} }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Interpretability · short paper</p>
+  <h1>How Much of a Transformer Is Code?</h1>
+  <p class="byline">Measuring component substitutability under a declared instruction set.
+  Keith Groves · July 2026 · <a href="index.html">long version (field report)</a> ·
+  <a href="https://github.com/keithagroves/how-much-transformer-is-code">code</a></p>
+</header>
+
+<div class="abstract">
+  <span class="lbl">Abstract</span>
+  We measure how much of a small transformer's computation can be replaced by programs in a
+  declared, restricted instruction set, and at what loss. On Qwen3-0.6B we replace the attention
+  <em>routing</em> of heads (the QK-derived pattern; value and output projections are retained)
+  with mixtures of 25 named positional operators, and MLP layers with context-free token tables,
+  then adapt only 65k normalization gains. At one operating point — the routing of 36% of heads
+  and 21% of MLP layers — the cost against an identically adapted intact model is
+  <strong>+0.88 nats</strong> (perplexity roughly doubles). Zero-ablation and position-shuffle
+  controls show the replacements carry real position-specific function; a positional-only control
+  shows content-aware operators add nothing in the substitutable set; a joint-informed pruning
+  baseline shows the programs beat matched deletion by ≈1.8×. A preliminary three-scale check
+  (0.6B/1.7B/4B) finds the healed cost roughly flat (fair +1.83/+1.38/+1.92) while the zero
+  control's margin varies non-monotonically (4.1×/6.2×/1.2×), collapsing where heads-per-layer
+  doubles — a deletion control's power is a property of the model, not the method. The residue
+  resists naming: after controlling the attention sink, no rule we tested reconstructs which
+  entity an induction head selects. The replaceable fraction is a dial — of the instruction set,
+  selection procedure, adaptation budget, evaluation distribution, and tolerated loss — not a
+  constant of the model.
+</div>
+
+<h2>1 · Introduction</h2>
+
+<p><strong>Problem.</strong> Mechanistic interpretability regularly claims that a network
+component "implements" an algorithm, but such claims are rarely priced: if the algorithm really
+carries the component's function, substituting the algorithm for the component should cost little.
+There is no formal boundary between "code" and a matrix multiply — a matmul is code, and a
+readable rule may compile to one — so the question must be operationalized. We define
+replaceability relative to a <strong>hypothesis-class restriction</strong>: a declared
+domain-specific language <em>D</em>, a program-size budget <em>B</em>, an adaptation budget, and a
+tolerated loss <em>ε</em>.</p>
+
+<p><strong>Why it matters.</strong> A calibrated answer bounds what interpretability can promise:
+which parts of a model admit short executable descriptions, what the descriptions cost, and where
+they stop. The same measurement doubles as an audit primitive — report, for any model, the
+fraction of components substitutable under a stated vocabulary at a stated tolerance.</p>
+
+<p><strong>Research question.</strong> Under a declared instruction set, which computations of a
+trained transformer can be replaced by explicit programs, at what held-out loss, and does the
+answer survive controls for healing artifacts, weak baselines, and scale?</p>
+
+<p><strong>Contributions.</strong></p>
+<ul class="key">
+  <li>A <strong>substitution method</strong> with fair-baseline accounting: fit programs in a
+  declared DSL, install them, retrain only normalization gains, and compare against an
+  <em>identically adapted</em> intact model.</li>
+  <li>A <strong>double-controlled replacement result</strong>: at one operating point the fair
+  cost is +0.88 nats; position-shuffled programs heal back only to zero-ablation level, so the
+  recovery is functional, and purely positional programs tie the fitted ones everywhere, so the
+  substitutable routing is positional machinery.</li>
+  <li>A <strong>nested instruction-set frontier</strong> quantifying the marginal value of each
+  DSL tier at fixed budgets.</li>
+  <li>A characterization of substitutable MLP layers as <strong>context-free</strong> (memoizable),
+  with a measured rate–distortion curve (low-rank map + frequent-token exceptions, 4.35× smaller
+  at equal damage).</li>
+  <li>Evidence that the reported fraction is a <strong>floor set by the selection heuristic</strong>,
+  not a frontier (post-heal joint ranking substitutes 19% more cheaply at the same budget).</li>
+  <li>A <strong>preliminary three-scale result</strong>: healed cost roughly flat from 0.6B to 4B
+  under a matched protocol, while the zero control's separating power varies by 5× across
+  architectures — deletion controls must be re-established per model.</li>
+  <li>A <strong>hardened negative</strong>: which entity an induction head selects survives every
+  rule we tested once the attention sink is controlled, including a seductive primacy rule that
+  the control unmasked as the sink itself.</li>
+</ul>
+
+<h2>2 · Related work</h2>
+
+<p>Induction heads and the circuits framework [1, 2], copy suppression [11], attention sinks [4],
+and MLPs-as-key-value-memories [3] establish the component vocabulary we build on; our
+contribution is to <em>price</em> such descriptions by substitution rather than assert them.
+Head-pruning work [5, 6] shows many heads are removable; we use its strongest joint-informed
+variant as a baseline and measure what programs preserve <em>beyond</em> deletion. RASP, Tracr,
+and Transformer Programs [7, 8, 9] relate transformers to programs in the opposite direction —
+compiling programs into weights or constraining training toward interpretability — whereas we ask
+how much of an <em>ordinary trained</em> model admits program replacement after the fact.
+AlphaTensor-style algorithm discovery [10] searches instruction sequences for provably exact,
+faster algorithms; we search a declared instruction set for <em>approximate, legible</em>
+replacements and measure the loss, a rate–distortion rather than correctness objective.
+Distillation [12] also replaces computation, but into an opaque student; our student is required
+to be readable, which is the point.</p>
+
+<h2>3 · Methodology</h2>
+
+<p><strong>Approach.</strong> One six-step recipe produces every number (full constants in
+Appendix B). (1) <em>Declare the DSL.</em> Attention: 25 instructions, each a deterministic
+function of token IDs alone — <code>START</code>, <code>SELF</code>, <code>OFFSET(k)</code>
+k=1…16, <code>LAST_PUNCTUATION</code>, sentence/line structure, <code>PREVIOUS_DUPLICATE</code>,
+<code>FOLLOWER_OF_LONGEST_MATCH</code> (induction) — plus combinators. No instruction reads an
+activation or a weight. MLP: <code>TOKEN_LOOKUP</code> with <code>GLOBAL_DEFAULT</code>;
+compressed variant adds <code>LOW_RANK_MAP</code> and <code>FREQUENT_TOKEN_EXCEPTION</code>.
+(2) <em>Fit heads by regression:</em> one convex ridge solve per head from instruction columns to
+the head's observed attention, coefficients clipped nonnegative (median 24 nonzero terms; a real
+example: layer 5 head 15 = 0.44·SELF + 0.27·LINE_START + 0.13·START + …). (3) <em>Fit MLPs by
+memoization:</em> each token maps to the layer's mean observed output. (4) <em>Select</em> the
+cheapest components by solo substitution cost (a greedy floor, shown as such). (5) <em>Install:</em>
+the compiled attention multiplies the model's own value vectors and overwrites the head's slice
+before the unchanged output projection — QK is retired, V and output projections remain; the MLP
+output is overwritten by the table row. (6) <em>Heal and measure:</em> fine-tune only the 65,536
+RMSNorm gains with programs active; report held-out loss above intact, beside the controls.</p>
+
+<p><strong>Data.</strong> Headline experiments: a synthetic narrative corpus generated locally by
+a 3B model (~1.4M characters); calibration, heal-training, and evaluation chunks are disjoint
+spans. Scale experiments: WikiText-103. Held-out evaluation is 8 chunks × ~300 tokens in all
+protocols; repeated-random token sequences probe copy circuits separately.</p>
+
+<p><strong>Implementation.</strong> Qwen3-0.6B (28 layers × 16 heads) in fp32 on Apple-silicon
+MPS with eager attention; Pythia-410M (GPT-NeoX: fused QKV, partial rotary) for cross-family
+checks of the ceiling and causal probes; Qwen3-1.7B/4B in bf16 on a free-tier Colab T4 with
+CPU-resident templates and gradient checkpointing. Substitution is implemented as forward hooks;
+no weight matrix is ever modified.</p>
+
+<h2>4 · Experimental setup</h2>
+
+<p><strong>Baselines and controls.</strong> (a) <em>Zero-ablation + heal</em> of the same
+component set — does the program beat deleting it? (b) <em>Position-shuffled code + heal</em> —
+same output statistics, wrong per-position function; per-channel norm gains cannot undo a
+permutation, so recovery here would indict the heal. (c) <em>Positional-only programs</em> —
+drop the content-aware instructions. (d) <em>Intact-heal offset</em> — run the identical heal on
+the intact model to price domain adaptation. (e) <em>Pruning</em> — delete a same-size set chosen
+by solo cost, and by the stronger joint-informed post-heal marginal ranking, then re-heal
+identically.</p>
+
+<p><strong>Metrics.</strong> Mean held-out next-token NLL in nats, reported as damage above the
+intact model. The headline is the <em>fair cost</em>: healed substitution minus the intact-heal
+offset. Three canonical quantities: unhealed cost, fair healed cost, and margin over matched
+deletion; all other numbers are robustness or protocol variants.</p>
+
+<p><strong>Hyperparameters.</strong> Calibration: one 900-token sequence (first 50 positions
+excluded from fits; ridge 10<sup>−4</sup>). Healing: Adam, lr 3·10<sup>−4</sup>, 10 epochs
+(12 in the scale protocol), over 24 chunks × 600 tokens plus two repeated-random sequences;
+65,536 trainable parameters of 596M.</p>
+
+<h2>5 · Results</h2>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th>condition (Qwen3-0.6B, 160 heads + 6 MLPs)</th><th class="n">nats above intact</th></tr></thead>
+<tbody>
+<tr><td>positional-only programs + heal</td><td class="n">+0.66</td></tr>
+<tr><td>fitted programs + heal (raw-intact reference)</td><td class="n">+0.64&nbsp;[+0.57, +0.71]</td></tr>
+<tr><td><strong>fair cost (vs identically healed intact)</strong></td><td class="n"><strong>+0.88</strong></td></tr>
+<tr><td>programs, unhealed</td><td class="n">+1.61</td></tr>
+<tr><td>zero-ablation + heal</td><td class="n">+2.12</td></tr>
+<tr><td>position-shuffled programs + heal</td><td class="n">+2.21&nbsp;[+2.08, +2.33]</td></tr>
+<tr><td>solo-cost pruning + heal (same budget)</td><td class="n">+3.81&nbsp;[+3.56, +4.03]</td></tr>
+<tr><td>joint-informed pruning + heal (strongest deletion)</td><td class="n">+1.27</td></tr>
+</tbody>
+</table></div>
+<figcaption>Main result and controls. Intact held-out loss is 3.38 nats; +0.88 roughly doubles
+perplexity (≈29 → ≈55). Shuffled code heals only to zero-ablation level, so the heal cannot
+manufacture the function; positional-only ties fitted, so content operators buy nothing in this
+set; the strongest matched deletion (+1.27) leaves a ≈1.8× margin for the programs (+0.70, same
+reference frame — the adaptation offset cancels in comparisons).</figcaption>
+</figure>
+
+<p>The routing of 160 of 448 heads (36%) plus 6 of 28 MLP layers (21%) substitutes at fair cost
++0.88 nats. The unhealed cost decomposes as +0.77 heads, +0.48 MLPs, +0.36 interaction; healed
+separately, heads-only fall to +0.14 and MLPs-only to +0.28, while the hybrid heals to +0.70 —
+the residual cost is almost entirely head–MLP interaction the 65k-parameter heal cannot
+reconcile. Substitution order does not matter (gradual vs one-shot: +0.702 vs +0.705).</p>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th>heads</th><th class="n">D0 delete</th><th class="n">D1 positional</th><th class="n">D2 structural</th><th class="n">D3 content</th></tr></thead>
+<tbody>
+<tr><td>40</td><td class="n">+0.259</td><td class="n">+0.084</td><td class="n">+0.024</td><td class="n">+0.024</td></tr>
+<tr><td>80</td><td class="n">+0.938</td><td class="n">+0.316</td><td class="n">+0.155</td><td class="n">+0.153</td></tr>
+<tr><td>120</td><td class="n">+2.095</td><td class="n">+0.604</td><td class="n">+0.397</td><td class="n">+0.396</td></tr>
+<tr><td>160</td><td class="n">+2.399</td><td class="n">+0.850</td><td class="n">+0.738</td><td class="n">+0.739</td></tr>
+</tbody>
+</table></div>
+<figcaption>Nested-DSL frontier (attention-only, unhealed, held-out). Expanding the permitted
+instruction set: positional operators recover most of what deletion destroys; structural
+operators add a smaller real gain; content operators (duplicate/induction) add nothing —
+D2 ≈ D3 everywhere. Beyond ~160 heads deletion damage diverges (+10.4 at 200) while the DSLs stay
+near +1.2: a different, strongly interacting regime.</figcaption>
+</figure>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th>matched scale protocol</th><th class="n">intact</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">margin</th></tr></thead>
+<tbody>
+<tr><td>Qwen3-0.6B (28L × 16H; 161 heads, 5 MLPs)</td><td class="n">4.01</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">4.1×</td></tr>
+<tr><td>Qwen3-1.7B (28L × 16H; 161 heads, 5 MLPs)</td><td class="n">3.59</td><td class="n">+1.38</td><td class="n">+8.18</td><td class="n">6.2×</td></tr>
+<tr><td>Qwen3-4B (36L × 32H; 414 heads, 7 MLPs)</td><td class="n">3.36</td><td class="n">+1.92</td><td class="n">+2.26</td><td class="n">1.2×</td></tr>
+</tbody>
+</table></div>
+<figcaption>Preliminary scale check (WikiText, positional-only, 12-epoch heal, bf16; weaker than
+the headline protocol and only self-comparable). Fair cost is roughly flat across a 6.7× parameter
+range; the zero control's margin is non-monotone and collapses exactly where heads-per-layer
+doubles. Zero-heals had not converged at 1.7B/4B, so margins are upper bounds.</figcaption>
+</figure>
+
+<h2>6 · Analysis</h2>
+
+<p><strong>Ablations.</strong> The damage-vs-budget curve is convex: the first 40 heads are nearly
+free, and costs compound through interaction, not through individually expensive components.
+Selection is a floor, not a frontier: solo cost correlates only +0.14 with in-context marginal
+cost, and re-ranking a healed 200-head superset by leave-one-out marginal harm substitutes k=160
+at +0.57 versus the cheapest-solo +0.70 — 19% better at the same budget. The MLP tables compress:
+a rank-64 global map plus exact corrections for the 500 most frequent tokens matches the full
+20.74M-parameter table within 0.005 nats using 4.77M parameters (4.35× smaller; ~9× smaller costs
++0.02). The substitutable MLP structure is a moderately compact low-rank map with a
+frequent-token exception list — memoization, not a short program, and we label the layers
+<em>context-free</em> rather than "code."</p>
+
+<p><strong>Error analysis: the residue.</strong> What resists substitution is concentrated and
+specific. Induction heads (~5% of heads) do real copying — a match-rule ceiling reconstructs 96%
+of verbatim copy on repeated text — but their natural-text function is dominated by selecting
+<em>which entity</em> to attend to, and that selection has defeated every name we tried. A
+primacy rule ("attend to the first entity introduced") matched the head's choice 83–92% of the
+time on two model families; controlling the attention sink — zeroing it and forcing the first
+entity mid-passage — drops it to exactly 0 of 281 cases. It was the sink in costume. With the
+sink controlled, recency, salience, re-mention, clause subject (dependency parse), neural
+coreference, soft mixtures, query-conditional co-occurrence, and a learned rank-1 direction all
+fail to beat a weak recency bias (0.09–0.14 top-1). A causal query-edit shows a learned direction
+is <em>used</em> (6/6 heads positive on both families) but explains a minority of the steering.
+The residue is un-named under this DSL — not shown to be intrinsically smooth.</p>
+
+<p><strong>Statistical uncertainty.</strong> Confidence intervals resample the eight held-out
+chunks (cluster bootstrap); they do not span seeds, calibration sequences, or models. For the
+six-head causal probes, cluster bootstraps at n=6 are anti-conservative, so significance rests on
+exact tests: 6/6 positive on both families, sign and sign-flip permutation p = 0.031. One
+measured protocol perturbation (moving 2 chunks from train to validation and adding early
+stopping, same model) moved the code number by ±0.16 nats but the zero-ablation baseline by
+3 nats: the substitution result is protocol-stable, deletion baselines are not. The 160-head
+operating point was chosen after seeing the damage curve, not pre-registered; it is one point on
+a published curve.</p>
+
+<h2>7 · Limitations</h2>
+
+<ul class="key">
+  <li>Small models (≤4B), short contexts (≤900 tokens), one seed and one calibration sequence per
+  protocol; single-domain fits. The healed pipeline has run only on the Qwen family; Pythia
+  replication covers the ceiling and query-edit.</li>
+  <li>Healing measures <em>substitutability</em>, not mechanistic equivalence: the healed hybrid
+  is adapted around the surrogate, so the result does not show the original network implemented
+  the rule.</li>
+  <li>The fair cost is substantial — perplexity roughly doubles. The claim is about what is
+  substitutable at a stated tolerance, not near-parity.</li>
+  <li>The scale check is preliminary (one family, weaker heal, unconverged zero-heals), and it
+  itself shows deletion controls lose power on some architectures — the decisive follow-up is a
+  converged heal at smaller deletion budgets on 4B-class models.</li>
+  <li>The residue negative is bounded: this vocabulary, this soft-model class, six heads per
+  model, this scale. A confirmatory untouched holdout would strengthen it.</li>
+</ul>
+
+<h2>8 · Conclusion</h2>
+
+<p>Under a declared 25-instruction DSL, the attention routing of a third of a small transformer's
+heads reduces to positional templates, a fifth of its MLP layers to context-free token maps, at a
+fair cost of +0.88 nats — real function, honestly priced, carried by programs a person can read.
+The fraction is not a property of the model alone: it moves with the instruction set (measured by
+a nested frontier), the selection procedure (floor vs frontier), the adaptation budget, the
+evaluation distribution (the induction ceiling runs from ~0% on fiction to ~78% on structured
+text), and the tolerated loss. The measurement generalizes: run the same recipe with the same
+controls on any model, and read off what fraction of it is, under your vocabulary, code. What
+does not reduce — the entity selection at the heads that matter most — is where the next
+vocabulary has to grow.</p>
+
+<h2>References</h2>
+
+<ol class="foot" style="line-height:1.6">
+  <li>Elhage et al. <em>A Mathematical Framework for Transformer Circuits.</em> Anthropic, 2021.</li>
+  <li>Olsson et al. <em>In-context Learning and Induction Heads.</em> arXiv:2209.11895, 2022.</li>
+  <li>Geva et al. <em>Transformer Feed-Forward Layers Are Key-Value Memories.</em> EMNLP 2021.</li>
+  <li>Xiao et al. <em>Efficient Streaming Language Models with Attention Sinks.</em> ICLR 2024.</li>
+  <li>Michel, Levy &amp; Neubig. <em>Are Sixteen Heads Really Better than One?</em> NeurIPS 2019.</li>
+  <li>Voita et al. <em>Analyzing Multi-Head Self-Attention: Specialized Heads Do the Heavy
+  Lifting, the Rest Can Be Pruned.</em> ACL 2019.</li>
+  <li>Weiss, Goldberg &amp; Yahav. <em>Thinking Like Transformers.</em> ICML 2021.</li>
+  <li>Lindner et al. <em>Tracr: Compiled Transformers as a Laboratory for Interpretability.</em>
+  NeurIPS 2023.</li>
+  <li>Friedman, Wettig &amp; Chen. <em>Learning Transformer Programs.</em> NeurIPS 2023.</li>
+  <li>Fawzi et al. <em>Discovering Faster Matrix Multiplication Algorithms with Reinforcement
+  Learning.</em> Nature 610, 2022.</li>
+  <li>McDougall et al. <em>Copy Suppression: Comprehensively Understanding an Attention Head.</em>
+  arXiv:2310.04625, 2023.</li>
+  <li>Hinton, Vinyals &amp; Dean. <em>Distilling the Knowledge in a Neural Network.</em>
+  arXiv:1503.02531, 2015.</li>
+</ol>
+
+<h2>Appendix A · Extra material in the long version</h2>
+
+<p class="foot">The <a href="index.html">field-report version</a> carries everything this paper
+compresses: the worked example printed from the fitted weights (attention program and MLP row),
+the full residue chronology (each failed rule with its control), the healed decomposition and
+Ship-of-Theseus details, the domain-dependent ceiling with CIs, and the complete
+frontier-vs-floor measurements.</p>
+
+<h2>Appendix B · Reproducibility</h2>
+
+<p class="foot">Code, seeds, chunk definitions, and the exact instruction vocabulary:
+<a href="https://github.com/keithagroves/how-much-transformer-is-code">github.com/keithagroves/how-much-transformer-is-code</a>.
+Constants: calibration 900 tokens (positions 51+ fitted, ridge 10<sup>−4</sup>, nonnegative clip);
+MLP tables from 24 × 600-token chunks; heal = Adam lr 3·10<sup>−4</sup>, 10 epochs (12 in scale
+protocol), RMSNorm gains only (65,536 params); evaluation 8 × ~300-token held-out chunks. The
+scale experiments run in one click from the repository's Colab notebook
+(<code>notebooks/4b_substitution.ipynb</code>) on a free T4; per-epoch logs in the paper come
+from those runs. Local experiments: fp32, MPS, eager attention, Apple M4 Pro 24GB.</p>
+
+<hr>
+<p class="foot">Longer treatment, with every experiment and its chronology:
+<a href="index.html">How Much of a Transformer Is Code? — field report</a>.</p>
+</div>
+</body>
+</html>
