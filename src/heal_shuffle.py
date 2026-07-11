@@ -34,9 +34,16 @@ HEADS = sorted(nat_c, key=lambda k: nat_rank[k] + rnd_rank[k])[:160]
 BY_LAYER = {}
 for l, h in HEADS: BY_LAYER.setdefault(l, []).append(h)
 mcosts = torch.load("mlp_solo_costs.pt")["costs"]
-MLPS = sorted(mcosts, key=lambda l: mcosts[l])[:6]
+import os as _os2
+# SUB_MLPS overrides the solo-cheapest selection: on WikiText the solo scan picks
+# early layers (2,4) whose joint cost explodes (+3.49 vs +0.36 for the middle band)
+# — solo mispredicts joint, so select by the substitutability map instead.
+MLPS = ([int(x) for x in _os2.environ["SUB_MLPS"].split(",")]
+        if "SUB_MLPS" in _os2.environ else sorted(mcosts, key=lambda l: mcosts[l])[:6])
+print(f"MLP layers: {sorted(MLPS)}")
 
-raw = open("ministral_corpus.txt").read()
+import os as _os
+raw = open(_os.environ.get("SUB_CORPUS", "ministral_corpus.txt")).read()
 train_starts = [o for o in range(20000, min(len(raw) - 10000, 1000000), 40000)
                 if not 185000 <= o <= 215000][:24]
 train_chunks = [tokz.encode(raw[o:o + 8000])[:T_TR] for o in train_starts]

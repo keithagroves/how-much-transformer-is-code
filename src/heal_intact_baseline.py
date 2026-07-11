@@ -16,7 +16,8 @@ model, DEV = RA.model, RA.DEV
 tokz = RA.tokz
 EPOCHS, T_TR, LR = 20, 600, 3e-4
 
-raw = open("ministral_corpus.txt").read()
+import os as _os
+raw = open(_os.environ.get("SUB_CORPUS", "ministral_corpus.txt")).read()
 train_starts = [o for o in range(20000, min(len(raw) - 10000, 1000000), 40000)
                 if not 185000 <= o <= 215000][:24]
 train_chunks = [tokz.encode(raw[o:o + 8000])[:T_TR] for o in train_starts]

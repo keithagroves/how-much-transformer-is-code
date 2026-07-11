@@ -17,7 +17,8 @@ import torch, collections
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 MODEL = "Qwen/Qwen3-0.6B"
-DEV = "mps" if torch.backends.mps.is_available() else "cpu"
+DEV = ("cuda" if torch.cuda.is_available()
+       else "mps" if torch.backends.mps.is_available() else "cpu")
 MAXO, T, NOFF = 8, 900, 16
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -28,7 +29,8 @@ DH, NH, NKV, NL = cfg.head_dim, cfg.num_attention_heads, cfg.num_key_value_heads
 GROUP = NH // NKV
 V = cfg.vocab_size
 
-raw = open("ministral_corpus.txt").read()
+import os as _os
+raw = open(_os.environ.get("SUB_CORPUS", "ministral_corpus.txt")).read()
 train_seq = tokz.encode(raw[:11000])[:T]
 test_seq = tokz.encode(raw[200000:211000])[:T]
 torch.manual_seed(3)

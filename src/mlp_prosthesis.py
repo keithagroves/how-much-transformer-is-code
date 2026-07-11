@@ -15,7 +15,8 @@ model, DEV, T = RA.model, RA.DEV, RA.T
 tokz, NL = RA.tokz, RA.NL
 train_seq, test_seq, rnd_test = RA.train_seq, RA.test_seq, RA.rnd_test
 
-raw = open("ministral_corpus.txt").read()
+import os as _os
+raw = open(_os.environ.get("SUB_CORPUS", "ministral_corpus.txt")).read()
 starts = [0, 20000, 50000, 80000, 110000, 140000, 260000, 290000]
 fit_chunks = [tokz.encode(raw[o:o + 8000])[:900] for o in starts]
 
