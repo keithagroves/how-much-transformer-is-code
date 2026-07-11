@@ -98,6 +98,7 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 </style>
 </head>
 <body>
+
 <div class="wrap">
 <header>
   <p class="eyebrow">Interpretability · field report</p>
@@ -141,34 +142,15 @@ language), fit a program in that language, install it in the forward pass, and m
 cost. A component is replaceable only relative to a DSL <em>D</em>, a program-size budget
 <em>B</em>, and a tolerated loss <em>ε</em>; change any of them and the answer can change.</p>
 
-<p>The attention DSL contains <code>START</code>, <code>SELF</code>, <code>OFFSET(k)</code>,
-<code>LAST_PUNCTUATION</code>, <code>PREVIOUS_DUPLICATE</code>,
-<code>FOLLOWER_OF_LONGEST_MATCH</code>, <code>MIX</code>, <code>ROW_NORMALIZE</code>, and
-<code>APPLY_TO_VALUES</code>. For token sequence <em>x</em>, each instruction emits a causal
-attention column <em>C<sub>k</sub>(x)</em>. For head <em>h</em>, calibration is clipped
-least-squares over those columns; execution on unseen text is:</p>
-
-<pre>w_h = clip_nonnegative(least_squares(C(x_cal), A_h(x_cal)))
-Â_h(x) = row_normalize(sum_k w_h[k] * C_k(x))
-Ŷ_h(x) = Â_h(x) @ V_group(h)(x)
-# replace this head's slice before the unchanged output projection</pre>
-
-<p>The original query/key computation is retired; the model's value and output projections remain.
-The MLP DSL is different: <code>TOKEN_LOOKUP</code> plus <code>GLOBAL_DEFAULT</code>. Its fitted
-program maps each token to that layer's mean observed output, falling back to the global layer mean.
-The compressed variant adds <code>LOW_RANK_MAP</code> and
-<code>FREQUENT_TOKEN_EXCEPTION</code>. This is memoization, not a compact algorithm, so we report it
-as context-independence and measure its description length separately.</p>
-
-<p>After substitution we <em>heal</em>:
-fine-tune only the RMSNorm gains (65,536 of 596M parameters) with the code organs active, which
-recovers distribution shift without touching any weight matrix. Everything is evaluated
-against two references — the intact model and a zero-ablation of the same components.</p>
+<p>The pipeline, in one line: declare the DSL, fit a program per component, install the programs in
+the forward pass, <em>heal</em> by retraining only the normalization gains, and measure held-out
+damage against two references — the intact model and a zero-ablation of the same components. The
+next section gives the complete recipe with its constants; nothing downstream uses any machinery
+beyond it.</p>
 
 <p>By "code" we mean an operation you can name and write down — not necessarily a short one, and
 the two surrogate families sit at opposite ends of that scale. The attention surrogate is genuinely
-compact: a mixture over a fixed vocabulary of 25 named columns (start token, sixteen fixed offsets,
-last sentence boundary, duplicate-token and induction followers), a median of 24 nonzero
+compact: a mixture over a fixed 25-instruction vocabulary, a median of 24 nonzero
 coefficients per head — legible <em>and</em> small, a few dozen numbers you could read aloud. The
 MLP surrogate is the opposite: a token-indexed table of mean output vectors, ~3,400 entries of 1024
 dimensions (~3.5M numbers) per substituted layer. That is legible as an <em>operation</em> — "look
@@ -183,6 +165,74 @@ context-free (memoization of a per-token map), not that it is program-like. Beca
 we avoid the single word "code" for the combined claim and instead report two named quantities —
 <strong>template-replaceable</strong> attention and <strong>context-free</strong> MLPs — measured, and
 caveated, separately.</p>
+
+<h2>How a replacement program is made</h2>
+
+<p>Every number in this paper is produced by one six-step recipe. We spell it out once, with the
+exact constants, so that "creating code" is a reproducible procedure rather than a metaphor. Later
+sections each vary exactly one dial of this recipe.</p>
+
+<p><strong>1 · Declare the instruction set.</strong> The attention DSL is 25 named instructions,
+each a deterministic function of the token IDs alone: <code>START</code> (attend to position 0),
+<code>SELF</code>, <code>OFFSET(k)</code> for k = 1…16, <code>LAST_PUNCTUATION</code>,
+<code>SENTENCE_START</code>, <code>CURRENT_SENTENCE</code>, <code>PREVIOUS_SENTENCE</code>,
+<code>LINE_START</code>, <code>PREVIOUS_DUPLICATE</code> (uniform over earlier occurrences of a
+similar token), and <code>FOLLOWER_OF_LONGEST_MATCH</code> (score earlier positions by the length
+of the fuzzy match ending just before them and attend to their successors — the induction rule).
+Given a sequence <em>x</em>, each instruction emits a causal attention column
+<em>C<sub>k</sub>(x)</em>; the combinators are <code>MIX</code>, <code>ROW_NORMALIZE</code>, and
+<code>APPLY_TO_VALUES</code>. No instruction reads the residual stream, an activation, or a weight.
+The MLP DSL is two instructions — <code>TOKEN_LOOKUP</code> and <code>GLOBAL_DEFAULT</code> — with
+<code>LOW_RANK_MAP</code> and <code>FREQUENT_TOKEN_EXCEPTION</code> added for the compressed
+variant.</p>
+
+<p><strong>2 · Fit each attention head by regression.</strong> One forward pass over a 900-token
+calibration sequence records every head's actual attention matrix <em>A<sub>h</sub></em>. Compile
+the 25 instruction columns on the same sequence and solve a ridge-regularized least squares from
+columns to <em>A<sub>h</sub></em>, clipping negative coefficients to zero (the first 50 positions
+are excluded from the fit to avoid the attention-sink warm-up). Execution on unseen text rebuilds
+the columns there and applies the frozen coefficients:</p>
+
+<pre>w_h = clip_nonnegative(least_squares(C(x_cal), A_h(x_cal)))   # fit once
+Â_h(x) = row_normalize(sum_k w_h[k] * C_k(x))                  # execute anywhere
+Ŷ_h(x) = Â_h(x) @ V_group(h)(x)
+# replace this head's slice before the unchanged output projection</pre>
+
+<p>The vector <em>w<sub>h</sub></em> — median 24 nonzero coefficients — <em>is</em> the program
+(the worked example below prints one). Fitting is a single convex solve: no gradient steps, no
+search over program structure.</p>
+
+<p><strong>3 · Fit each MLP layer by memoization.</strong> Run the model over 24 calibration chunks
+of 600 tokens and record, for each vocabulary item, the mean output vector the layer produced on
+that token — ~3,400 entries per substituted layer. At execution, <code>TOKEN_LOOKUP</code> emits
+the stored row; tokens never seen in calibration fall back to <code>GLOBAL_DEFAULT</code>, the
+layer's grand-mean output.</p>
+
+<p><strong>4 · Select which components to replace.</strong> Substitute each head alone and measure
+the damage on the calibration text and on repeated-random strings (which isolate the copying
+circuits); rank heads by the average of the two ranks and take the cheapest <em>k</em> (headline
+operating point: <em>k</em> = 160 of 448). MLP layers likewise: substitute one at a time, keep the
+6 cheapest of 28. This solo-cost heuristic is greedy, and we treat its output as a floor — the
+frontier section shows joint selection substitutes more for the same loss.</p>
+
+<p><strong>5 · Install.</strong> A hook replaces exactly one thing per component. For a head, the
+compiled <em>Â<sub>h</sub>(x)</em> multiplies the model's own value vectors and overwrites that
+head's slice of the output-projection input: the query/key computation is retired, the value and
+output projections remain. For an MLP layer, the block's output is overwritten by the table row.
+Everything else in the network runs unchanged.</p>
+
+<p><strong>6 · Heal, then measure.</strong> With the programs active, fine-tune only the 65,536
+RMSNorm gains (of 596M parameters; Adam, lr 3·10<sup>−4</sup>, 10 epochs over the 24 calibration
+chunks plus two repeated-random sequences); every weight matrix stays frozen. Report held-out loss
+above the intact model, in nats, next to the controls: zero-ablation of the same set, the
+position-shuffled-code heal, and the intact-model heal that prices the domain-adaptation
+discount.</p>
+
+<p>The dials, mapped: the nested-DSL frontier varies step 1 (which instructions are permitted);
+the damage-vs-count curve varies step 4's <em>k</em>; the greedy frontier replaces step 4's
+heuristic; the Ship-of-Theseus check varies the order of step 5; the controls vary what step 5
+installs while holding step 6 fixed. A claim of the form "36% of heads substitute" is therefore
+always an output of this recipe at stated settings, never a property of the model alone.</p>
 
 <h2>How much substitutes, and the two controls</h2>
 

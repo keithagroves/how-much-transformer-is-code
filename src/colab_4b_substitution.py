@@ -7,18 +7,19 @@ structure) — justified because the paper's positional-vs-fitted sweep shows co
 columns buy ~nothing in the substitutable set, so positional-only ties fitted code.
 
 Pipeline (fast, no per-head forward scan): fit each head a positional template by
-non-negative least squares to its true attention; SELECT the heads best reconstructed
+clipped least squares to its true attention; SELECT the heads best reconstructed
 by positional templates (that IS codability) up to the budget; replace them + the
 cheap MLP layers (token lookup tables); heal only the RMSNorm gains; report healed
 damage vs intact, with zero-ablation and intact-heal (domain-adaptation) controls.
-Templates are cached per chunk so healing is cheap enough for 4B.
+The shared DSL columns are cached per chunk (not one matrix per head), so healing
+is cheap enough for 4B.
 
 Colab: MODEL='Qwen/Qwen3-4B', Runtime = L4/A100 (24GB+).
   pip install -q transformers datasets accelerate
 """
 import os
 os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
-import sys, math, gc, torch
+import sys, math, gc, json, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 
@@ -26,6 +27,7 @@ MODEL  = sys.argv[1] if len(sys.argv) > 1 else "Qwen/Qwen3-0.6B"
 FRAC_H = float(sys.argv[2]) if len(sys.argv) > 2 else 0.36
 FRAC_M = 0.21
 EPOCHS = int(sys.argv[3]) if len(sys.argv) > 3 else 12
+SMOKE  = os.environ.get("SMOKE", "0") == "1"
 DEV    = "cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
 DTYPE  = torch.bfloat16 if DEV == "cuda" else torch.float32
 NOFF   = 8
@@ -59,12 +61,14 @@ def get_wikitext():
         except Exception as e:
             last = e; print(f"  dataset repo {repo} failed: {type(e).__name__}", flush=True)
     raise RuntimeError(f"could not load wikitext ({last})")
-text = get_wikitext()
+text = open("ministral_corpus.txt").read() if SMOKE and os.path.exists("ministral_corpus.txt") else get_wikitext()
 def chunks(a, b, step, n): return [tokz.encode(text[o:o+6000])[:n] for o in range(a, b, step)]
-T_TR = 384 if DEV == "cuda" else 512     # shorter train seqs on GPU to fit activation memory
-TRAIN = [c for c in chunks(0, 700000, 28000, T_TR) if len(c) == T_TR][:16]
-EVAL  = [c for c in chunks(760000, 1200000, 40000, 256) if len(c) == 256][:8]
-print(f"train {len(TRAIN)}, eval {len(EVAL)} chunks", flush=True)
+T_TR = 64 if SMOKE else (384 if DEV == "cuda" else 512)  # shorter train seqs on GPU for activation memory
+T_EV = 64 if SMOKE else 256
+TRAIN = [c for c in chunks(0, 700000, 28000, T_TR) if len(c) == T_TR][:(2 if SMOKE else 16)]
+VAL   = [c for c in chunks(705000, 755000, 25000, T_EV) if len(c) == T_EV][:(1 if SMOKE else 2)]
+EVAL  = [c for c in chunks(760000, 1200000, 40000, T_EV) if len(c) == T_EV][:(1 if SMOKE else 8)]
+print(f"train {len(TRAIN)}, validation {len(VAL)}, test {len(EVAL)} chunks", flush=True)
 
 SENT = {t for t in range(min(400, V)) if any(c in tokz.decode([t]) for c in ".!?\n")}
 LINE = {t for t in range(min(400, V)) if "\n" in tokz.decode([t])}
@@ -129,23 +133,22 @@ for l, h in HEADS: BY_L.setdefault(l, []).append(h)
 print(f"selected {K_HEADS} best-reconstructed heads ({FRAC_H:.0%}); "
       f"median residual kept {sorted(resid.values())[K_HEADS]:.4f}", flush=True)
 
-def templates_for(seq):
-    cols = pos_columns(seq); out = {}
-    for (l, h) in HEADS:
-        w = W[(l, h)]
-        M = sum(w[k] * cols[COLNAMES[k]] for k in range(len(COLNAMES)))
-        out[(l, h)] = (M / M.sum(-1, keepdim=True).clamp(min=1e-9)).to(torch.float16)  # CPU, moved per-hook
-    return out
-print("caching templates per chunk ...", flush=True)
-TT_TRAIN = [templates_for(sq) for sq in TRAIN]
-TT_EVAL  = [templates_for(sq) for sq in EVAL]
+W_BY_L = {l: torch.stack([W[(l, h)] for h in hs]).to(torch.float32)
+          for l, hs in BY_L.items()}
+def columns_for(seq):
+    cols = pos_columns(seq)
+    return torch.stack([cols[k] for k in COLNAMES]).to(torch.float16)
+print("caching shared DSL columns per chunk ...", flush=True)
+CC_TRAIN = [columns_for(sq) for sq in TRAIN]
+CC_VAL   = [columns_for(sq) for sq in VAL]
+CC_EVAL  = [columns_for(sq) for sq in EVAL]
 
 # ---- MLP lookup tables on the cheapest layers (cheap: NL zero-ablation probes) ----
 def intact_loss(seq):
     with torch.no_grad():
         lp = torch.log_softmax(model(torch.tensor([seq]).to(DEV)).logits[0,:-1].float(), -1)
     return -lp.gather(-1, torch.tensor(seq[1:]).to(DEV).unsqueeze(-1)).mean().item()
-seq0 = EVAL[0]; b0 = intact_loss(seq0); mlp_cost = {}
+seq0 = VAL[0]; b0 = intact_loss(seq0); mlp_cost = {}
 for l in range(NL):
     hz = layers[l].mlp.register_forward_hook(lambda m,i,o: torch.zeros_like(o))
     mlp_cost[l] = intact_loss(seq0) - b0; hz.remove()
@@ -169,22 +172,28 @@ with torch.no_grad():
 for h in hk: h.remove()
 MEAN = {l: tot[l]/cnt for l in MLPS}; LUT = {l: {t: v/nn for t,(v,nn) in SUM[l].items()} for l in MLPS}
 LMAT_TRAIN = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).half() for l in MLPS} for sq_ in TRAIN]  # CPU
+LMAT_VAL   = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).half() for l in MLPS} for sq_ in VAL]
 LMAT_EVAL  = [{l: torch.stack([LUT[l].get(t, MEAN[l]) for t in sq_]).half() for l in MLPS} for sq_ in EVAL]
 
 # ---- install hooks once; mode in {"code","zero","off"}; templates+LUTs cached ----
-HOLD = {"T": None, "L": None, "mode": "off"}
+HOLD = {"C": None, "L": None, "mode": "off"}
 VC = {}
 hooks = []
 for l in set(BY_L):
     attn = layers[l].self_attn
-    hooks.append(attn.v_proj.register_forward_hook(lambda m,i,o,l=l: VC.__setitem__(l, o[0].detach())))
+    hooks.append(attn.v_proj.register_forward_hook(lambda m,i,o,l=l: VC.__setitem__(l, o[0])))
     def oh(mod, inp, l=l):
         if HOLD["mode"] == "off": return None
         x = inp[0].clone()
-        for h in BY_L[l]:
+        mats = None
+        if HOLD["mode"] == "code":
+            C = HOLD["C"].to(x.device, torch.float32)
+            mats = torch.einsum("hk,knm->hnm", W_BY_L[l].to(x.device), C)
+            mats = mats / mats.sum(-1, keepdim=True).clamp(min=1e-9)
+        for mi, h in enumerate(BY_L[l]):
             g = h // GROUP
             if HOLD["mode"] == "zero": x[0,:,h*DH:(h+1)*DH] = 0
-            else: x[0,:,h*DH:(h+1)*DH] = (HOLD["T"][(l,h)].to(x.device).float() @ VC[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
+            else: x[0,:,h*DH:(h+1)*DH] = (mats[mi] @ VC[l][:, g*DH:(g+1)*DH].float()).to(x.dtype)
         return (x,) + inp[1:]
     hooks.append(attn.o_proj.register_forward_pre_hook(oh))
 for l in MLPS:
@@ -194,31 +203,49 @@ for l in MLPS:
         return HOLD["L"][l].unsqueeze(0).to(o.device, o.dtype)
     hooks.append(layers[l].mlp.register_forward_hook(mh))
 
-def loss_seq(sq_, T, L, mode):
-    HOLD["mode"], HOLD["T"], HOLD["L"] = mode, T, L
+def loss_seq(sq_, C, L, mode):
+    HOLD["mode"], HOLD["C"], HOLD["L"] = mode, C, L
     with torch.no_grad():
         lp = torch.log_softmax(model(torch.tensor([sq_]).to(DEV)).logits[0,:-1].float(), -1)
     return -lp.gather(-1, torch.tensor(sq_[1:]).to(DEV).unsqueeze(-1)).mean().item()
-def run(mode):
-    return sum(loss_seq(sq_, TT_EVAL[i], LMAT_EVAL[i], mode) for i, sq_ in enumerate(EVAL)) / len(EVAL)
+def run_split(seqs, columns, lmats, mode):
+    return sum(loss_seq(sq_, columns[i], lmats[i], mode) for i, sq_ in enumerate(seqs)) / len(seqs)
+def run(mode): return run_split(EVAL, CC_EVAL, LMAT_EVAL, mode)
+def validate(mode): return run_split(VAL, CC_VAL, LMAT_VAL, mode)
 
 norm = [p for n_, p in model.named_parameters() if "norm" in n_.lower()]
 orig = [p.detach().clone() for p in norm]
+# Freeze every matrix and embedding. Gradients still pass through frozen modules
+# to earlier norm gains, but weight-gradient buffers are never allocated.
+for p in model.parameters(): p.requires_grad_(False)
+for p in norm: p.requires_grad_(True)
 def heal(mode):
     for p, o in zip(norm, orig): p.data.copy_(o)
-    for p in norm: p.requires_grad_(True)
     opt = torch.optim.Adam(norm, lr=3e-4); model.train()
     if DEV == "cuda":                      # gradient checkpointing: trade compute for memory
         model.config.use_cache = False
         try: model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
         except Exception: model.gradient_checkpointing_enable()
-    for _ in range(EPOCHS):
+    best = (float("inf"), None, -1); stale = 0; patience = 3
+    for ep in range(EPOCHS):
+        train_total = 0.0
         for i, sq_ in enumerate(TRAIN):
-            HOLD["mode"], HOLD["T"], HOLD["L"] = mode, TT_TRAIN[i], LMAT_TRAIN[i]
+            HOLD["mode"], HOLD["C"], HOLD["L"] = mode, CC_TRAIN[i], LMAT_TRAIN[i]
             ids = torch.tensor([sq_]).to(DEV)
-            out = model(ids, labels=ids); opt.zero_grad(); out.loss.backward(); opt.step()
+            out = model(ids, labels=ids); opt.zero_grad(set_to_none=True); out.loss.backward(); opt.step()
+            train_total += out.loss.item()
+        model.eval(); val = validate(mode); model.train()
+        print(f"  {mode} epoch {ep+1:>2}: train {train_total/len(TRAIN):.4f} val {val:.4f}", flush=True)
+        if val < best[0] - 1e-4:
+            best = (val, [p.detach().cpu().clone() for p in norm], ep); stale = 0
+        else:
+            stale += 1
+            if ep >= 2 and stale >= patience:
+                print(f"  {mode}: early stop; best epoch {best[2]+1}", flush=True); break
     if DEV == "cuda":
         model.gradient_checkpointing_disable()
+    if best[1] is not None:
+        for p, value in zip(norm, best[1]): p.data.copy_(value.to(DEV))
     model.eval()
 
 print("\n==== RESULTS (held-out, nats above intact) ====", flush=True)
@@ -234,6 +261,14 @@ heal("off"); offset = run("off") - intact
 for p, o in zip(norm, orig): p.data.copy_(o)
 print(f"intact-heal offset:    {offset:+.3f}   (domain adaptation the heal earns for free)", flush=True)
 print(f"FAIR cost (code - offset): {code_healed - offset:+.3f}", flush=True)
+result = {"model": MODEL, "head_fraction": FRAC_H, "mlp_fraction": FRAC_M,
+          "epochs_cap": EPOCHS, "intact_loss": intact,
+          "code_unhealed": code_unhealed, "code_healed": code_healed,
+          "zero_healed": zero_healed, "intact_heal_offset": offset,
+          "fair_code_cost": code_healed-offset, "n_train": len(TRAIN),
+          "n_validation": len(VAL), "n_test": len(EVAL)}
+safe_model = MODEL.replace("/", "_")
+with open(f"scale_result_{safe_model}_{FRAC_H:.2f}.json", "w") as f: json.dump(result, f, indent=2)
 print("\n==== HOW TO READ ====")
 print("This protocol (WikiText, POSITIONAL-ONLY templates, %d epochs) is NOT the paper's" % EPOCHS)
 print("fiction/fitted/20-epoch +0.88 — do not compare directly to +0.88. Instead run this SAME")
