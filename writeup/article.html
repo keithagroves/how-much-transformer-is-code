@@ -95,25 +95,28 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   <p class="eyebrow">Interpretability · field report</p>
   <h1>How Much of a Transformer Is Code?</h1>
   <p class="byline">Which computations in a small language model can be replaced by explicit
-  surrogates, at what cost, under a stated rule vocabulary — and where that stops. Short answer: a
-  third of attention heads become positional templates and a fifth of MLP layers become context-free
-  tables, but at a substantial cost (perplexity roughly doubles), and the fraction is a dial, not a
-  constant.</p>
+  surrogates, at what cost, under a stated rule vocabulary — and where that stops. Short answer:
+  the attention routing of a third of heads becomes positional templates and a fifth of MLP layers
+  become context-free tables, but at a substantial cost (perplexity roughly doubles), and the
+  fraction is a dial, not a constant.</p>
 </header>
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
   We ask how much transformer computation can be replaced by programs in a declared, restricted
   instruction set, at a stated description-length and loss cost. On Qwen3-0.6B and Pythia-410M we
-  replace attention heads with mixtures of named attention operators and MLP layers with
-  context-free token maps, then adapt only 65k normalization gains. At one operating point, 36% of
-  attention heads and 21% of MLP layers are replaceable. The cost is substantial: against an
-  identically adapted intact model it is <strong>+0.88 nats</strong> on held-out text, roughly
-  doubling perplexity; against the raw intact model it is +0.64 [95% CI +0.57, +0.71]. Zero and
+  replace the attention <em>routing</em> of heads — the QK-derived pattern, retaining each head's
+  value and output projections — with mixtures of named positional operators, and MLP layers with
+  context-free token maps, then adapt only 65k normalization gains. At one operating point, the
+  routing of 36% of attention heads and 21% of MLP layers is replaceable. The cost is substantial:
+  against an identically adapted intact model it is <strong>+0.88 nats</strong> on held-out text,
+  roughly doubling perplexity (+0.64 [95% CI +0.57, +0.71] against the raw intact model, a
+  comparison that pockets a domain-adaptation discount). Zero and
   position-shuffle controls show that the replacements preserve real position-specific function.
-  Under a matched two-scale protocol the healed cost survives a 6.7× step to Qwen3-4B (fair cost
-  +1.67 → +1.92 nats), but the zero control's margin narrows from 2.6× to 1.2× as the larger
-  model grows redundant enough to heal around deletion.
+  A preliminary two-scale check on one larger model, Qwen3-4B under a weaker matched protocol,
+  finds the healed cost nearly unchanged across the 6.7× step (fair +1.67 → +1.92 nats) but the
+  zero control's margin narrowed from 2.6× to 1.2×: the larger model is redundant enough to heal
+  around deletion, which weakens deletion-based controls themselves at this budget.
   A nested instruction-set frontier localizes that function: fixed positional operators recover most
   of what deletion destroys, sentence and punctuation structure add a smaller gain, and duplicate
   and induction operators add none in the substitutable set. The replaceable fraction is a dial, not
@@ -233,7 +236,23 @@ always an output of this recipe at stated settings, never a property of the mode
 
 <h2>How much substitutes, and the two controls</h2>
 
-<p>Replacing the cheapest 160 of 448 attention heads plus 6 of 28 MLP layers — 36% and 21%,
+<p>Three quantities carry the paper; every other number in it is a robustness check or a protocol
+variant of one of these.</p>
+
+<ul class="key">
+<li><strong>Unhealed substitution cost</strong> — install the programs, change nothing else:
+<strong>+1.61 nats</strong>.</li>
+<li><strong>Fair healed cost</strong> — heal the 65k norm gains with the programs active and
+compare against an <em>identically healed</em> intact model: <strong>+0.88 nats</strong>. This is
+the headline. The raw-intact comparison is +0.64 [95% CI +0.57, +0.71], but it silently pockets a
+−0.24-nat domain-adaptation discount, so we treat it as the variant, not the claim.</li>
+<li><strong>Margin over matched deletion</strong> — the healed programs (+0.70) against the
+strongest same-budget deletion baseline, joint-informed pruning re-healed identically (+1.27):
+the code carries function no matched deletion recovers, by <strong>≈1.8×</strong>. (Both sides
+share the raw-intact reference, so the adaptation discount cancels in this comparison.)</li>
+</ul>
+
+<p>Replacing the routing of the cheapest 160 of 448 attention heads plus 6 of 28 MLP layers — 36% and 21%,
 selected cheapest-first at a tolerated loss, so read these as one operating point and a floor set by
 the heuristic, not an intrinsic fraction of the model (a later section shows a smarter joint search
 substitutes more for the same loss) — costs +1.61 nats on
@@ -383,7 +402,8 @@ range, the fitted and positional-only curves <strong>never separate</strong>: th
 +0.002, +0.005, +0.003, +0.007 nats at 40, 80, 120, 160, 200 heads — indistinguishable from zero
 everywhere. So it is not that content ties at the chosen 36%; content buys essentially nothing
 <em>anywhere</em> in the substitutable range. The honest headline for the attention half is that
-<strong>36% of heads are replaceable by purely positional templates</strong>; the fitted content
+<strong>the routing of 36% of heads is replaceable by purely positional templates</strong> (the
+heads' value and output projections are retained throughout); the fitted content
 terms earn their keep only in the ceiling experiments on repeated text, where induction heads do real
 copying — and those heads sit almost entirely in the expensive, un-substituted tail. So the "96% of verbatim copying" figure below
 is a <em>ceiling</em> measurement (a match-rule column reconstructing induction on repeated
@@ -555,50 +575,24 @@ But it does not vanish, and the strict rule "attend to <em>the</em> most recent 
 almost nothing (+4–5%). What a rule can name is <em>where the candidates are</em>; which one
 the head selects is left over.</p>
 
-<p>The second question — whether the selection is low-dimensional — had a tidy first answer that
-turns out to be another sink artifact, so we state it and its collapse together. Fitting a
-rank-<em>r</em> readout of the residual stream, recency alone captured 31% of the diffuse
-attention mass and a single learned direction <em>seemed</em> to nearly double it to 61%,
-suggesting a clean decomposition: a nameable "attend to the candidates" part plus a low-rank
-"which candidate" direction. But that number came from the positions where the head's attention is
-most concentrated — the sink-adjacent ones — and, as the sink control below shows, it does not
-survive.</p>
-
-<p>Reassembling part of a head's attention through its value matrix scores worse than deleting the
-head — attention does not decompose into reassemblable parts — so we intervene on the
-<em>query</em> instead. We reconstruct a head's true attention from the residual stream and its
-own weights (exact to one part in a million), edit the query at a single position along the
-learned selection direction, and recompute the real softmax over unchanged keys. Attention
-shifts toward the entities the direction predicts (correlation 0.41 with the readout's key-side
-score, against 0.73 for the readout's own prediction); an equal-norm random direction does
-nothing (−0.08); the effect scales linearly with edit size. The direction appears to be
-<strong>used</strong> by the head, not merely decodable from it: a cluster bootstrap over the six
-heads puts the true-minus-random gap at +0.49, 95% interval [+0.35, +0.64], clear of zero. It
-replicates cross-family: porting the same reconstruction to Pythia's GPT-NeoX circuit (fused QKV,
-partial rotary, no per-head QK-norm; reconstruction again exact to ~1e-6) gives a <em>stronger</em>
-effect on its six induction heads — correlation 0.63 against −0.19 for a random direction, gap
-+0.82, 95% interval [+0.46, +1.16]. A cluster bootstrap on six clusters is anti-conservative, so we
-lean on an exact test instead: on <em>both</em> models all six heads individually show a positive
-true-minus-random gap (6/6), which a two-sided sign test and an exact sign-flip permutation test
-both put at p = 0.031 — significant without trusting the interval width. So the causal claim is no
-longer one model. Still, this is the paper's thinnest leg — six heads per model, and a 0.41–0.63
-correlation against the readouts' own 0.73–0.82 leaves most of the steering unexplained — so we read
-it as a real but partial effect, not a full account.</p>
-
-<p>A tempting rule then seemed to close the story. Asking which readable rule best predicts
-<em>which</em> entity a head selects — its top-attended candidate — one wins overwhelmingly over
-recency and frequency across both families: attend to the <strong>first entity introduced</strong>
-in the passage, matched 83% of the time on Qwen and 92% on Pythia. Widening the candidate window
-only sharpened it, ruling out a fixed positional lag. It looked as though even the "which one"
-selection had a name.</p>
-
-<p>It was too neat, and a control breaks it. The first entity in a passage sits near the start
-token, and these induction heads park half to four-fifths of their mass on the start as an
-off-state — the attention sink. So we forced the question: zero out the sink, renormalize over
-the real context, and require the first entity to appear genuinely mid-passage. The effect
-vanishes on both models — across <strong>281</strong> forced mid-passage cases (Qwen, six heads),
-the head's renormalized argmax lands on the first entity in <strong>exactly 0</strong> of them
-(0/281, not a rounded small fraction): once it is not the sink, it is never selected.</p>
+<p>Which candidate the head selects, though, has resisted every name we tried — including one
+that looked decisive and died by control. A learned rank-1 readout of the residual stream at
+first seemed to explain the selection (61% of the diffuse mass); a primacy rule — attend to the
+<strong>first entity introduced</strong> — matched the head's actual choice 83% of the time on
+Qwen and 92% on Pythia. Both were the attention sink in costume: the first entity sits next to
+the start token, where these heads park half to four-fifths of their mass as an off-state, and
+with the sink zeroed and attention renormalized over the real context, the primacy match falls to
+<strong>exactly 0 of 281</strong> forced mid-passage cases while the re-scored learned direction
+never beats recency. Beyond those two, a full vocabulary of readable rules — recency, salience,
+re-mention, the clause's grammatical subject from a dependency parse, neural coreference, soft
+mixtures of all of them, and a query-conditional co-occurrence rule — fails to beat a weak
+recency bias (~0.09–0.14 top-1, two-to-five times chance but nowhere near a rule), scored by
+argmax or distributionally, on both models. What survives is causal but partial: editing the
+query along the learned direction shifts the head's real attention toward the entities the
+direction predicts, on both families (6/6 heads positive on each; exact sign and sign-flip
+permutation tests, p = 0.031; equal-norm random directions do nothing), so the direction is
+<em>used</em> — it just does not reconstruct the choice. The full chronology — each rule, its
+control, and its numbers — is in the appendix.</p>
 
 <figure>
 <div class="bars">
@@ -613,39 +607,13 @@ next to the start token; once that entity is forced mid-passage and the sink is 
 head never selects it. "Track the protagonist" was the attention sink in costume.</figcaption>
 </figure>
 
-<p>What survives is weaker, and we already had it: when the head attends into context at all it
-lands on <em>an</em> entity most of the time — the candidate-set claim holds — but which entity
-it picks has no simple name. With the sink removed and the attention renormalized over the real
-context, we scored a whole vocabulary of readable rules against the head's actual choice — and
-went past hand-heuristics to a serious linguistic toolkit: recency, salience, "most recent
-re-mention," literal coreference, the <em>current clause's grammatical subject</em> (a spaCy
-dependency parse), and full <em>coreference</em> resolved by a neural model (fastcoref) that links
-each pronoun and mention to its entity. None of them clears a weak recency bias. The best
-predictor is recency itself at roughly 0.09–0.14 top-1 — two-to-five times chance, but nowhere
-near a rule — and the two linguistically serious candidates land <em>below</em> it (clause-subject
-0.04–0.05, neural coreference 0.06–0.07) on both models, at &gt;90% coverage, so it is not that
-the rules rarely apply. The retracted primacy rule, meanwhile, falls to chance exactly as the sink
-account predicts. And this is not merely a top-1 effect: scored <em>distributionally</em> — how
-well a soft model reproduces the head's whole attention distribution over candidates, not just its
-argmax — the story is the same, on both models. A soft weighting of nameable features (recency,
-salience, clause subject, coreference) reproduces the distribution no better than recency alone. Nor
-does the query-conditional rule a skeptic reaches for next — "attend to the entity that co-occurred
-with the current query token," active on a third of the cases — add anything over recency
-(mass-overlap 0.333 vs 0.331).
-Even the <em>learned</em> rank-1 direction, re-scored under the sink control, fails to beat recency:
-regularize it and it climbs monotonically <em>toward</em> recency-only and never above, so the
-encouraging 61% from earlier was — like primacy — an artifact of the concentrated, sink-adjacent
-positions. So within every rule family we could name — hand-heuristics, a neural-coreference-and-syntax
-toolkit, a soft weighting of all of them, a query-conditional co-occurrence rule, and a learned
-low-rank residual direction — none, scored by argmax or distributionally, beats a weak recency bias.
-That is a bounded negative, not a proof of absence: no rule <em>in this vocabulary, under this
-soft-model class, at this scale</em> reconstructs the selection. A query edit along the learned
-direction does causally nudge attention, so the direction is <em>used</em> — but it neither
-dominates nor reconstructs the selection. The residue remains <em>un-named under this DSL and soft
-model class</em>; that does not establish that it is intrinsically smooth. This
-is where "rules all the way down" stops, and the lesson the project keeps relearning is stamped on
-it: in small models an apparent symbolic rule must clear a positional and attention-sink baseline
-before it is believed — the one rule that looked like it named the residue was the sink.</p>
+<p>So the residue claim, at its final size: when the head attends into context at all, it lands
+on <em>an</em> entity most of the time — the candidate-set claim holds — but no rule in this
+vocabulary, under this soft-model class, at this scale, reconstructs <em>which one</em>. That is
+a bounded negative, un-named under this DSL, not evidence that the selection is intrinsically
+smooth. And the lesson the project keeps relearning is stamped on it: in small models an apparent
+symbolic rule must clear a positional and attention-sink baseline before it is believed — the one
+rule that looked like it named the residue was the sink.</p>
 
 <h2>Does the shape survive scale?</h2>
 
@@ -689,10 +657,12 @@ intact-heal offset (−0.05 / −0.09). "Code margin" is zero+heal over code+hea
 programs are than deleting the same components.</figcaption>
 </figure>
 
-<p>Two findings, pulling in opposite directions. First, the substitution cost itself survives
-scale nearly unchanged: fair cost +1.67 → +1.92, about 15% growth across a 6.7× parameter step,
-with the control still the right way around. Positional-template substitutability is not a
-small-model artifact. Second — and this is the honest surprise — the <em>control margin</em>
+<p>Two findings, pulling in opposite directions. First, the substitution cost itself comes
+through the scale step nearly unchanged: fair cost +1.67 → +1.92, about 15% growth across a 6.7×
+parameter step, with the control still the right way around. This is preliminary — one larger
+model, the same family, a weaker heal, a different evaluation setup — but it is evidence against
+positional-template substitutability being a small-model artifact, not yet a replication of the
+full result. Second — and this is the honest surprise — the <em>control margin</em>
 collapses: zero-ablation of the same 36% heals to +2.26 at 4B versus +4.24 at 0.6B, so the code's
 edge over simple deletion shrinks from 2.6× to 1.2×. The driver is not the code getting worse but
 deletion getting cheaper: the larger model is more redundant, and the norm heal recovers roughly
@@ -707,9 +677,9 @@ code beat the strongest same-budget deletion by ~1.8×; if redundancy grows with
 deletion recovers" may be a small-model regime rather than a scale-stable fact. That makes the
 follow-up not one option among several but the decisive next experiment: a converged heal at
 smaller deletion budgets, where zero-ablation cannot recover and the margin — if it is real —
-becomes visible again. So what replicates at scale is the shape <em>and</em> the headline cost;
-what weakens is the zero control's power to separate code from crutch at large deletion
-fractions.</p>
+becomes visible again. So the scale evidence, stated at its true strength: the anatomy replicates,
+the healed cost approximately holds on one larger model of the same family, and the zero control's
+power to separate code from crutch demonstrably weakens at large deletion fractions.</p>
 
 <h2>What is new, and what is replication</h2>
 
@@ -725,7 +695,7 @@ establishes that the code carries function and a positional control localizes wh
 carry content — verified on both the cheapest-solo and the joint-search set; the observation that
 the reported fraction is a <strong>floor set by the selection heuristic</strong>, not a frontier
 (solo cost correlates only +0.14 with in-context marginal cost, and a better-chosen same-budget
-set substitutes for less loss); the <strong>two-scale substitution result</strong> — under a
+set substitutes for less loss); the <strong>preliminary two-scale substitution result</strong> — under a
 matched protocol the healed cost survives a 6.7× parameter step nearly unchanged (fair +1.67 →
 +1.92 nats) while the zero control's margin collapses from 2.6× to 1.2×, the second half being a
 finding independent of our thesis: zero-ablation controls lose discriminating power as model
@@ -782,7 +752,82 @@ choices rather than the model alone.</p>
   <li>The most immediately useful direction needs no new science: an <strong>audit tool</strong>
   that reports, for any model, what fraction of its attention and MLPs is nameable algorithm —
   the analysis is the deliverable.</li>
+  <li>What a referee will press on, answered plainly. Confidence intervals resample
+  <strong>chunks</strong> (eight held-out ~300-token chunks; cluster bootstrap) — not tokens,
+  documents, or seeds. Each protocol uses one calibration sequence and one seed, so sensitivity
+  to both is unmeasured; model- and calibration-level replication would be stronger evidence than
+  chunk-level intervals. The 160-head operating point was chosen <em>after</em> seeing the
+  damage-vs-count curve, where the controls separate cleanly — it is not pre-registered, and
+  should be read as one point on the published curve. Programs are fitted and evaluated within a
+  single domain per protocol; whether a program fitted on one domain substitutes on another, and
+  whether any of this holds past the 300–900-token context regime, are untested. The healed
+  substitution pipeline itself has run only on the Qwen family (0.6B and 4B); the Pythia
+  replication covers the ceiling and the query-edit, not the substitution.</li>
 </ul>
+
+<h2>Appendix: the residue chronology</h2>
+
+<p>The main text states the residue result at its final size; this appendix preserves the order in
+which the hypotheses rose and fell, because the controls that killed each one are the evidence
+that the survivor means something.</p>
+
+<p>The first tidy answer was low-dimensionality. Fitting a rank-<em>r</em> readout of the residual
+stream, recency alone captured 31% of the diffuse attention mass and a single learned direction
+<em>seemed</em> to nearly double it to 61%, suggesting a clean decomposition: a nameable "attend
+to the candidates" part plus a low-rank "which candidate" direction. But that number came from the
+positions where the head's attention is most concentrated — the sink-adjacent ones — and it does
+not survive the sink control below.</p>
+
+<p>Reassembling part of a head's attention through its value matrix scores worse than deleting the
+head — attention does not decompose into reassemblable parts — so we intervene on the
+<em>query</em> instead. We reconstruct a head's true attention from the residual stream and its
+own weights (exact to one part in a million), edit the query at a single position along the
+learned selection direction, and recompute the real softmax over unchanged keys. Attention
+shifts toward the entities the direction predicts (correlation 0.41 with the readout's key-side
+score, against 0.73 for the readout's own prediction); an equal-norm random direction does
+nothing (−0.08); the effect scales linearly with edit size. The direction appears to be
+<strong>used</strong> by the head, not merely decodable from it: a cluster bootstrap over the six
+heads puts the true-minus-random gap at +0.49, 95% interval [+0.35, +0.64], clear of zero. It
+replicates cross-family: porting the same reconstruction to Pythia's GPT-NeoX circuit (fused QKV,
+partial rotary, no per-head QK-norm; reconstruction again exact to ~1e-6) gives a <em>stronger</em>
+effect on its six induction heads — correlation 0.63 against −0.19 for a random direction, gap
++0.82, 95% interval [+0.46, +1.16]. A cluster bootstrap on six clusters is anti-conservative, so we
+lean on an exact test instead: on <em>both</em> models all six heads individually show a positive
+true-minus-random gap (6/6), which a two-sided sign test and an exact sign-flip permutation test
+both put at p = 0.031 — significant without trusting the interval width. Still, this is the paper's
+thinnest leg — six heads per model, and a 0.41–0.63 correlation against the readouts' own 0.73–0.82
+leaves most of the steering unexplained — so we read it as a real but partial effect, not a full
+account.</p>
+
+<p>A tempting rule then seemed to close the story. Asking which readable rule best predicts
+<em>which</em> entity a head selects — its top-attended candidate — one wins overwhelmingly over
+recency and frequency across both families: attend to the <strong>first entity introduced</strong>
+in the passage, matched 83% of the time on Qwen and 92% on Pythia. Widening the candidate window
+only sharpened it, ruling out a fixed positional lag. It looked as though even the "which one"
+selection had a name. It was too neat, and a control breaks it: the first entity in a passage sits
+near the start token, and these induction heads park half to four-fifths of their mass on the
+start as an off-state — the attention sink. Forcing the question — zero the sink, renormalize over
+the real context, require the first entity to appear genuinely mid-passage — the effect vanishes
+on both models: across <strong>281</strong> forced mid-passage cases (Qwen, six heads), the head's
+renormalized argmax lands on the first entity in <strong>exactly 0</strong> of them (0/281, not a
+rounded small fraction). Once it is not the sink, it is never selected.</p>
+
+<p>With the sink removed, we scored a whole vocabulary of readable rules against the head's actual
+choice — past hand-heuristics to a serious linguistic toolkit: recency, salience, "most recent
+re-mention," literal coreference, the <em>current clause's grammatical subject</em> (a spaCy
+dependency parse), and full <em>coreference</em> resolved by a neural model (fastcoref). None
+clears a weak recency bias. The best predictor is recency itself at roughly 0.09–0.14 top-1, and
+the two linguistically serious candidates land <em>below</em> it (clause-subject 0.04–0.05, neural
+coreference 0.06–0.07) on both models, at &gt;90% coverage — so it is not that the rules rarely
+apply. Nor is it merely a top-1 effect: scored <em>distributionally</em> — how well a soft model
+reproduces the head's whole attention distribution over candidates — a soft weighting of all the
+nameable features does no better than recency alone. The query-conditional rule a skeptic reaches
+for next ("attend to the entity that co-occurred with the current query token," active on a third
+of cases) adds nothing over recency (mass-overlap 0.333 vs 0.331). And the learned rank-1
+direction, re-scored under the sink control, climbs monotonically <em>toward</em> recency-only as
+it is regularized and never above it — the encouraging 61% was, like primacy, an artifact of the
+concentrated sink-adjacent positions. Within every rule family we could name, none, scored by
+argmax or distributionally, beats a weak recency bias.</p>
 
 <hr>
 <p class="foot">Code, seeds, chunk definitions, and the exact column vocabulary are in the
