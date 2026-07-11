@@ -111,33 +111,23 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  We ask how much of a small transformer's computation can be replaced by programs in a declared,
-  restricted instruction set, and at what description-length and loss cost. On Qwen3-0.6B and Pythia-410M we fit two families — attention heads as compact
-  <strong>positional templates</strong> (a mixture of a few named columns) and MLP layers as
-  <strong>context-free token tables</strong> (each token's mean output) — install them, and heal
-  only the 65k normalization gains. We keep the two apart: the templates are genuinely compact
-  programs; the token table is memoization (millions of learned numbers), so it measures
-  context-independence, not program structure. At a chosen tolerance, 36% of heads are
-  template-replaceable and 21% of MLP layers context-free-replaceable — counts of architectural
-  units, not of parameters or FLOPs, so we do not sum them into one number. The cost is
-  <strong>substantial</strong>: against a fair baseline (an identically-healed no-code model) it is
-  <strong>+0.88 nats</strong> on held-out text — perplexity roughly doubles (≈29 → ≈55); the
-  raw-intact figure is +0.64 [+0.57, +0.71]. This is lossy surgery at a stated tolerance, not a free
-  decomposition, and healing adapts a hybrid <em>around</em> the surrogate — substitutability, not
-  proof the original network implemented the same rule. Controls make the surgery meaningful:
-  positional templates <em>tie</em> the fitted code (the substitutable majority is plumbing, not
-  content), while zeroing or position-scrambling before the same heal is far worse (+2.2 vs +0.7
-  nats), so the surrogate carries real position-specific function. The fraction is not a constant —
-  it rises with the input's verbatim structure (fiction &lt; WikiText &lt; rigid schemas), and a
-  post-heal-ranked selection beats the cheapest-first floor. The residue — which entity a head
-  selects — resists every rule vocabulary we tried (recency, coreference, syntax, co-occurrence, a
-  learned rank-1 direction) once the attention sink is controlled; a query edit shows a low-dim
-  direction is causally <em>used</em> but does not name the choice, so we call it <em>un-named, not
-  smooth</em> — it could be higher-dimensional, nonlinear, or a circuit spanning components. The
-  honest result is a dependency, not a number: what admits a short executable description depends on
-  the surrogate family, the data distribution, the selection procedure, the adaptation budget, and
-  the tolerated loss. Our sharpest first answers died under their own controls (a cross-family
-  "constant"; a first-entity rule that was the attention sink in costume).
+  We ask how much transformer computation can be replaced by programs in a declared, restricted
+  instruction set, at a stated description-length and loss cost. On Qwen3-0.6B and Pythia-410M we
+  replace attention heads with mixtures of named attention operators and MLP layers with
+  context-free token maps, then adapt only 65k normalization gains. At one operating point, 36% of
+  attention heads and 21% of MLP layers are replaceable. The cost is substantial: against an
+  identically adapted intact model it is <strong>+0.88 nats</strong> on held-out text, roughly
+  doubling perplexity; against the raw intact model it is +0.64 [95% CI +0.57, +0.71]. Zero and
+  position-shuffle controls show that the replacements preserve real position-specific function.
+  A nested instruction-set frontier localizes that function: fixed positional operators recover most
+  of what deletion destroys, sentence and punctuation structure add a smaller gain, and duplicate
+  and induction operators add none in the substitutable set. The replaceable fraction is a dial, not
+  a model constant: it depends on the evaluation distribution, permitted instructions, component
+  search, adaptation budget, and tolerated loss. On induction heads, the rule-nameable share rises
+  from fiction to encyclopedic to rigidly structured text. The remaining entity selection resists
+  recency, syntax, coreference, co-occurrence, and a learned rank-1 rule after controlling the
+  attention sink; a query edit shows a low-dimensional direction is used but does not reconstruct the
+  choice. We therefore call the residue <em>un-named under this DSL</em>, not intrinsically smooth.
 </div>
 
 <h2>Setup</h2>
@@ -335,6 +325,11 @@ positional-only +0.63, healed), so the better-chosen heads are also mostly posit
 search pulls in redundant positional machinery, not the content-bearing induction circuits, which
 stay in the expensive tail it never reaches.</p>
 
+<p><small>Three nearby heads-only figures use the same 160-head replacement but different evaluation
+samples: +0.77 is the single headline chunk used for the heads/MLPs interaction decomposition;
++0.68 is the four-chunk set used for the joint-selection study; and +0.74 is the eight-chunk pooled
+budget sweep. Their spread is sampling/protocol variation, not three definitions of damage.</small></p>
+
 <p>This deserves stating without hedging, and a budget sweep settles it. Dropping the two content
 columns (duplicate-token and match-rule) from the fitted surrogate and re-measuring across the whole
 range, the fitted and positional-only curves <strong>never separate</strong>: the gap is +0.003,
@@ -369,6 +364,20 @@ instructions add a smaller real gain through 160 heads. D2→D3 is flat: content
 do not improve this substitutable set. This is an instruction-set frontier, not a claim that one
 syntax is intrinsically “code.”</figcaption>
 </figure>
+
+<div class="tablewrap"><table>
+<thead><tr><th>DSL at 160 heads</th><th>primitive vocabulary</th><th>fitted scalars</th><th>FP32 coefficient bytes</th></tr></thead>
+<tbody>
+<tr><td>D0 · delete</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><td>D1 · positional</td><td>18</td><td>2,777</td><td>11,108</td></tr>
+<tr><td>D2 · structural</td><td>23</td><td>3,385</td><td>13,540</td></tr>
+<tr><td>D3 · content</td><td>25</td><td>3,677</td><td>14,708</td></tr>
+</tbody>
+</table></div>
+<p><small>Description length here means the declared primitive vocabulary and stored nonzero mixture
+coefficients above 10<sup>−4</sup>. Bytes count FP32 coefficients only; they exclude the shared,
+hand-written primitive implementations and the model's unchanged value/output projections. This is
+a transparent surrogate-size measure, not a universal Kolmogorov-complexity claim.</small></p>
 
 <p>We stop the main table at the 160-head operating point. Beyond it, joint deletion damage becomes
 sharply nonlinear (+10.36 nats at 200 heads), while the explicit DSLs remain around +1.24; that is a
@@ -585,8 +594,8 @@ low-rank residual direction — none, scored by argmax or distributionally, beat
 That is a bounded negative, not a proof of absence: no rule <em>in this vocabulary, under this
 soft-model class, at this scale</em> reconstructs the selection. A query edit along the learned
 direction does causally nudge attention, so the direction is <em>used</em> — but it neither
-dominates nor reconstructs the selection. The residue is smooth as far as we could measure, after a
-serious attempt to name it, not merely un-named so far. This
+dominates nor reconstructs the selection. The residue remains <em>un-named under this DSL and soft
+model class</em>; that does not establish that it is intrinsically smooth. This
 is where "rules all the way down" stops, and the lesson the project keeps relearning is stamped on
 it: in small models an apparent symbolic rule must clear a positional and attention-sink baseline
 before it is believed — the one rule that looked like it named the residue was the sink.</p>

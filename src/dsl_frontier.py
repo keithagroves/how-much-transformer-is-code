@@ -91,26 +91,29 @@ def loss(seq, A=None, zero=False):
 
 intact = sum(loss(seq) for seq in eval_chunks) / len(eval_chunks)
 print(f"intact {intact:.4f}")
-print(f"{'heads':>6} {'DSL':<15} {'damage':>9} {'gain_vs_delete':>15}")
+print(f"{'heads':>6} {'DSL':<15} {'vocab':>5} {'scalars':>8} {'damage':>9} {'gain_vs_delete':>15}")
 rows = []
 for k in [40, 80, 120, 160, 200, 256]:
     heads = HEADS_ALL[:k]
     # A placeholder program identifies the head slices for zero ablation.
     A0 = [program(seq, base, heads, POSITIONAL) for seq, base in zip(eval_chunks, BASE)]
     delete_damage = sum(loss(seq, A, zero=True) for seq, A in zip(eval_chunks, A0)) / len(eval_chunks) - intact
-    rows.append((k, "D0_delete", 0, delete_damage, 0.0))
-    print(f"{k:>6} {'D0_delete':<15} {delete_damage:>+9.3f} {0.0:>+15.3f}", flush=True)
+    rows.append((k, "D0_delete", 0, 0, 0, delete_damage, 0.0))
+    print(f"{k:>6} {'D0_delete':<15} {0:>5} {0:>8} {delete_damage:>+9.3f} {0.0:>+15.3f}", flush=True)
     for level, (name, allowed) in enumerate(list(DSLS.items())[1:], start=1):
         programs = [program(seq, base, heads, allowed) for seq, base in zip(eval_chunks, BASE)]
         damage = sum(loss(seq, A) for seq, A in zip(eval_chunks, programs)) / len(eval_chunks) - intact
         gain = delete_damage - damage
-        rows.append((k, name, level, damage, gain))
-        print(f"{k:>6} {name:<15} {damage:>+9.3f} {gain:>+15.3f}", flush=True)
+        scalars = sum(1 for head in heads for key, value in RR.W[head].items()
+                      if key in allowed and value > 1e-4)
+        rows.append((k, name, level, len(allowed), scalars, damage, gain))
+        print(f"{k:>6} {name:<15} {len(allowed):>5} {scalars:>8} {damage:>+9.3f} {gain:>+15.3f}", flush=True)
 
 for hook in hooks:
     hook.remove()
 with open("dsl_frontier_results.csv", "w", newline="") as f:
     w = csv.writer(f, lineterminator="\n")
-    w.writerow(["heads", "dsl", "level", "damage_nats", "gain_vs_delete_nats"])
+    w.writerow(["heads", "dsl", "level", "vocabulary_size", "fitted_scalars",
+                "damage_nats", "gain_vs_delete_nats"])
     w.writerows(rows)
 print("wrote dsl_frontier_results.csv")
