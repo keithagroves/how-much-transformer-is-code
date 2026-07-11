@@ -687,8 +687,8 @@ the table's architecture column: the two models where deletion stays expensive s
 that scale weakens deletion controls but that <strong>a zero-ablation control's separating power
 is a property of the model, not of the method</strong> — it cannot be assumed, only measured. Our
 first guess at how to restore it at 4B — smaller deletion budgets — has been run and refuted: at
-a 20% budget (230 of 1152 heads) 4B code + heal costs +1.05 against zero + heal +1.18, margin
-1.1×, unchanged. Lowering the budget makes deletion <em>easier</em> to heal, not harder. If a
+a 20% budget (230 of 1152 heads) 4B code + heal costs +1.05 (fair +1.11) against zero + heal
++1.18, margin 1.1×, unchanged. Lowering the budget makes deletion <em>easier</em> to heal, not harder. If a
 margin exists at 4B it lives at high budget, where deletion must eventually overwhelm redundancy
 (at 0.6B it diverges past ~160 heads); the 50% run at 4B is the outstanding test. Two caveats bound both findings: the zero-heals had
 not converged at epoch 12 (still descending at 1.7B and 4B while the code-heals plateaued), so
