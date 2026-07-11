@@ -215,7 +215,10 @@ layer's grand-mean output.</p>
 the damage on the calibration text and on repeated-random strings (which isolate the copying
 circuits); rank heads by the average of the two ranks and take the cheapest <em>k</em> (headline
 operating point: <em>k</em> = 160 of 448). MLP layers likewise: substitute one at a time, keep the
-6 cheapest of 28. This solo-cost heuristic is greedy, and we treat its output as a floor — the
+6 cheapest of 28. The repeated-random criterion means the selection partly optimizes for
+preserving copy circuits — this does not leak into the headline, because the induction heads it
+protects are exactly the ones ranked expensive and left <em>outside</em> the substituted set. This
+solo-cost heuristic is greedy, and we treat its output as a floor — the
 frontier section shows joint selection substitutes more for the same loss.</p>
 
 <p><strong>5 · Install.</strong> A hook replaces exactly one thing per component. For a head, the
@@ -707,10 +710,15 @@ still descending while the code-heal had plateaued, so 1.2× is an <em>upper bou
 converged margin at this budget. What scale threatens, on this evidence, is not substitutability
 but the <em>sharpness of the evidence</em> that the code carries function: in a more redundant
 model, more of what the programs preserve can be re-derived by the network from what remains. The
-right follow-up is a converged heal at smaller deletion budgets, where zero-ablation cannot fully
-recover and the margin becomes decisive again. So what replicates at scale is the shape <em>and</em>
-the headline cost; what weakens is the zero control's power to separate code from crutch at large
-deletion fractions.</p>
+consequence reaches past the zero control itself — the pruning comparison inherits it. At 0.6B,
+code beat the strongest same-budget deletion by ~1.8×; if redundancy grows with scale the way the
+4B zero-heal indicates, that margin plausibly shrinks with it, and "code carries function no
+deletion recovers" may be a small-model regime rather than a scale-stable fact. That makes the
+follow-up not one option among several but the decisive next experiment: a converged heal at
+smaller deletion budgets, where zero-ablation cannot recover and the margin — if it is real —
+becomes visible again. So what replicates at scale is the shape <em>and</em> the headline cost;
+what weakens is the zero control's power to separate code from crutch at large deletion
+fractions.</p>
 
 <h2>What is new, and what is replication</h2>
 
@@ -726,7 +734,11 @@ establishes that the code carries function and a positional control localizes wh
 carry content — verified on both the cheapest-solo and the joint-search set; the observation that
 the reported fraction is a <strong>floor set by the selection heuristic</strong>, not a frontier
 (solo cost correlates only +0.14 with in-context marginal cost, and a better-chosen same-budget
-set substitutes for less loss); and, most pointedly, the <strong>hardened residue claim</strong> —
+set substitutes for less loss); the <strong>two-scale substitution result</strong> — under a
+matched protocol the healed cost survives a 6.7× parameter step nearly unchanged (fair +1.67 →
++1.92 nats) while the zero control's margin collapses from 2.6× to 1.2×, the second half being a
+finding independent of our thesis: zero-ablation controls lose discriminating power as model
+redundancy grows; and, most pointedly, the <strong>hardened residue claim</strong> —
 the "which entity" selection survives every nameable rule we tried, symbolic or soft, once the
 attention sink is controlled for, with its most seductive symbolic explanation (first-entity
 primacy) unmasked as the sink in costume. Taken together these are less a percentage than a
