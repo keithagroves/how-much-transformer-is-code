@@ -40,6 +40,7 @@ h1{font-size:2.15rem; line-height:1.1; margin:.2rem 0 .5rem; font-weight:700;
   color:var(--accent); display:block; margin-bottom:.5rem}
 h2{font-size:1.28rem; line-height:1.25; margin:2.4rem 0 .5rem; text-wrap:balance;
   font-weight:700}
+h3{font-size:1.03rem; line-height:1.3; margin:1.7rem 0 .45rem; font-weight:700}
 p{margin:.8rem 0}
 a{color:var(--accent); text-underline-offset:2px}
 strong{font-weight:700}
@@ -168,24 +169,6 @@ program maps each token to that layer's mean observed output, falling back to th
 The compressed variant adds <code>LOW_RANK_MAP</code> and
 <code>FREQUENT_TOKEN_EXCEPTION</code>. This is memoization, not a compact algorithm, so we report it
 as context-independence and measure its description length separately.</p>
-
-<p>The current “synthesizer” is deliberately modest: humans specify the grammar, the program
-structure is a linear mixture, regression fits its constants, held-out substitution loss scores it,
-and a heuristic selects components. It does not discover arbitrary control flow, compositions, or
-new primitives. In program-synthesis terms this is sparse system identification over a hand-authored
-operator library. A fuller formulation is to search jointly over component set <em>S</em> and program
-<em>P</em>:</p>
-
-<pre>min_{P,S}  held_out_loss(model with P replacing S)
-           + λ * description_length(P)
-           + μ * execution_cost(P)</pre>
-
-<p>This connects to algorithm discovery systems such as
-<a href="https://deepmind.google/blog/discovering-novel-algorithms-with-alphatensor/">AlphaTensor</a>, which searches sequences of
-allowed instructions and rewards exact correctness plus efficiency. The analogy is useful but
-bounded: matrix multiplication has a proof-level specification valid for every input, while our
-replacement has distributional fidelity on held-out text. We synthesize an approximation to a
-learned component, not a provably equivalent algorithm.</p>
 
 <p>After substitution we <em>heal</em>:
 fine-tune only the RMSNorm gains (65,536 of 596M parameters) with the code organs active, which
@@ -386,6 +369,62 @@ instructions add a smaller real gain through 160 heads. D2→D3 is flat: content
 do not improve this substitutable set. This is an instruction-set frontier, not a claim that one
 syntax is intrinsically “code.”</figcaption>
 </figure>
+
+<p>We stop the main table at the 160-head operating point. Beyond it, joint deletion damage becomes
+sharply nonlinear (+10.36 nats at 200 heads), while the explicit DSLs remain around +1.24; that is a
+different, strongly interacting regime. The complete 40–256 frontier is in the result artifact.</p>
+
+<h3>One replacement, printed out</h3>
+
+<p>Here is a concrete member of the headline set, not a schematic. Qwen layer 5, head 15 compiles to:</p>
+
+<pre>row_normalize(
+    0.4374 * SELF
+  + 0.2732 * LINE_START
+  + 0.1293 * START
+  + 0.0443 * OFFSET(1)
+  + 0.0182 * OFFSET(2)
+  + 0.0120 * OFFSET(3)
+  + 0.0463 * remaining fitted terms
+) @ original_value_vectors</pre>
+
+<p>The coefficients sum to 0.9608 before row normalization; the duplicate and induction terms are
+only 0.0010 and 0.0004. Replacing this head alone changes held-out loss by −0.0093 nats — slightly
+better than leaving it intact on this sample.</p>
+
+<p>A real MLP row looks less like a short program. In substituted layer 10, token 279
+(<code>" the"</code>) occurs 436 times in calibration and maps to a 1,024-dimensional mean output.
+The first four coordinates show the executable decomposition:</p>
+
+<pre>exact row:       [ 0.5950, -0.3820, -0.1598, -0.0428, ...]
+rank-64 base:   [ 0.5744, -0.3522, -0.1582, -0.1414, ...]
+top-500 fix:    [ 0.0206, -0.0298, -0.0016,  0.0987, ...]
+emitted output = rank-64 base + top-500 fix</pre>
+
+<p>The rank-64 base alone has 0.399 relative row error for this token; because
+<code>" the"</code> is in the 500-token exception set, the stored correction restores the exact
+calibration row. The complete coefficients and vector sample are emitted by
+<code>worked_example.py</code>, rather than transcribed by hand.</p>
+
+<h3>Relation to program synthesis</h3>
+
+<p>The current “synthesizer” is deliberately modest: humans specify the grammar, the program
+structure is a linear mixture, regression fits its constants, held-out substitution loss scores it,
+and a heuristic selects components. It does not discover arbitrary control flow, compositions, or
+new primitives. In program-synthesis terms this is sparse system identification over a hand-authored
+operator library. A fuller formulation is to search jointly over component set <em>S</em> and program
+<em>P</em>:</p>
+
+<pre>min_{P,S}  held_out_loss(model with P replacing S)
+           + λ * description_length(P)
+           + μ * execution_cost(P)</pre>
+
+<p>This connects to algorithm discovery systems such as
+<a href="https://deepmind.google/blog/discovering-novel-algorithms-with-alphatensor/">AlphaTensor</a>, which searches sequences of
+allowed instructions and rewards exact correctness plus efficiency. The analogy is useful but
+bounded: matrix multiplication has a proof-level specification valid for every input, while our
+replacement has distributional fidelity on held-out text. We synthesize an approximation to a
+learned component, not a provably equivalent algorithm.</p>
 
 <p>The MLP result is anatomically clean and replicates across both model families: the middle
 of the network is nearly-free token lookup (one Qwen layer has <em>negative</em> substitution

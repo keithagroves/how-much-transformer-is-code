@@ -110,7 +110,7 @@ for k in [40, 80, 120, 160, 200, 256]:
 for hook in hooks:
     hook.remove()
 with open("dsl_frontier_results.csv", "w", newline="") as f:
-    w = csv.writer(f)
+    w = csv.writer(f, lineterminator="\n")
     w.writerow(["heads", "dsl", "level", "damage_nats", "gain_vs_delete_nats"])
     w.writerows(rows)
 print("wrote dsl_frontier_results.csv")

@@ -111,7 +111,7 @@ for k in [40,80,120,160,200,256]:
     print(f"{k:>6}{df:>+10.3f}{dp:>+12.3f}{dp-df:>+9.3f}",flush=True); gc.collect()
 
 with open("posneg_curve_results.csv", "w", newline="") as f:
-    w=csv.writer(f); w.writerow(["heads","fitted_damage_nats","positional_damage_nats","content_gain_nats"]); w.writerows(curve)
+    w=csv.writer(f, lineterminator="\n"); w.writerow(["heads","fitted_damage_nats","positional_damage_nats","content_gain_nats"]); w.writerows(curve)
 print("wrote posneg_curve_results.csv", flush=True)
 
 if SKIP_HEAL:

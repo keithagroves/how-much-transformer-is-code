@@ -1,0 +1,143 @@
+{
+  "model": "Qwen/Qwen3-0.6B",
+  "attention": {
+    "layer": 5,
+    "head": 15,
+    "solo_substitution_damage_nats": -0.009291410446166992,
+    "coefficient_sum_before_row_normalization": 0.960761797556188,
+    "terms": [
+      {
+        "instruction": "self",
+        "coefficient": 0.4374108612537384
+      },
+      {
+        "instruction": "lstart",
+        "coefficient": 0.27319613099098206
+      },
+      {
+        "instruction": "bos",
+        "coefficient": 0.12934502959251404
+      },
+      {
+        "instruction": "off1",
+        "coefficient": 0.04434340447187424
+      },
+      {
+        "instruction": "off2",
+        "coefficient": 0.018181901425123215
+      },
+      {
+        "instruction": "off3",
+        "coefficient": 0.011955582536756992
+      },
+      {
+        "instruction": "off4",
+        "coefficient": 0.007711589336395264
+      },
+      {
+        "instruction": "off5",
+        "coefficient": 0.005359206348657608
+      },
+      {
+        "instruction": "sstart",
+        "coefficient": 0.004804554861038923
+      },
+      {
+        "instruction": "off6",
+        "coefficient": 0.0040772962383925915
+      },
+      {
+        "instruction": "off7",
+        "coefficient": 0.003857647767290473
+      },
+      {
+        "instruction": "psent",
+        "coefficient": 0.003657903289422393
+      },
+      {
+        "instruction": "off8",
+        "coefficient": 0.002751138061285019
+      },
+      {
+        "instruction": "off9",
+        "coefficient": 0.0019734231755137444
+      },
+      {
+        "instruction": "off14",
+        "coefficient": 0.0018953471444547176
+      },
+      {
+        "instruction": "off13",
+        "coefficient": 0.0017476342618465424
+      },
+      {
+        "instruction": "off10",
+        "coefficient": 0.0016177620273083448
+      },
+      {
+        "instruction": "off12",
+        "coefficient": 0.0015661161160096526
+      },
+      {
+        "instruction": "off11",
+        "coefficient": 0.0015415598172694445
+      },
+      {
+        "instruction": "off15",
+        "coefficient": 0.0013476135209202766
+      },
+      {
+        "instruction": "off16",
+        "coefficient": 0.0010314214741811156
+      },
+      {
+        "instruction": "dup",
+        "coefficient": 0.0009517592843621969
+      },
+      {
+        "instruction": "rule",
+        "coefficient": 0.0004369145608507097
+      }
+    ]
+  },
+  "mlp": {
+    "layer": 10,
+    "token_id": 279,
+    "token_text": " the",
+    "calibration_occurrences": 436,
+    "hidden_dimensions": 1024,
+    "exact_row_l2_norm": 7.583340644836426,
+    "rank64_relative_row_error_before_exception": 0.3991556763648987,
+    "is_top500_exception": true,
+    "exact_row_first_8": [
+      0.595012366771698,
+      -0.38195934891700745,
+      -0.1598179191350937,
+      -0.0427587665617466,
+      -0.08844360709190369,
+      0.4197928011417389,
+      -0.33689257502555847,
+      -0.40868744254112244
+    ],
+    "rank64_base_first_8": [
+      0.5744315981864929,
+      -0.35217955708503723,
+      -0.1581711322069168,
+      -0.14141039550304413,
+      -0.3151152431964874,
+      0.357286274433136,
+      -0.07020144909620285,
+      -0.05637992173433304
+    ],
+    "exception_correction_first_8": [
+      0.020580768585205078,
+      -0.029779791831970215,
+      -0.0016467869281768799,
+      0.09865163266658783,
+      0.22667163610458374,
+      0.0625065267086029,
+      -0.266691118478775,
+      -0.35230752825737
+    ]
+  }
+}

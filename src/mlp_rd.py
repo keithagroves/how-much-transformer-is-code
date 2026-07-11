@@ -100,7 +100,7 @@ for r,k in [(16,100),(16,500),(32,100),(32,500),(32,1000),(64,100),(64,500)]:
     tab,p=hybrid(r,k); d=dmg(tab); rows.append((f"rank_{r}_top_{k}",p,d)); print(f"{('r'+str(r)+'+t'+str(k)):>14}{p:>12}{d:>+10.3f}",flush=True)
 for h in hooks: h.remove()
 with open("mlp_rd_results.csv", "w", newline="") as f:
-    w=csv.writer(f); w.writerow(["surrogate","parameters","damage_nats"]); w.writerows(rows)
+    w=csv.writer(f, lineterminator="\n"); w.writerow(["surrogate","parameters","damage_nats"]); w.writerows(rows)
 print("wrote mlp_rd_results.csv")
 print("\nread: the knee (where damage stops dropping as params grow) is the layer's effective")
 print("      description length; a low knee => genuinely compressible, closer to 'code'.")
