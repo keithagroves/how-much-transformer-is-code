@@ -106,42 +106,29 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   <p class="byline">Which computations in a small language model can be replaced by explicit
   surrogates, at what cost, under a stated rule vocabulary — and where that stops. Short answer:
   the attention routing of a third of heads becomes positional templates and a fifth of MLP layers
-  become context-free tables, but at a substantial cost (perplexity roughly doubles), and the
+  become token-local tables, but at a substantial cost (perplexity roughly doubles), and the
   fraction is a dial, not a constant.</p>
 </header>
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  We ask how much transformer computation can be replaced by programs in a declared, restricted
-  instruction set, at a stated description-length and loss cost. On Qwen3-0.6B and Pythia-410M we
-  replace the attention <em>routing</em> of heads — the QK-derived pattern, retaining each head's
-  value and output projections — with mixtures of named positional operators, and MLP layers with
-  context-free token maps, then adapt only 65k normalization gains. At one operating point we
-  report two distinct quantities — the routing of 36% of attention heads is template-replaceable,
-  and 21% of MLP layers are context-free (memoizable) — different senses of "replaceable," priced
-  together but not summed. The cost is substantial:
-  against an identically adapted intact model it is <strong>+0.88 nats</strong> on held-out text,
-  roughly doubling perplexity (+0.64 [95% CI +0.57, +0.71] against the raw intact model, a
-  comparison that pockets a domain-adaptation discount) — a price that suits an audit instrument,
-  not a compression technique. Zero and
-  position-shuffle controls show that the replacements preserve real position-specific function.
-  A preliminary check at three sizes (Qwen3-0.6B/1.7B/4B) under a weaker matched protocol finds
-  the healed cost within a ±0.3-nat band across the 6.7× parameter range (fair +1.83, +1.38,
-  +1.92 nats; three points with a non-monotone middle — consistent with flat, not proof of it)
-  while the zero control's margin varies by an order of magnitude, non-monotonically (4.1×, 6.2×,
-  1.2×), collapsing where heads-per-layer doubles — a deletion control's separating power is a
-  property of the model, not the method, and must be re-established per architecture.
-  A nested instruction-set frontier localizes that function: fixed positional operators recover most
-  of what deletion destroys, sentence and punctuation structure add a smaller gain, and duplicate
-  and induction operators add none in the substitutable set. The replaceable fraction is a dial, not
-  a model constant: it depends on the evaluation distribution, permitted instructions, component
-  search, adaptation budget, and tolerated loss. On induction heads, the rule-nameable share rises
-  from fiction to encyclopedic to rigidly structured text. The most seductive residue rule —
-  attend to the first entity introduced, matching 83–92% of head selections — was the attention
-  sink in costume (0 of 281 once controlled); beyond it the entity selection resists recency,
-  syntax, coreference, co-occurrence, and a learned rank-1 rule, and a query edit shows a
-  low-dimensional direction is used but does not reconstruct the choice. We therefore call the
-  residue <em>un-named under this DSL</em>, not intrinsically smooth.
+  We test interpretability claims by substitution: declare a small instruction set, fit a readable
+  program in it for each targeted component, install the programs in the forward pass, retrain
+  only 65k normalization gains, and price the damage. The goal is not efficiency — the
+  replacements are worse in every practical respect — but audit: does a claim about what a
+  component computes survive being <em>executed in its place</em>? On Qwen3-0.6B (with Pythia-410M
+  cross-checks), the attention routing of 36% of heads (value and output projections retained) and
+  21% of MLP layers — token-local maps, a different sense of "replaceable," not summed with the
+  first — substitute at <strong>+0.88 nats</strong> against an identically adapted intact model:
+  perplexity roughly doubles, on a synthetic narrative corpus; natural text prices higher. The
+  substitutable routing is almost entirely <em>positional</em>: content-aware operators price at
+  zero. Position-shuffle and zero-ablation controls show the recovery is function, not healing; a
+  preliminary three-size check (0.6B–4B) finds the cost roughly stable while the zero control
+  itself loses separating power where heads-per-layer doubles. The most seductive rule for what
+  resists — "attend to the first entity introduced," matching 83–92% of selections — was the
+  attention sink in costume (0 of 281 once controlled). The fraction is a dial — instruction set,
+  selection, adaptation, distribution, tolerance — and the contribution is the pricing apparatus,
+  including where its own controls break.
 </div>
 
 <h2>Setup</h2>
@@ -153,7 +140,10 @@ readable rule may compile to one. Our operational distinction is therefore a
 <strong>hypothesis-class restriction</strong>. We declare a small replacement DSL (domain-specific
 language), fit a program in that language, install it in the forward pass, and measure its held-out
 cost. A component is replaceable only relative to a DSL <em>D</em>, a program-size budget
-<em>B</em>, and a tolerated loss <em>ε</em>; change any of them and the answer can change.</p>
+<em>B</em>, and a tolerated loss <em>ε</em>; change any of them and the answer can change. One
+sentence before the precise version: nothing here is an efficiency method — no model gets faster
+or smaller, and no reusable trick falls out. The question is whether stories about what components
+do are true enough to <em>run in their place</em>, and what running them costs.</p>
 
 <p>The pipeline, in one line: declare the DSL, fit a program per component, install the programs in
 the forward pass, <em>heal</em> by retraining only the normalization gains, and measure held-out
@@ -174,9 +164,9 @@ that such a table can carry a great deal of learned data without being manually 
 <strong>substitutability</strong> (how much loss when it replaces the learned component?). The
 attention templates score on all three — named, tiny, and swappable. The MLP tables score on
 explicitness and substitutability but only moderate compressibility: they establish that the layer is
-context-free (memoization of a per-token map), not that it is program-like. Because these come apart,
+token-local (memoization of a per-token map), not that it is program-like. Because these come apart,
 we avoid the single word "code" for the combined claim and instead report two named quantities —
-<strong>template-replaceable</strong> attention and <strong>context-free</strong> MLPs — measured, and
+<strong>template-replaceable</strong> attention and <strong>token-local</strong> MLPs — measured, and
 caveated, separately.</p>
 
 <h2>How a replacement program is made</h2>
@@ -264,7 +254,7 @@ the headline. The raw-intact comparison is +0.64 [95% CI +0.57, +0.71], but it s
 −0.24-nat domain-adaptation discount, so we treat it as the variant, not the claim.</li>
 <li><strong>Margin over matched deletion</strong> — the healed programs (+0.70) against the
 strongest same-budget deletion baseline, joint-informed pruning re-healed identically (+1.27):
-the code carries function no matched deletion recovers, by <strong>≈1.8×</strong>. (Both sides
+the code carries function no matched deletion recovers, by <strong>+0.57 nats</strong>. (Both sides
 share the raw-intact reference, so the adaptation discount cancels in this comparison.)</li>
 </ul>
 
@@ -276,9 +266,10 @@ held-out natural text <em>before</em> healing; retraining only the 65k RMSNorm g
 to +0.67, so the heal repairs about 58% of the damage. That +1.61 decomposes as +0.77 from the
 heads, +0.48 from the MLPs, and +0.36 of head–MLP interaction on top. Healing changes which part dominates: healed separately,
 heads-only falls to <strong>+0.14</strong> and MLPs-only to <strong>+0.28</strong> (the heal repairs
-82% of the head damage), yet the full hybrid still heals to only +0.70 — so the residual cost is
-almost entirely the <strong>interaction</strong> (+0.29), the coupling between coded heads and coded
-MLPs that the per-channel norm heal cannot fully reconcile, not the organs in isolation. Norm gains can rescale and reroute residual-stream
+82% of the head damage), yet the full hybrid still heals to only +0.70 — an arithmetic decomposition consistent with the
+residual cost being the <strong>interaction</strong> (+0.29), the coupling between coded heads and
+coded MLPs that the per-channel norm heal cannot fully reconcile, not the organs in isolation (an
+inference from the decomposition, not a directly measured interaction term). Norm gains can rescale and reroute residual-stream
 contributions, so the fair question is whether the heal manufactures the function or merely
 reseats the code's output — which is what the controls decide. (The healed figure holds
 out-of-sample: pooling eight chunks that trained neither the lookup tables nor the norm heal — and
@@ -444,7 +435,7 @@ duplicate-token and induction-follower rules. These are attention-only, unhealed
 <tr><td>160</td><td>+2.399</td><td>+0.850</td><td>+0.738</td><td>+0.739</td></tr>
 </tbody>
 </table></div>
-<figcaption>Held-out loss above intact, before healing, as the replacement DSL expands. The large
+<figcaption>Held-out loss above intact, <strong>before healing</strong> — not comparable to the healed +0.88 headline — as the replacement DSL expands. The large
 gain is D0→D1: fixed positional instructions restore most of what deletion destroys. Structural
 instructions add a smaller real gain through 160 heads. D2→D3 is flat: content-aware instructions
 do not improve this substitutable set. This is an instruction-set frontier, not a claim that one
@@ -527,7 +518,7 @@ cost), while composition concentrates in the first two and last two layers. "MLP
 memories" is not just true on average — it is a map, and the map has a shape. It is worth naming
 what the token-keyed table actually measures: <strong>context-independence</strong> — how much of
 a layer's output is a function of the current token alone, ignoring the rest of the stream.
-Read that way, "21% of MLP layers substitute" says a fifth of the layers are largely context-free
+Read that way, "21% of MLP layers substitute" says a fifth of the layers are largely token-local
 per-token enrichment, which is a cleaner and more falsifiable claim than "run as code." Its
 compressibility is a separate, measured axis. The six full tables contain 20.74M parameters and
 cost +0.508 nats unhealed. A rank-64 global map plus exact exceptions for the 500 most frequent
@@ -667,18 +658,19 @@ cross-scale comparison:</p>
 
 <figure>
 <div class="tablewrap"><table>
-<thead><tr><th></th><th class="n">intact</th><th class="n">code + heal</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">code margin</th></tr></thead>
+<thead><tr><th></th><th class="n">intact</th><th class="n">code + heal</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">code advantage</th></tr></thead>
 <tbody>
-<tr><td>Qwen3-0.6B (161 of 448 heads, 5 MLPs)</td><td class="n">4.01</td><td class="n">+1.78</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">4.1×</td></tr>
-<tr><td>Qwen3-1.7B (161 of 448 heads, 5 MLPs)</td><td class="n">3.59</td><td class="n">+1.33</td><td class="n">+1.38</td><td class="n">+8.18</td><td class="n">6.2×</td></tr>
-<tr><td>Qwen3-4B (414 of 1152 heads, 7 MLPs)</td><td class="n">3.36</td><td class="n">+1.83</td><td class="n">+1.92</td><td class="n">+2.26</td><td class="n">1.2×</td></tr>
+<tr><td>Qwen3-0.6B (161 of 448 heads, 5 MLPs)</td><td class="n">4.01</td><td class="n">+1.78</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">+5.55 nats</td></tr>
+<tr><td>Qwen3-1.7B (161 of 448 heads, 5 MLPs)</td><td class="n">3.59</td><td class="n">+1.33</td><td class="n">+1.38</td><td class="n">+8.18</td><td class="n">+6.85 nats</td></tr>
+<tr><td>Qwen3-4B (414 of 1152 heads, 7 MLPs)</td><td class="n">3.36</td><td class="n">+1.83</td><td class="n">+1.92</td><td class="n">+2.26</td><td class="n">+0.43 nats</td></tr>
 </tbody>
 </table></div>
 <figcaption>Identical protocol at three scales; nats above intact, fair cost = code+heal minus the
-intact-heal offset (−0.05 / −0.04 / −0.09). "Code margin" is zero+heal over code+heal — how much
-better the programs are than deleting the same components. Note the architecture column: 0.6B and
+intact-heal offset (−0.05 / −0.04 / −0.09). "Code advantage" is zero+heal minus code+heal — how many nats
+better the programs are than deleting the same components (a difference, not a ratio: nats are
+already log-scale, so ratios of nats are not a meaningful effect size). Note the architecture column: 0.6B and
 1.7B share a 28-layer × 16-head layout; 4B moves to 36 × 32. An earlier 0.6B run under a
-pre-early-stopping variant of this protocol gave fair +1.67 and margin 2.6×: the code number is
+pre-early-stopping variant of this protocol gave fair +1.67 and a smaller zero-heal gap: the code number is
 protocol-stable (±0.16 nats) while zero+heal moved by 3 nats — a measured instance of how fragile
 deletion baselines are to protocol details.</figcaption>
 </figure>
@@ -688,9 +680,10 @@ range</em> — fair cost +1.83, +1.38, +1.92, with the endpoints nearly equal an
 the cheapest of the three, and the control the right way around everywhere. This is preliminary —
 one family, a weaker heal, a different evaluation setup — but three sizes now say the same thing:
 positional-template substitutability is not a small-model artifact. Second — and this is the
-honest surprise — the <em>control margin</em> is wildly model-dependent and not monotone in
-scale: 4.1× at 0.6B, <strong>6.2×</strong> at 1.7B (deleting 36% of heads is catastrophic on both,
-+7.3 and +8.2 nats after healing), then a collapse to 1.2× at 4B. Our first two-point reading —
+honest surprise — the <em>control advantage</em> (zero+heal minus code+heal, a difference of nats;
+ratios of nats are not a meaningful effect size) is wildly model-dependent and not monotone in
+scale: +5.6 nats at 0.6B, <strong>+6.9</strong> at 1.7B (deleting 36% of heads is catastrophic on
+both), then a collapse to +0.43 at 4B. Our first two-point reading —
 "redundancy grows with scale" — is falsified by the middle point. The cleaner hypothesis sits in
 the table's architecture column: the two models where deletion stays expensive share the same
 28-layer × 16-head layout, and the collapse happens exactly where heads-per-layer doubles (4B:
@@ -699,14 +692,14 @@ that scale weakens deletion controls but that <strong>a zero-ablation control's 
 is a property of the model, not of the method</strong> — it cannot be assumed, only measured. Our
 first guess at how to restore it at 4B — smaller deletion budgets — has been run and refuted: at
 a 20% budget (230 of 1152 heads) 4B code + heal costs +1.05 (fair +1.11) against zero + heal
-+1.18, margin 1.1×, unchanged. This was a short 6-epoch heal and both sides were still improving,
++1.18 — an advantage of only +0.13 nats. This was a short 6-epoch heal and both sides were still improving,
 but the direction is decided: the zero side was descending at least as fast as the code side, so
-a converged heal can only shrink this margin further — the refutation is conservative. Lowering the budget makes deletion <em>easier</em> to heal, not harder. If a
-margin exists at 4B it lives at high budget, where deletion must eventually overwhelm redundancy
+a converged heal can only shrink this gap further — the refutation is conservative. Lowering the budget makes deletion <em>easier</em> to heal, not harder. If an
+advantage exists at 4B it lives at high budget, where deletion must eventually overwhelm redundancy
 (at 0.6B it diverges past ~160 heads); the 50% run at 4B is the outstanding test. Two caveats bound both findings: the zero-heals had
 not converged at epoch 12 (still descending at 1.7B and 4B while the code-heals plateaued), so
-every margin is an upper bound on its converged value; and the pruning comparison inherits the 4B
-caveat — the ~1.8× margin over joint-informed pruning is measured at 0.6B and should not be
+every advantage is an upper bound on its converged value; and the pruning comparison inherits the 4B
+caveat — the +0.57-nat advantage over joint-informed pruning is measured at 0.6B and should not be
 presumed at architectures where deletion heals this well. So the scale evidence, stated at its
 true strength: the anatomy replicates, the healed cost holds roughly flat across three sizes of
 one family, and the zero control's power varies by an order of magnitude across those same
@@ -718,25 +711,25 @@ extending it from epoch 12 to 20 moves the result only ~0.03 nats):</p>
 
 <figure>
 <div class="tablewrap"><table>
-<thead><tr><th>head budget (0.6B)</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">margin</th></tr></thead>
+<thead><tr><th>head budget (0.6B)</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">code advantage</th></tr></thead>
 <tbody>
-<tr><td>20% (89 heads)</td><td class="n">+0.87</td><td class="n">+4.51</td><td class="n">5.4×</td></tr>
-<tr><td>36% (161 heads)</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">4.1×</td></tr>
-<tr><td>50% (224 heads)</td><td class="n">+2.09</td><td class="n">+10.02</td><td class="n">4.9×</td></tr>
+<tr><td>20% (89 heads)</td><td class="n">+0.87</td><td class="n">+4.51</td><td class="n">+3.64 nats</td></tr>
+<tr><td>36% (161 heads)</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">+5.55 nats</td></tr>
+<tr><td>50% (224 heads)</td><td class="n">+2.09</td><td class="n">+10.02</td><td class="n">+7.93 nats</td></tr>
 </tbody>
 </table></div>
 <figcaption>Same protocol, three budgets, fixed 5 MLP layers throughout (so the increments are
-attention-only). The 20% zero-heal had not converged (margin is an upper bound); the 50%
+attention-only). The 20% zero-heal had not converged (the advantage is an upper bound); the 50%
 zero-heal's validation loss worsens from its first epoch. The 20% fair cost of +0.87
 coincidentally matches the fiction-protocol headline +0.88 — the protocols are not comparable,
 and the match is numerology, not replication.</figcaption>
 </figure>
 
-<p>Three readings. The margin holds at 4–5× at <em>every</em> budget on this architecture —
+<p>Three readings. The code advantage holds at +3.6 to +7.9 nats at <em>every</em> budget on this architecture —
 including the low budget, where a recovering zero-heal has its best chance to catch up — so the
 4B collapse is not a generic budget artifact of the method. (The contrast at matched budget is
-stark: at 20%, 0.6B's margin is 5.4× and 4B's is 1.1× — the budget axis does not rescue the 4B
-control.) Deletion damage grows roughly
+stark: at 20%, 0.6B's advantage is +3.6 nats and 4B's is +0.13 — the budget axis does not rescue
+the 4B control.) Deletion damage grows roughly
 linearly with budget and becomes unhealable at the top (the 50% deletion heal cannot recover at
 all), while code degrades gracefully — reproducing, healed and on a different corpus, the
 nested-DSL frontier's unhealed finding that deletion diverges past ~160 heads. And the marginal
@@ -769,7 +762,7 @@ the reported fraction is a <strong>floor set by the selection heuristic</strong>
 (solo cost correlates only +0.14 with in-context marginal cost, and a better-chosen same-budget
 set substitutes for less loss); the <strong>preliminary three-scale substitution result</strong> — under a
 matched protocol the healed cost is roughly flat across a 6.7× parameter range (fair +1.83, +1.38,
-+1.92 nats) while the zero control's margin varies non-monotonically from 6.2× down to 1.2×,
++1.92 nats) while the zero control's advantage varies non-monotonically from +6.9 nats down to +0.43,
 collapsing where heads-per-layer doubles — the second half being a finding independent of our
 thesis: a zero-ablation control's discriminating power is a property of the model under test and
 cannot be carried across architectures; and, most pointedly, the <strong>hardened residue claim</strong> —
@@ -817,8 +810,9 @@ choices rather than the model alone.</p>
   pruning is <em>worse</em> than deleting the code set (+3.81 vs +2.12 — solo cost mispredicts joint
   damage, the +0.14 correlation); but a <em>joint-informed</em> set, ranked by post-heal marginal
   importance, heals to +1.27. So against the strongest pruning baseline, code + heal (+0.70) still
-  wins — but by ≈1.8×, not the 3–5× a weak baseline suggests. Code carries function no same-budget
-  deletion recovers, at a real but modest margin.</li>
+  wins — by +0.57 nats (we report the difference: nats are log-scale, so ratios of nats are not a
+  meaningful effect size). Code carries function no same-budget deletion recovers, at a real but
+  modest margin.</li>
   <li>How compressible is the MLP replacement? A rate-distortion sweep gives it an effective
   description length. A hybrid program — rank-64 global map plus exact corrections for 500 frequent
   tokens — uses 4.77M parameters instead of 20.74M (4.35× smaller) while matching damage within
@@ -830,7 +824,8 @@ choices rather than the model alone.</p>
   the analysis is the deliverable.</li>
   <li>What a referee will press on, answered plainly. Confidence intervals resample
   <strong>chunks</strong> (eight held-out ~300-token chunks; cluster bootstrap) — not tokens,
-  documents, or seeds. Each protocol uses one calibration sequence and one seed, so sensitivity
+  documents, or seeds, so they cover evaluation noise only and understate total uncertainty:
+  fit variance is unmeasured. Each protocol uses one calibration sequence and one seed, so sensitivity
   to both is unmeasured; model- and calibration-level replication would be stronger evidence than
   chunk-level intervals. The 160-head operating point was chosen <em>after</em> seeing the
   damage-vs-count curve, where the controls separate cleanly — it is not pre-registered, and
