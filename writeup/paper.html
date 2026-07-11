@@ -303,7 +303,9 @@ at +4.5/+7.3/+10.0: the margin holds at 4–5× at every budget (the 4B collapse
 budget artifact), deletion becomes unhealable at 50% (its validation loss worsens from epoch 1)
 while code degrades gracefully, and the marginal cost of code <em>falls</em> with budget (+0.96
 nats for 20→36%, +0.26 for 36→50%) — solo fit quality mispredicts marginal cost here too. On 4B
-the margin stays collapsed at 20% as well (code +1.05, fair +1.11, vs deletion +1.18: 1.1×): lowering the
+the margin stays collapsed at 20% as well (code +1.05, fair +1.11, vs deletion +1.18: 1.1×; a
+6-epoch heal, but the zero side was descending at least as fast as the code side, so convergence
+can only shrink the margin — the refutation is conservative): lowering the
 budget makes deletion easier to heal, not harder, so the remaining place a 4B margin could live
 is high budget. The MLP tables compress:
 a rank-64 global map plus exact corrections for the 500 most frequent tokens matches the full
