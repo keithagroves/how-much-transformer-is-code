@@ -696,16 +696,36 @@ true strength: the anatomy replicates, the healed cost holds roughly flat across
 one family, and the zero control's power varies by an order of magnitude across those same
 sizes.</p>
 
-<p>A budget extension at 0.6B pushes the same protocol harder and sharpens the control story.
-Raising the head budget from 36% to 50% (224 of 448 heads, 20-epoch heal) raises the fair cost
-only from +1.83 to +2.09 — forty percent more heads for fourteen percent more damage — while
-zero-ablation of the same set costs <strong>+10.0</strong>: at this budget the deletion heal's
-validation loss worsens from its first epoch, so healing cannot recover a 50% deletion at all,
-and the margin widens to 4.9×. This reproduces, healed and on a different corpus, what the
-nested-DSL frontier showed unhealed: past ~160 heads deletion diverges while positional code
-degrades gracefully. The run also bounds the convergence caveat at 0.6B — within it, extending
-the code-heal from epoch 12 to 20 improves the result by only ~0.03 nats, so the code numbers
-are near-converged; it is the deletion baselines that move with protocol and budget.</p>
+<p>A budget sweep at 0.6B runs the same protocol at three head budgets (heal epochs vary with the
+runs — 6/12/20 — which matters little on the code side: the code-heal converges fast, and
+extending it from epoch 12 to 20 moves the result only ~0.03 nats):</p>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th>head budget (0.6B)</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">margin</th></tr></thead>
+<tbody>
+<tr><td>20% (89 heads)</td><td class="n">+0.87</td><td class="n">+4.51</td><td class="n">5.4×</td></tr>
+<tr><td>36% (161 heads)</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">4.1×</td></tr>
+<tr><td>50% (224 heads)</td><td class="n">+2.09</td><td class="n">+10.02</td><td class="n">4.9×</td></tr>
+</tbody>
+</table></div>
+<figcaption>Same protocol, three budgets, fixed 5 MLP layers throughout (so the increments are
+attention-only). The 20% zero-heal had not converged (margin is an upper bound); the 50%
+zero-heal's validation loss worsens from its first epoch. The 20% fair cost of +0.87
+coincidentally matches the fiction-protocol headline +0.88 — the protocols are not comparable,
+and the match is numerology, not replication.</figcaption>
+</figure>
+
+<p>Three readings. The margin holds at 4–5× at <em>every</em> budget on this architecture —
+including the low budget, where a recovering zero-heal has its best chance to catch up — so the
+4B collapse is not a generic budget artifact of the method. Deletion damage grows roughly
+linearly with budget and becomes unhealable at the top (the 50% deletion heal cannot recover at
+all), while code degrades gracefully — reproducing, healed and on a different corpus, the
+nested-DSL frontier's unhealed finding that deletion diverges past ~160 heads. And the marginal
+cost of code is non-uniform in the opposite direction from the selection's ordering: the step
+from 20% to 36% costs +0.96 nats but 36% to 50% only +0.26 — the codability ranking front-loads
+the best-reconstructed heads, yet the later, worse-fit tranche is cheaper to replace, one more
+instance of solo rankings mispredicting in-context marginal cost.</p>
 
 <h2>What is new, and what is replication</h2>
 
