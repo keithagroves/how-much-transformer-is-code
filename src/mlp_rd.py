@@ -3,7 +3,7 @@ table' becomes a quantified statement about how program-like the layer is.
 Sweep SVD rank r and top-k truncation, report MLP-only held-out damage AND the
 parameter count of each surrogate, and mark the knee. No heals (forward only).
 """
-import collections, torch
+import collections, csv, torch
 import replace_all as RA
 model, DEV = RA.model, RA.DEV; tokz = RA.tokz
 
@@ -53,27 +53,54 @@ def topk(k):
     tab={l:{t:v for t,v in LUT[l].items() if t in keep} for l in MLPS}
     params=sum(len(tab[l]) for l in MLPS)*D                 # kept vectors x d
     return tab, params
+# A full SVD is the expensive part.  Factor every layer once, then reuse the
+# factors for the whole rate-distortion sweep.
+SVD = {}
+for l in MLPS:
+    toks = list(LUT[l]); M = torch.stack([LUT[l][t] for t in toks]); mu = M.mean(0, keepdim=True)
+    U, S, Vh = torch.linalg.svd(M - mu, full_matrices=False)
+    SVD[l] = (toks, mu, U, S, Vh)
+
 def rankr(r):
     tab={}; params=0
     for l in MLPS:
-        toks=list(LUT[l]); M=torch.stack([LUT[l][t] for t in toks]); mu=M.mean(0,keepdim=True)
-        U,S,Vh=torch.linalg.svd(M-mu,full_matrices=False)
+        toks,mu,U,S,Vh = SVD[l]
         Mr=(U[:,:r]*S[:r])@Vh[:r]+mu
         tab[l]={t:Mr[i] for i,t in enumerate(toks)}
         params += len(toks)*r + r*D + D                     # U_r + V_r + mean
+    return tab, params
+def hybrid(r, k):
+    """Rank-r global table plus exact residuals for the k frequent tokens."""
+    keep=set(t for t,_ in freq.most_common(k)); tab={}; params=0
+    for l in MLPS:
+        toks,mu,U,S,Vh = SVD[l]
+        Mr=(U[:,:r]*S[:r])@Vh[:r]+mu
+        approx={t:Mr[i] for i,t in enumerate(toks)}
+        # Storing the correction is equivalent at runtime to storing the exact
+        # row, but the parameter accounting includes the low-rank base once.
+        tab[l]={t:(LUT[l][t] if t in keep else approx[t]) for t in toks}
+        params += len(toks)*r + r*D + D + sum(t in keep for t in toks)*D
     return tab, params
 def dmg(tab):
     HOLD["lut"]=tab; d=sum(loss(sq) for sq in eval_chunks)/len(eval_chunks)-intact; HOLD["lut"]=None; return d
 
 full_tab_params=sum(len(LUT[l]) for l in MLPS)*D
+rows=[]
 print(f"\n{'surrogate':>14}{'params':>12}{'damage':>10}")
-print(f"{'full table':>14}{full_tab_params:>12}{dmg(LUT):>+10.3f}")
+full_damage=dmg(LUT); rows.append(("full_table", full_tab_params, full_damage))
+print(f"{'full table':>14}{full_tab_params:>12}{full_damage:>+10.3f}")
 print("-- top-k frequent --")
 for k in [50,100,200,500,1000,2000]:
-    tab,p=topk(k); print(f"{'top-'+str(k):>14}{p:>12}{dmg(tab):>+10.3f}",flush=True)
+    tab,p=topk(k); d=dmg(tab); rows.append((f"top_{k}",p,d)); print(f"{'top-'+str(k):>14}{p:>12}{d:>+10.3f}",flush=True)
 print("-- low-rank SVD --")
 for r in [2,4,8,16,32,64,128]:
-    tab,p=rankr(r); print(f"{'rank-'+str(r):>14}{p:>12}{dmg(tab):>+10.3f}",flush=True)
+    tab,p=rankr(r); d=dmg(tab); rows.append((f"rank_{r}",p,d)); print(f"{'rank-'+str(r):>14}{p:>12}{d:>+10.3f}",flush=True)
+print("-- low-rank + exact frequent-token residuals --")
+for r,k in [(16,100),(16,500),(32,100),(32,500),(32,1000),(64,100),(64,500)]:
+    tab,p=hybrid(r,k); d=dmg(tab); rows.append((f"rank_{r}_top_{k}",p,d)); print(f"{('r'+str(r)+'+t'+str(k)):>14}{p:>12}{d:>+10.3f}",flush=True)
 for h in hooks: h.remove()
+with open("mlp_rd_results.csv", "w", newline="") as f:
+    w=csv.writer(f); w.writerow(["surrogate","parameters","damage_nats"]); w.writerows(rows)
+print("wrote mlp_rd_results.csv")
 print("\nread: the knee (where damage stops dropping as params grow) is the layer's effective")
 print("      description length; a low knee => genuinely compressible, closer to 'code'.")

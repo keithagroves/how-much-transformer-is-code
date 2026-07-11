@@ -56,6 +56,9 @@ td.n,th.n{text-align:right}
 .bad{color:var(--bad); font-weight:600}
 code{font:.84em/1.5 ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   background:var(--code); padding:.08em .35em; border-radius:3px}
+pre{font:.78rem/1.55 ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  background:var(--code); padding:.9rem 1rem; border-radius:6px; overflow:auto;
+  border:1px solid var(--line)}
 .bars{display:flex; flex-direction:column; gap:.4rem; margin:.3rem 0}
 .bar{display:grid; grid-template-columns:9.5rem 1fr 6.4rem; align-items:center; gap:.6rem;
   font:.78rem/1.3 system-ui,sans-serif}
@@ -107,8 +110,8 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  We ask how much of a small transformer's computation can be replaced by explicit surrogates,
-  and at what cost. On Qwen3-0.6B and Pythia-410M we fit two families — attention heads as compact
+  We ask how much of a small transformer's computation can be replaced by programs in a declared,
+  restricted instruction set, and at what description-length and loss cost. On Qwen3-0.6B and Pythia-410M we fit two families — attention heads as compact
   <strong>positional templates</strong> (a mixture of a few named columns) and MLP layers as
   <strong>context-free token tables</strong> (each token's mean output) — install them, and heal
   only the 65k normalization gains. We keep the two apart: the templates are genuinely compact
@@ -139,13 +142,52 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 <h2>Setup</h2>
 
 <p>A trained transformer is a pile of tuned weights; the question is how much of what those
-weights <em>do</em> is expressible as ordinary code. We test this by substitution. For a
-target component — an attention head or an MLP — we fit a readable surrogate, replace the
-component with it, and measure the damage to next-token loss on held-out text. Attention
-surrogates are least-squares mixtures of nameable columns: attention to the start token, to
-fixed offsets, to the last punctuation, to earlier occurrences of the current token, and to
-the follower of the longest previous match (an induction rule). MLP surrogates are lookup
-tables mapping each token to its mean output vector. After substitution we <em>heal</em>:
+weights <em>do</em> is expressible in a restricted replacement language. There is no formal
+syntax-level boundary between “code” and a matrix multiply — a matrix multiply is code, and a
+readable rule may compile to one. Our operational distinction is therefore a
+<strong>hypothesis-class restriction</strong>. We declare a small replacement DSL (domain-specific
+language), fit a program in that language, install it in the forward pass, and measure its held-out
+cost. A component is replaceable only relative to a DSL <em>D</em>, a program-size budget
+<em>B</em>, and a tolerated loss <em>ε</em>; change any of them and the answer can change.</p>
+
+<p>The attention DSL contains <code>START</code>, <code>SELF</code>, <code>OFFSET(k)</code>,
+<code>LAST_PUNCTUATION</code>, <code>PREVIOUS_DUPLICATE</code>,
+<code>FOLLOWER_OF_LONGEST_MATCH</code>, <code>MIX</code>, <code>ROW_NORMALIZE</code>, and
+<code>APPLY_TO_VALUES</code>. For token sequence <em>x</em>, each instruction emits a causal
+attention column <em>C<sub>k</sub>(x)</em>. For head <em>h</em>, calibration is clipped
+least-squares over those columns; execution on unseen text is:</p>
+
+<pre>w_h = clip_nonnegative(least_squares(C(x_cal), A_h(x_cal)))
+Â_h(x) = row_normalize(sum_k w_h[k] * C_k(x))
+Ŷ_h(x) = Â_h(x) @ V_group(h)(x)
+# replace this head's slice before the unchanged output projection</pre>
+
+<p>The original query/key computation is retired; the model's value and output projections remain.
+The MLP DSL is different: <code>TOKEN_LOOKUP</code> plus <code>GLOBAL_DEFAULT</code>. Its fitted
+program maps each token to that layer's mean observed output, falling back to the global layer mean.
+The compressed variant adds <code>LOW_RANK_MAP</code> and
+<code>FREQUENT_TOKEN_EXCEPTION</code>. This is memoization, not a compact algorithm, so we report it
+as context-independence and measure its description length separately.</p>
+
+<p>The current “synthesizer” is deliberately modest: humans specify the grammar, the program
+structure is a linear mixture, regression fits its constants, held-out substitution loss scores it,
+and a heuristic selects components. It does not discover arbitrary control flow, compositions, or
+new primitives. In program-synthesis terms this is sparse system identification over a hand-authored
+operator library. A fuller formulation is to search jointly over component set <em>S</em> and program
+<em>P</em>:</p>
+
+<pre>min_{P,S}  held_out_loss(model with P replacing S)
+           + λ * description_length(P)
+           + μ * execution_cost(P)</pre>
+
+<p>This connects to algorithm discovery systems such as
+<a href="https://deepmind.google/blog/discovering-novel-algorithms-with-alphatensor/">AlphaTensor</a>, which searches sequences of
+allowed instructions and rewards exact correctness plus efficiency. The analogy is useful but
+bounded: matrix multiplication has a proof-level specification valid for every input, while our
+replacement has distributional fidelity on held-out text. We synthesize an approximation to a
+learned component, not a provably equivalent algorithm.</p>
+
+<p>After substitution we <em>heal</em>:
 fine-tune only the RMSNorm gains (65,536 of 596M parameters) with the code organs active, which
 recovers distribution shift without touching any weight matrix. Everything is evaluated
 against two references — the intact model and a zero-ablation of the same components.</p>
@@ -157,13 +199,13 @@ last sentence boundary, duplicate-token and induction followers), a median of 24
 coefficients per head — legible <em>and</em> small, a few dozen numbers you could read aloud. The
 MLP surrogate is the opposite: a token-indexed table of mean output vectors, ~3,400 entries of 1024
 dimensions (~3.5M numbers) per substituted layer. That is legible as an <em>operation</em> — "look
-up this token's average effect and emit it" — but it is not compressible, and a skeptic is right
+up this token's average effect and emit it" — but it is not compact, and a skeptic is right
 that such a table can carry a great deal of learned data without being manually specifiable. So
 "code" collapses three separable axes, and it is worth pulling them apart: <strong>explicitness</strong>
 (can the operation be named?), <strong>compressibility</strong> (how few parameters describe it?), and
 <strong>substitutability</strong> (how much loss when it replaces the learned component?). The
 attention templates score on all three — named, tiny, and swappable. The MLP tables score on
-explicitness and substitutability but <em>not</em> compressibility: they establish that the layer is
+explicitness and substitutability but only moderate compressibility: they establish that the layer is
 context-free (memoization of a per-token map), not that it is program-like. Because these come apart,
 we avoid the single word "code" for the combined claim and instead report two named quantities —
 <strong>template-replaceable</strong> attention and <strong>context-free</strong> MLPs — measured, and
@@ -323,6 +365,28 @@ is a <em>ceiling</em> measurement (a match-rule column reconstructing induction 
 sequences), not a component of the +0.64 substitution; we keep the two separate rather than let the
 copy-algorithm's success borrow credit for the positional headline.</p>
 
+<p>A nested-DSL experiment makes the instruction-set view concrete. We hold the head set and fitted
+coefficients fixed and expand only the permitted forward-pass instructions: D0 deletes the head; D1
+adds start/self/fixed offsets; D2 adds punctuation, sentence, and line structure; D3 adds
+duplicate-token and induction-follower rules. These are attention-only, unhealed held-out damages:</p>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th>heads</th><th>D0 · delete</th><th>D1 · positional</th><th>D2 · structural</th><th>D3 · content</th></tr></thead>
+<tbody>
+<tr><td>40</td><td>+0.259</td><td>+0.084</td><td>+0.024</td><td>+0.024</td></tr>
+<tr><td>80</td><td>+0.938</td><td>+0.316</td><td>+0.155</td><td>+0.153</td></tr>
+<tr><td>120</td><td>+2.095</td><td>+0.604</td><td>+0.397</td><td>+0.396</td></tr>
+<tr><td>160</td><td>+2.399</td><td>+0.850</td><td>+0.738</td><td>+0.739</td></tr>
+</tbody>
+</table></div>
+<figcaption>Held-out loss above intact, before healing, as the replacement DSL expands. The large
+gain is D0→D1: fixed positional instructions restore most of what deletion destroys. Structural
+instructions add a smaller real gain through 160 heads. D2→D3 is flat: content-aware instructions
+do not improve this substitutable set. This is an instruction-set frontier, not a claim that one
+syntax is intrinsically “code.”</figcaption>
+</figure>
+
 <p>The MLP result is anatomically clean and replicates across both model families: the middle
 of the network is nearly-free token lookup (one Qwen layer has <em>negative</em> substitution
 cost), while composition concentrates in the first two and last two layers. "MLPs as key-value
@@ -331,9 +395,12 @@ what the token-keyed table actually measures: <strong>context-independence</stro
 a layer's output is a function of the current token alone, ignoring the rest of the stream.
 Read that way, "21% of MLP layers substitute" says a fifth of the layers are largely context-free
 per-token enrichment, which is a cleaner and more falsifiable claim than "run as code." Its
-compressibility is a separate axis we flag but do not fully resolve here: the table holds ~3,400
-token entries, and whether a low-rank or top-k-frequent truncation preserves the result is the
-measurement that would decide how program-like it really is.</p>
+compressibility is a separate, measured axis. The six full tables contain 20.74M parameters and
+cost +0.508 nats unhealed. A rank-64 global map plus exact exceptions for the 500 most frequent
+tokens costs +0.513 — within 0.005 nats — using 4.77M parameters, a 4.35× reduction. A smaller
+rank-64 plus top-100 program uses 2.31M parameters (~9× smaller) at +0.527. The structure is thus a
+moderately compact low-rank map with a frequent-token exception table, not either a raw memory or a
+short algorithm.</p>
 
 <h2>The ceiling, and why it is not a constant</h2>
 
@@ -568,12 +635,12 @@ choices rather than the model alone.</p>
   importance, heals to +1.27. So against the strongest pruning baseline, code + heal (+0.70) still
   wins — but by ≈1.8×, not the 3–5× a weak baseline suggests. Code carries function no same-budget
   deletion recovers, at a real but modest margin.</li>
-  <li>How compressible is the MLP "code"? A rate-distortion sweep (loss vs. parameters) gives it an
-  effective description length. SVD beats top-k truncation, with a knee around <strong>rank-32–64</strong>
-  (0.9–1.7M parameters, a ~12–24× reduction from the 20.7M full table) before returns flatten — but
-  damage never drops below the full table's +0.51 floor. So the layer is moderately low-rank with an
-  irreducible context-dependent residual: more program-like than a raw 3.5M-number table, but not a
-  short program, and not fully a token map either.</li>
+  <li>How compressible is the MLP replacement? A rate-distortion sweep gives it an effective
+  description length. A hybrid program — rank-64 global map plus exact corrections for 500 frequent
+  tokens — uses 4.77M parameters instead of 20.74M (4.35× smaller) while matching damage within
+  0.005 nats (+0.513 vs +0.508). At a more aggressive point, rank-64 plus 100 exceptions is ~9×
+  smaller at +0.527. So the replacement has real low-rank-plus-exception structure, but it remains
+  millions of numbers rather than a short program.</li>
   <li>The most immediately useful direction needs no new science: an <strong>audit tool</strong>
   that reports, for any model, what fraction of its attention and MLPs is nameable algorithm —
   the analysis is the deliverable.</li>

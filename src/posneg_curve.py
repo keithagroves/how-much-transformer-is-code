@@ -6,13 +6,14 @@ the substitutable attention is purely positional and content buys nothing there;
 where they separate is exactly where copy-content begins to matter.
 Unhealed fine grid (cheap) + one healed point (k=160, capped 10-epoch) for both.
 """
-import gc, torch
+import gc, csv, sys, torch
 import replace_rich as RR
 import replace_all as RA
 
 model, DEV, DH, GROUP = RA.model, RA.DEV, RA.DH, RA.GROUP
 tokz = RA.tokz
 LR, EPOCHS = 3e-4, 10
+SKIP_HEAL = "--skip-heal" in sys.argv
 CONTENT = {"dup", "rule"}
 
 RR.W.update(torch.load("rich_templates.pt"))
@@ -89,36 +90,50 @@ def loss(seq,A):
 
 norm=[p for n_,p in model.named_parameters() if "norm" in n_.lower()]
 orig=[p.detach().clone() for p in norm]
+# Only normalization gains are trainable.  Freezing the weight matrices avoids
+# allocating their gradients while retaining gradients through them to norms.
+for p in model.parameters(): p.requires_grad_(False)
+for p in norm: p.requires_grad_(True)
 HOLD["A"]=None
 intact=sum(-torch.log_softmax(model(torch.tensor([sq]).to(DEV)).logits[0,:-1].float(),-1).gather(-1,torch.tensor(sq[1:]).to(DEV).unsqueeze(-1)).mean().item() for sq in eval_chunks)/len(eval_chunks)
 print(f"intact {intact:.4f}")
 
-print("\nUNHEALED damage vs #heads (heads-only): fitted (all cols) vs positional-only (drop dup,rule)")
+print("\nUNHEALED damage vs #heads (+ fixed 6 MLP LUTs): fitted vs positional-only")
 print(f"{'k':>6}{'fitted':>10}{'positional':>12}{'gap':>9}")
+curve=[]
 for k in [40,80,120,160,200,256]:
     heads=HEADS_ALL[:k]
     Af=[head_A(sq,heads,set()) for sq in eval_chunks]
     Ap=[head_A(sq,heads,CONTENT) for sq in eval_chunks]
     df=sum(loss(sq,A) for sq,A in zip(eval_chunks,Af))/len(eval_chunks)-intact
     dp=sum(loss(sq,A) for sq,A in zip(eval_chunks,Ap))/len(eval_chunks)-intact
+    curve.append((k,df,dp,dp-df))
     print(f"{k:>6}{df:>+10.3f}{dp:>+12.3f}{dp-df:>+9.3f}",flush=True); gc.collect()
+
+with open("posneg_curve_results.csv", "w", newline="") as f:
+    w=csv.writer(f); w.writerow(["heads","fitted_damage_nats","positional_damage_nats","content_gain_nats"]); w.writerows(curve)
+print("wrote posneg_curve_results.csv", flush=True)
+
+if SKIP_HEAL:
+    for h in hooks: h.remove()
+    print("skipping healed confirmation (--skip-heal)")
+    raise SystemExit(0)
 
 def heal_eval(k,drop):
     heads=HEADS_ALL[:k]; A_tr=[head_A(sq,heads,drop) for sq in train_chunks]
     for p,o in zip(norm,orig): p.data.copy_(o)
-    for p in norm: p.requires_grad_(True)
     opt=torch.optim.Adam(norm,lr=LR); model.train()
     for ep in range(EPOCHS):
         for sq,A in zip(train_chunks,A_tr):
             SEQ["s"]=sq; HOLD["A"]=A; HOLD["mlp"]=True
             ids=torch.tensor([sq]).to(DEV); out=model(ids,labels=ids)
-            opt.zero_grad(); out.loss.backward(); opt.step(); HOLD["A"]=None; HOLD["mlp"]=False
+            opt.zero_grad(set_to_none=True); out.loss.backward(); opt.step(); HOLD["A"]=None; HOLD["mlp"]=False
     model.eval()
     A_ev=[head_A(sq,heads,drop) for sq in eval_chunks]
     d=sum(loss(sq,A) for sq,A in zip(eval_chunks,A_ev))/len(eval_chunks)-intact
     for p,o in zip(norm,orig): p.data.copy_(o)
     return d
-print("\nHEALED at k=160 (10-epoch, heads-only):")
+print("\nHEALED at k=160 (10-epoch, + fixed 6 MLP LUTs):")
 print(f"  fitted:      {heal_eval(160,set()):+.3f}")
 print(f"  positional:  {heal_eval(160,CONTENT):+.3f}")
 for h in hooks: h.remove()
