@@ -111,6 +111,9 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   identically adapted intact model it is <strong>+0.88 nats</strong> on held-out text, roughly
   doubling perplexity; against the raw intact model it is +0.64 [95% CI +0.57, +0.71]. Zero and
   position-shuffle controls show that the replacements preserve real position-specific function.
+  Under a matched two-scale protocol the healed cost survives a 6.7× step to Qwen3-4B (fair cost
+  +1.67 → +1.92 nats), but the zero control's margin narrows from 2.6× to 1.2× as the larger
+  model grows redundant enough to heal around deletion.
   A nested instruction-set frontier localizes that function: fixed positional operators recover most
   of what deletion destroys, sentence and punctuation structure add a smaller gain, and duplicate
   and induction operators add none in the substitutable set. The replaceable fraction is a dial, not
@@ -658,14 +661,47 @@ text 58% of it is rule-nameable.</p>
 <p>Two things shift with scale, both worth noting. The ceiling's <em>ordering</em> compresses:
 WikiText catches up to structured text (both 58%) rather than trailing it as at 0.6B, and
 induction leans even more lightly on fiction — consistent with a bigger model handling narrative
-through more distributed, less copy-like machinery. This is a first look, not the full suite, and
-the caveat matters for what it does <em>not</em> cover: these are the cheap diagnostics (induction
-concentration, the MLP map, the ablation tail, the domain ceiling), run in bf16 with a cruder
-lookup surrogate on a single model. The thesis-critical measurement — the healed substitution
-number, how much loss the code-plus-heal actually costs — was <em>not</em> run at 4B. So what
-replicates at scale is the <em>shape</em>, not the headline: the map, the U-shape, the thin tail,
-and the data-dependent ceiling are not peculiarities of the smallest models, but whether a healed
-hybrid holds up at 4B is untested.</p>
+through more distributed, less copy-like machinery. These cheap diagnostics (induction
+concentration, the MLP map, the ablation tail, the domain ceiling) are a first look, run in bf16
+with a cruder lookup surrogate on a single model.</p>
+
+<p>The thesis-critical measurement — what a healed substitution actually costs at 4B — has now
+been run, as a deliberately identical two-model protocol so the numbers are self-comparable:
+WikiText, positional-only templates selected by template-fit residual at a fixed budget (36% of
+heads, 21% of MLP layers), token-lookup MLPs, and a 12-epoch norm-only heal in bf16 on a free-tier
+GPU. This protocol is weaker than the paper's headline pipeline (its heal recovers far less, and
+nothing here compares to the fiction-corpus +0.88); what it licenses is exactly one comparison,
+0.6B against 4B under the same recipe:</p>
+
+<figure>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th class="n">intact</th><th class="n">code + heal</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">code margin</th></tr></thead>
+<tbody>
+<tr><td>Qwen3-0.6B (161 heads, 5 MLPs)</td><td class="n">4.01</td><td class="n">+1.62</td><td class="n">+1.67</td><td class="n">+4.24</td><td class="n">2.6×</td></tr>
+<tr><td>Qwen3-4B (414 heads, 7 MLPs)</td><td class="n">3.36</td><td class="n">+1.83</td><td class="n">+1.92</td><td class="n">+2.26</td><td class="n">1.2×</td></tr>
+</tbody>
+</table></div>
+<figcaption>Identical protocol at both scales; nats above intact, fair cost = code+heal minus the
+intact-heal offset (−0.05 / −0.09). "Code margin" is zero+heal over code+heal — how much better the
+programs are than deleting the same components.</figcaption>
+</figure>
+
+<p>Two findings, pulling in opposite directions. First, the substitution cost itself survives
+scale nearly unchanged: fair cost +1.67 → +1.92, about 15% growth across a 6.7× parameter step,
+with the control still the right way around. Positional-template substitutability is not a
+small-model artifact. Second — and this is the honest surprise — the <em>control margin</em>
+collapses: zero-ablation of the same 36% heals to +2.26 at 4B versus +4.24 at 0.6B, so the code's
+edge over simple deletion shrinks from 2.6× to 1.2×. The driver is not the code getting worse but
+deletion getting cheaper: the larger model is more redundant, and the norm heal recovers roughly
+half of a 36% deletion. The training curves sharpen the point — at epoch 12 the 4B zero-heal was
+still descending while the code-heal had plateaued, so 1.2× is an <em>upper bound</em> on the
+converged margin at this budget. What scale threatens, on this evidence, is not substitutability
+but the <em>sharpness of the evidence</em> that the code carries function: in a more redundant
+model, more of what the programs preserve can be re-derived by the network from what remains. The
+right follow-up is a converged heal at smaller deletion budgets, where zero-ablation cannot fully
+recover and the margin becomes decisive again. So what replicates at scale is the shape <em>and</em>
+the headline cost; what weakens is the zero control's power to separate code from crutch at large
+deletion fractions.</p>
 
 <h2>What is new, and what is replication</h2>
 
@@ -693,11 +729,12 @@ choices rather than the model alone.</p>
 
 <ul class="key">
   <li>Mostly small models (≤0.6B), short context, single-digit chunk counts; ablation gaps on
-  natural text are small (~0.1 nats), so downstream ratios are noisy. The 4B check above shows the
-  qualitative shape survives one 7× step, but the careful measurements — healing, the full ceiling,
-  the query-edit — were not repeated there, and nothing here reaches the sizes people deploy.
-  Larger models with long context would both firm up the replication and make the functional
-  questions well-posed.</li>
+  natural text are small (~0.1 nats), so downstream ratios are noisy. The 4B checks above show the
+  qualitative shape and the healed substitution cost survive one 7× step (under a weaker
+  matched protocol), but the full ceiling and the query-edit were not repeated there, the 4B
+  zero control loses most of its separating power at the 36% budget, and nothing here reaches the
+  sizes people deploy. Larger models with long context would both firm up the replication and make
+  the functional questions well-posed.</li>
   <li>Healing gives the network room to reroute; the shuffle and zero controls bound what that room
   buys (it recovers function, not distribution) and the −0.24-nat domain-adaptation offset is why we
   report the fair +0.88. The caveat those controls leave open: healing produces a hybrid adapted
