@@ -114,8 +114,8 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   comparison that pockets a domain-adaptation discount). Zero and
   position-shuffle controls show that the replacements preserve real position-specific function.
   A preliminary check at three sizes (Qwen3-0.6B/1.7B/4B) under a weaker matched protocol finds
-  the healed cost roughly flat across the 6.7× parameter range (fair +1.67, +1.38, +1.92 nats)
-  while the zero control's margin varies by an order of magnitude, non-monotonically (2.6×, 6.2×,
+  the healed cost roughly flat across the 6.7× parameter range (fair +1.83, +1.38, +1.92 nats)
+  while the zero control's margin varies by an order of magnitude, non-monotonically (4.1×, 6.2×,
   1.2×), collapsing where heads-per-layer doubles — a deletion control's separating power is a
   property of the model, not the method, and must be re-established per architecture.
   A nested instruction-set frontier localizes that function: fixed positional operators recover most
@@ -649,7 +649,7 @@ cross-scale comparison:</p>
 <div class="tablewrap"><table>
 <thead><tr><th></th><th class="n">intact</th><th class="n">code + heal</th><th class="n">fair cost</th><th class="n">zero + heal</th><th class="n">code margin</th></tr></thead>
 <tbody>
-<tr><td>Qwen3-0.6B (161 of 448 heads, 5 MLPs)</td><td class="n">4.01</td><td class="n">+1.62</td><td class="n">+1.67</td><td class="n">+4.24</td><td class="n">2.6×</td></tr>
+<tr><td>Qwen3-0.6B (161 of 448 heads, 5 MLPs)</td><td class="n">4.01</td><td class="n">+1.78</td><td class="n">+1.83</td><td class="n">+7.33</td><td class="n">4.1×</td></tr>
 <tr><td>Qwen3-1.7B (161 of 448 heads, 5 MLPs)</td><td class="n">3.59</td><td class="n">+1.33</td><td class="n">+1.38</td><td class="n">+8.18</td><td class="n">6.2×</td></tr>
 <tr><td>Qwen3-4B (414 of 1152 heads, 7 MLPs)</td><td class="n">3.36</td><td class="n">+1.83</td><td class="n">+1.92</td><td class="n">+2.26</td><td class="n">1.2×</td></tr>
 </tbody>
@@ -657,21 +657,24 @@ cross-scale comparison:</p>
 <figcaption>Identical protocol at three scales; nats above intact, fair cost = code+heal minus the
 intact-heal offset (−0.05 / −0.04 / −0.09). "Code margin" is zero+heal over code+heal — how much
 better the programs are than deleting the same components. Note the architecture column: 0.6B and
-1.7B share a 28-layer × 16-head layout; 4B moves to 36 × 32.</figcaption>
+1.7B share a 28-layer × 16-head layout; 4B moves to 36 × 32. An earlier 0.6B run under a
+pre-early-stopping variant of this protocol gave fair +1.67 and margin 2.6×: the code number is
+protocol-stable (±0.16 nats) while zero+heal moved by 3 nats — a measured instance of how fragile
+deletion baselines are to protocol details.</figcaption>
 </figure>
 
 <p>Two findings. First, the substitution cost itself is roughly <em>flat across a 6.7× parameter
-range</em> — fair cost +1.67, +1.38, +1.92 — and the middle model is the cheapest of the three,
-with the control the right way around everywhere. This is preliminary — one family, a weaker heal,
-a different evaluation setup — but three sizes now say the same thing: positional-template
-substitutability is not a small-model artifact. Second — and this is the honest surprise — the
-<em>control margin</em> is wildly model-dependent and not monotone in scale: 2.6× at 0.6B,
-<strong>6.2×</strong> at 1.7B (deleting 36% of heads is catastrophic there, +8.18 nats after
-healing), then a collapse to 1.2× at 4B. Our first two-point reading — "redundancy grows with
-scale" — is falsified by the middle point. The cleaner hypothesis sits in the table's architecture
-column: the two models where deletion stays expensive share the same 28-layer × 16-head layout,
-and the collapse happens exactly where heads-per-layer doubles (4B: 36 × 32), giving each layer far
-more intra-layer redundancy for the norm heal to exploit. On this evidence the honest claim is not
+range</em> — fair cost +1.83, +1.38, +1.92, with the endpoints nearly equal and the middle model
+the cheapest of the three, and the control the right way around everywhere. This is preliminary —
+one family, a weaker heal, a different evaluation setup — but three sizes now say the same thing:
+positional-template substitutability is not a small-model artifact. Second — and this is the
+honest surprise — the <em>control margin</em> is wildly model-dependent and not monotone in
+scale: 4.1× at 0.6B, <strong>6.2×</strong> at 1.7B (deleting 36% of heads is catastrophic on both,
++7.3 and +8.2 nats after healing), then a collapse to 1.2× at 4B. Our first two-point reading —
+"redundancy grows with scale" — is falsified by the middle point. The cleaner hypothesis sits in
+the table's architecture column: the two models where deletion stays expensive share the same
+28-layer × 16-head layout, and the collapse happens exactly where heads-per-layer doubles (4B:
+36 × 32), giving each layer far more intra-layer redundancy for the norm heal to exploit. On this evidence the honest claim is not
 that scale weakens deletion controls but that <strong>a zero-ablation control's separating power
 is a property of the model, not of the method</strong> — it cannot be assumed, only measured, and
 at 4B it must be re-established (a converged heal at smaller deletion budgets, where recovery is
@@ -699,7 +702,7 @@ carry content — verified on both the cheapest-solo and the joint-search set; t
 the reported fraction is a <strong>floor set by the selection heuristic</strong>, not a frontier
 (solo cost correlates only +0.14 with in-context marginal cost, and a better-chosen same-budget
 set substitutes for less loss); the <strong>preliminary three-scale substitution result</strong> — under a
-matched protocol the healed cost is roughly flat across a 6.7× parameter range (fair +1.67, +1.38,
+matched protocol the healed cost is roughly flat across a 6.7× parameter range (fair +1.83, +1.38,
 +1.92 nats) while the zero control's margin varies non-monotonically from 6.2× down to 1.2×,
 collapsing where heads-per-layer doubles — the second half being a finding independent of our
 thesis: a zero-ablation control's discriminating power is a property of the model under test and
