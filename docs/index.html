@@ -696,6 +696,17 @@ true strength: the anatomy replicates, the healed cost holds roughly flat across
 one family, and the zero control's power varies by an order of magnitude across those same
 sizes.</p>
 
+<p>A budget extension at 0.6B pushes the same protocol harder and sharpens the control story.
+Raising the head budget from 36% to 50% (224 of 448 heads, 20-epoch heal) raises the fair cost
+only from +1.83 to +2.09 — forty percent more heads for fourteen percent more damage — while
+zero-ablation of the same set costs <strong>+10.0</strong>: at this budget the deletion heal's
+validation loss worsens from its first epoch, so healing cannot recover a 50% deletion at all,
+and the margin widens to 4.9×. This reproduces, healed and on a different corpus, what the
+nested-DSL frontier showed unhealed: past ~160 heads deletion diverges while positional code
+degrades gracefully. The run also bounds the convergence caveat at 0.6B — within it, extending
+the code-heal from epoch 12 to 20 improves the result by only ~0.03 nats, so the code numbers
+are near-converged; it is the deletion baselines that move with protocol and budget.</p>
+
 <h2>What is new, and what is replication</h2>
 
 <p>Induction heads, copy-suppression, attention sinks, and MLPs-as-memories are established;

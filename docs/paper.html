@@ -306,7 +306,11 @@ doubles. Zero-heals had not converged at 1.7B/4B, so margins are upper bounds.</
 free, and costs compound through interaction, not through individually expensive components.
 Selection is a floor, not a frontier: solo cost correlates only +0.14 with in-context marginal
 cost, and re-ranking a healed 200-head superset by leave-one-out marginal harm substitutes k=160
-at +0.57 versus the cheapest-solo +0.70 — 19% better at the same budget. The MLP tables compress:
+at +0.57 versus the cheapest-solo +0.70 — 19% better at the same budget. Pushing the budget to
+50% of heads (scale protocol, 0.6B, 20-epoch heal) costs fair +2.09 versus +1.83 at 36% — forty
+percent more heads for fourteen percent more damage — while deleting the same set costs +10.0 and
+its heal's validation loss worsens from epoch 1: code degrades gracefully where deletion diverges,
+and the margin widens to 4.9×. The MLP tables compress:
 a rank-64 global map plus exact corrections for the 500 most frequent tokens matches the full
 20.74M-parameter table within 0.005 nats using 4.77M parameters (4.35× smaller; ~9× smaller costs
 +0.02). The substitutable MLP structure is a moderately compact low-rank map with a
