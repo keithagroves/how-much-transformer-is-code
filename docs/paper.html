@@ -311,7 +311,10 @@ under the scale protocol (20/36/50% of heads) gives fair costs +0.87/+1.83/+2.09
 at +4.5/+7.3/+10.0: the margin holds at 4–5× at every budget (the 4B collapse is not a generic
 budget artifact), deletion becomes unhealable at 50% (its validation loss worsens from epoch 1)
 while code degrades gracefully, and the marginal cost of code <em>falls</em> with budget (+0.96
-nats for 20→36%, +0.26 for 36→50%) — solo fit quality mispredicts marginal cost here too. The MLP tables compress:
+nats for 20→36%, +0.26 for 36→50%) — solo fit quality mispredicts marginal cost here too. On 4B
+the margin stays collapsed at 20% as well (code +1.05 vs deletion +1.18, 1.1×): lowering the
+budget makes deletion easier to heal, not harder, so the remaining place a 4B margin could live
+is high budget. The MLP tables compress:
 a rank-64 global map plus exact corrections for the 500 most frequent tokens matches the full
 20.74M-parameter table within 0.005 nats using 4.77M parameters (4.35× smaller; ~9× smaller costs
 +0.02). The substitutable MLP structure is a moderately compact low-rank map with a
@@ -353,8 +356,10 @@ a published curve.</p>
   <li>The fair cost is substantial — perplexity roughly doubles. The claim is about what is
   substitutable at a stated tolerance, not near-parity.</li>
   <li>The scale check is preliminary (one family, weaker heal, unconverged zero-heals), and it
-  itself shows deletion controls lose power on some architectures — the decisive follow-up is a
-  converged heal at smaller deletion budgets on 4B-class models.</li>
+  itself shows deletion controls lose power on some architectures. The small-budget direction has
+  been tested and refuted (4B at 20%: margin still 1.1×); the decisive remaining follow-up is a
+  high-budget (50%) deletion on 4B-class models, where deletion must eventually overwhelm
+  redundancy.</li>
   <li>The residue negative is bounded: this vocabulary, this soft-model class, six heads per
   model, this scale. A confirmatory untouched holdout would strengthen it.</li>
 </ul>
