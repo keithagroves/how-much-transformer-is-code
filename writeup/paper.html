@@ -98,6 +98,15 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   <a href="https://github.com/keithagroves/how-much-transformer-is-code">code</a></p>
 </header>
 
+<div class="abstract" style="border-left:3px solid var(--accent)">
+  <span class="lbl">TL;DR</span>
+  We replace pieces of a trained transformer with tiny human-readable programs and measure how
+  much worse the model gets. About a third of attention heads' routing can be swapped for simple
+  positional rules at the cost of roughly doubling perplexity. This makes explanations testable:
+  an explanation you can't execute is a story; one you can execute has a price. Nothing here makes
+  models faster — it's a measurement tool, not an optimization.
+</div>
+
 <div class="abstract">
   <span class="lbl">Abstract</span>
   Interpretability regularly claims that a network component "implements" an algorithm. We test
