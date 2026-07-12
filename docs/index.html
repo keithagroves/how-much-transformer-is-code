@@ -122,13 +122,13 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   explanation you can execute has a measurable price. Demonstrating the protocol on Qwen3-0.6B
   (with Pythia-410M cross-checks): the attention routing of 36% of heads (value and output
   projections retained) and 21% of MLP layers — token-local maps, a different sense of
-  "replaceable," not summed with the first — substitute at <strong>+0.88 nats</strong> (a pre-registered fresh-calibration replication lands
-  within 0.02 nats): perplexity
+  "replaceable," not summed with the first — substitute at <strong>+0.88 nats</strong> at the primary fit — across three independent fits
+  the fair cost spans +0.82 to +0.95: perplexity
   roughly doubles, a tolerance that licenses "the network still functions with positional
   templates in their place," not "these heads <em>are</em> templates" (synthetic narrative corpus;
-  the same protocol on WikiText prices +1.21). That the substitutable routing is positional —
-  content-aware operators price at zero — recapitulates PAPA and Synthesizer: the phenomenon is
-  known, the pricing discipline is new. What the protocol newly yields: the primacy rule matching
+  the same protocol on WikiText prices +1.21). The substitutable routing is positional —
+  content-aware operators price at zero — a known phenomenon (PAPA, Synthesizer), newly priced.
+  What the protocol yields beyond it: the primacy rule matching
   83–92% of an induction head's selections was the attention sink in costume (0 of 281 once
   controlled); zero-ablation controls lose separating power on redundant architectures; and a
   preliminary three-size check (0.6B–4B) finds the cost roughly stable. The fraction is a dial —
@@ -256,8 +256,11 @@ variant of one of these.</p>
 compare against an <em>identically healed</em> intact model: <strong>+0.88 nats</strong>. This is
 the headline. The raw-intact comparison is +0.64 [95% CI +0.57, +0.71], but it silently pockets a
 −0.24-nat domain-adaptation discount, so we treat it as the variant, not the claim. The interval
-resamples evaluation chunks only: refitting on different hardware moved the unhealed cost by
-+0.8 nats, so fit variance is real and uncovered.</li>
+resamples evaluation chunks only; across three independent fits (pre-registered fresh calibration;
+cross-platform) the fair cost spans <strong>+0.82 to +0.95</strong>, wider than any single
+interval — read the headline with that spread attached. (For reconciliation: +0.64 is the pooled
+held-out primary fit; +0.705 is the matched fresh-heal variant replications are compared
+against.)</li>
 <li><strong>Margin over matched deletion</strong> — the healed programs (+0.70) against the
 strongest same-budget deletion baseline, joint-informed pruning re-healed identically (+1.27):
 the code carries function no matched deletion recovers, by <strong>+0.57 nats</strong>. (Both sides
@@ -309,7 +312,9 @@ repeated text a match-rule column reconstructs 96% of verbatim copying no positi
 expresses, but that is a ceiling measurement, not part of this substitution set. <strong>Shuffled code + heal
 ≈ zero-ablation + heal ≫ code + heal</strong>: scrambling the code's outputs across positions before
 the same heal returns roughly to the level of deleting the components, so the heal cannot manufacture
-the function.</figcaption>
+the function. The shuffled <em>level</em> is seed-sensitive (+2.07 to +4.28 across seeds and
+platforms, far wider than its bootstrap interval); the stable quantity, which carries the
+argument, is the separation — ≥ +1.5 nats everywhere, +1.50/+1.51 at matched seeds.</figcaption>
 </figure>
 
 <p>Read the headline against the base rate: intact held-out loss is <strong>3.38 nats</strong>, so

@@ -118,12 +118,13 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   efficiency — the replacements are worse in every practical respect — but testability: an
   explanation you can execute has a measurable price. Demonstrating the protocol on Qwen3-0.6B:
   the attention routing of 36% of heads (value and output projections retained) and 21% of MLP
-  layers substitute at <strong>+0.88 nats</strong> (a pre-registered fresh-calibration replication lands
-  within 0.02 nats) — roughly doubling perplexity, a tolerance that
+  layers substitute at <strong>+0.88 nats</strong> at the primary fit — across three independent fits
+  (pre-registered fresh calibration; cross-platform) the fair cost spans +0.82 to +0.95 — roughly
+  doubling perplexity, a tolerance that
   licenses "the network still functions with positional templates in their place," not "these
   heads <em>are</em> templates" (synthetic narrative corpus; the same protocol on WikiText prices
-  +1.21). That the substitutable routing is positional recapitulates PAPA and Synthesizer — the
-  phenomenon is known; the pricing discipline is new. What the protocol newly yields: the primacy
+  +1.21). The substitutable routing is positional — content-aware operators price at zero — a
+  known phenomenon, newly priced. What the protocol yields beyond it: the primacy
   rule matching 83–92% of an induction head's selections was the attention sink in costume (0 of
   281 once controlled), and zero-ablation controls themselves lose separating power on redundant
   architectures. The replaceable fraction is a dial — instruction set, selection, adaptation,
@@ -185,20 +186,6 @@ answer survive controls for healing artifacts, weak baselines, and scale?</p>
 
 <h2>2 · Related work</h2>
 
-<p>Induction heads and the circuits framework [1, 2], copy suppression [11], attention sinks [4],
-and MLPs-as-key-value-memories [3] establish the component vocabulary we build on; our
-contribution is to <em>price</em> such descriptions by substitution rather than assert them.
-Head-pruning work [5, 6] shows many heads are removable; we use its strongest joint-informed
-variant as a baseline and measure what programs preserve <em>beyond</em> deletion. RASP, Tracr,
-and Transformer Programs [7, 8, 9] relate transformers to programs in the opposite direction —
-compiling programs into weights or constraining training toward interpretability — whereas we ask
-how much of an <em>ordinary trained</em> model admits program replacement after the fact.
-AlphaTensor-style algorithm discovery [10] searches instruction sequences for provably exact,
-faster algorithms; we search a declared instruction set for <em>approximate, legible</em>
-replacements and measure the loss, a rate–distortion rather than correctness objective.
-Distillation [12] also replaces computation, but into an opaque student; our student is required
-to be readable, which is the point.</p>
-
 <p>Two prior lines require direct confrontation. <strong>PAPA</strong> [13] replaces attention in
 pretrained transformers with constant, input-independent matrices post-hoc and finds performance
 largely survives — the closest anticipation of our positional finding (Synthesizer [17] learns
@@ -214,6 +201,22 @@ the hypothesis's equivalence classes, whereas substitute-and-heal deliberately l
 adapt around the surrogate (a concession we make explicitly: we measure substitutability, not
 mechanistic equivalence). We trade that strictness for executable surrogates and cost accounting
 against controls; the approaches are complements.</p>
+
+<p>Induction heads and the circuits framework [1, 2], copy suppression [11], attention sinks [4],
+and MLPs-as-key-value-memories [3] establish the component vocabulary we build on; our
+contribution is to <em>price</em> such descriptions by substitution rather than assert them.
+Head-pruning work [5, 6] shows many heads are removable; we use its strongest joint-informed
+variant as a baseline and measure what programs preserve <em>beyond</em> deletion. RASP, Tracr,
+and Transformer Programs [7, 8, 9] relate transformers to programs in the opposite direction —
+compiling programs into weights or constraining training toward interpretability — whereas we ask
+how much of an <em>ordinary trained</em> model admits program replacement after the fact.
+AlphaTensor-style algorithm discovery [10] searches instruction sequences for provably exact,
+faster algorithms; we search a declared instruction set for <em>approximate, legible</em>
+replacements and measure the loss, a rate–distortion rather than correctness objective.
+Distillation [12] also replaces computation, but into an opaque student; our student is required
+to be readable, which is the point.</p>
+
+
 
 <h2>3 · Methodology</h2>
 
@@ -289,9 +292,13 @@ nats; +0.88 roughly doubles perplexity (≈29 → ≈55). Shuffled code heals on
 level, so the heal cannot manufacture the function; positional-only ties fitted, so content
 operators buy nothing in this set; the programs land <strong>+0.57 nats below</strong> the
 strongest matched deletion (differences of nats are the meaningful effect size here — nats are
-already log-scale, so we demote ratios). The bracketed intervals resample evaluation chunks only:
-refitting on different hardware moved the unhealed cost by +0.8 nats, so fit variance is real and
-not covered by them.</figcaption>
+already log-scale, so we demote ratios). The bracketed intervals resample evaluation chunks only; across three independent fits
+(pre-registered fresh calibration; cross-platform) the fair cost spans +0.82 to +0.95, wider than
+any single interval. Two published fit numbers coexist: +0.64 [+0.57, +0.71] is the pooled
+held-out <em>primary</em> fit; +0.705 is the matched fresh-heal variant that replications are
+compared against. The shuffled <em>level</em> is likewise seed-sensitive (+2.07 to +4.28 across
+seeds and platforms); what is stable — and what carries the argument — is the separation:
+≥ +1.5 nats everywhere, +1.50/+1.51 at matched seeds.</figcaption>
 </figure>
 
 <p>The routing of 160 of 448 heads (36%) plus 6 of 28 MLP layers (21%) substitutes at fair cost
