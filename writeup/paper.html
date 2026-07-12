@@ -100,11 +100,16 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 
 <div class="abstract" style="border-left:3px solid var(--accent)">
   <span class="lbl">TL;DR</span>
-  We replace pieces of a trained transformer with tiny human-readable programs and measure how
-  much worse the model gets. About a third of attention heads' routing can be swapped for simple
-  positional rules at the cost of roughly doubling perplexity. This makes explanations testable:
-  an explanation you can't execute is a story; one you can execute has a price. Nothing here makes
-  models faster — it's a measurement tool, not an optimization.
+  We build an audit protocol that prices interpretability claims: replace pieces of a trained
+  transformer with tiny human-readable programs, let the model adapt, and measure the damage
+  against matched controls. The stable result is the <strong>separation</strong>: real programs
+  heal ≥1.5 nats better than position-scrambled ones in every run, so the programs carry real
+  function — an explanation you can't execute is a story; one you can execute has a price. Twice,
+  the protocol caught standard interpretability evidence lying: a rule matching an induction head
+  83–92% of the time was the attention sink in costume, and zero-ablation controls silently lose
+  their separating power on redundant architectures. The absolute price — a third of heads'
+  routing swaps for positional rules at roughly doubled perplexity — calibrates the tolerance;
+  the separation carries the argument. Nothing here makes models faster.
 </div>
 
 <div class="abstract">
@@ -116,19 +121,22 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   adapted</em> intact model — with a position-shuffle control that decides whether recovery is
   function or healing, and matched-deletion baselines that price the alternative. The goal is not
   efficiency — the replacements are worse in every practical respect — but testability: an
-  explanation you can execute has a measurable price. Demonstrating the protocol on Qwen3-0.6B:
-  the attention routing of 36% of heads (value and output projections retained) and 21% of MLP
-  layers substitute at <strong>+0.88 nats</strong> at the primary fit — across three independent fits
-  (pre-registered fresh calibration; cross-platform) the fair cost spans +0.82 to +0.95 — roughly
-  doubling perplexity, a tolerance that
-  licenses "the network still functions with positional templates in their place," not "these
-  heads <em>are</em> templates" (synthetic narrative corpus; the same protocol on WikiText prices
-  +1.21). The substitutable routing is positional — content-aware operators price at zero — a
-  known phenomenon, newly priced. What the protocol yields beyond it: the primacy
-  rule matching 83–92% of an induction head's selections was the attention sink in costume (0 of
-  281 once controlled), and zero-ablation controls themselves lose separating power on redundant
-  architectures. The replaceable fraction is a dial — instruction set, selection, adaptation,
-  distribution, tolerance — not a constant of the model.
+  explanation you can execute has a measurable price. Twice, the protocol caught the field's
+  standard evidence lying: a primacy rule matching 83–92% of an induction head's selections
+  across two model families was the attention sink in costume (0 of 281 once the sink was
+  controlled), and zero-ablation controls themselves lose separating power on redundant
+  architectures — a 6-nat swing across models in the deletion baseline much of the pruning
+  literature leans on. Demonstrating the protocol on Qwen3-0.6B: the attention routing of 36% of
+  heads (value and output projections retained) and 21% of MLP layers substitute at
+  <strong>+0.88 nats</strong> at the primary fit — across three independent fits (pre-registered
+  fresh calibration; cross-platform) the fair cost spans +0.82 to +0.95, roughly doubling
+  perplexity, while the stable quantity is the <em>separation</em> from the position-shuffle
+  control: ≥ +1.5 nats in every run. That tolerance licenses "the network still functions with
+  positional templates in their place," not "these heads <em>are</em> templates" (synthetic
+  narrative corpus; the same protocol on WikiText prices +1.21). The substitutable routing is
+  positional — content-aware operators price at zero — a known phenomenon, newly priced. The
+  replaceable fraction is a dial — instruction set, selection, adaptation, distribution,
+  tolerance — not a constant of the model.
 </div>
 
 <h2>1 · Introduction</h2>
@@ -139,7 +147,8 @@ individual attention heads and MLP layers do, splice them into the network in pl
 components, and measure exactly how much worse the model gets. Nothing here makes a model faster
 or smaller — the substitutes are worse in every practical respect, and no reusable efficiency
 trick falls out. The point is that an explanation you cannot execute is a story, and one you can
-execute has a measurable price. This paper measures the price.</p>
+execute has a measurable price. This paper measures the price — and the measurement's best
+results are two cases where it caught evidence the field routinely accepts being wrong.</p>
 
 <p><strong>Problem.</strong> Mechanistic interpretability regularly claims that a network
 component "implements" an algorithm, but such claims are rarely priced: if the algorithm really
@@ -164,10 +173,20 @@ answer survive controls for healing artifacts, weak baselines, and scale?</p>
   <li>A <strong>substitution method</strong> with fair-baseline accounting: fit programs in a
   declared DSL, install them, retrain only normalization gains, and compare against an
   <em>identically adapted</em> intact model.</li>
-  <li>A <strong>double-controlled replacement result</strong>: at one operating point the fair
-  cost is +0.88 nats; position-shuffled programs heal back only to zero-ablation level, so the
-  recovery is functional, and purely positional programs tie the fitted ones everywhere, so the
-  substitutable routing is positional machinery.</li>
+  <li><strong>Exhibit A — the sink in costume</strong>: a primacy rule matched an induction head's
+  entity selection 83–92% of the time on two model families — publishable evidence by the field's
+  usual standard — and one control (zeroing the attention sink) dropped it to 0 of 281. Behavioral
+  match alone can be entirely artifactual; which entity these heads select survives every rule we
+  tested.</li>
+  <li><strong>Exhibit B — deletion controls are not portable</strong>: under a matched three-scale
+  protocol (0.6B → 4B) the healed program cost is roughly flat, while the zero-ablation control's
+  separating advantage swings by more than six nats across architectures — the baseline much of
+  the pruning literature leans on must be re-established per model.</li>
+  <li>A <strong>double-controlled replacement result</strong> calibrating the protocol: the stable
+  quantity is the separation — position-shuffled programs heal back only to zero-ablation level,
+  ≥ +1.5 nats worse than real programs in every run — while the fair cost at the published
+  operating point is +0.88 nats; purely positional programs tie the fitted ones everywhere, so
+  the substitutable routing is positional machinery.</li>
   <li>A <strong>nested instruction-set frontier</strong> quantifying the marginal value of each
   DSL tier at fixed budgets.</li>
   <li>A characterization of substitutable MLP layers as <strong>token-local</strong> (context-independent, memoizable),
@@ -175,13 +194,6 @@ answer survive controls for healing artifacts, weak baselines, and scale?</p>
   at equal damage).</li>
   <li>Evidence that the reported fraction is a <strong>floor set by the selection heuristic</strong>,
   not a frontier (post-heal joint ranking substitutes 19% more cheaply at the same budget).</li>
-  <li>A <strong>preliminary three-scale result</strong>: healed cost roughly flat from 0.6B to 4B
-  under a matched protocol, while the zero control's separating advantage varies by more than
-  six nats across
-  architectures — deletion controls must be re-established per model.</li>
-  <li>A <strong>hardened negative</strong>: which entity an induction head selects survives every
-  rule we tested once the attention sink is controlled, including a seductive primacy rule that
-  the control unmasked as the sink itself.</li>
 </ul>
 
 <h2>2 · Related work</h2>
@@ -271,6 +283,12 @@ excluded from fits; ridge 10<sup>−4</sup>). Healing: Adam, lr 3·10<sup>−4</
 
 <h2>5 · Results</h2>
 
+<p>We present the calibration demonstration first — the priced substitution with its controls —
+then the two findings the audit produced beyond the price: a behavioral-match explanation
+unmasked as an artifact, and a standard control losing its power. In the table below, the
+quotable <em>stable</em> quantity is the separation between real and position-shuffled programs
+(≥ +1.5 nats in every run); the absolute fair cost calibrates the tolerance.</p>
+
 <figure>
 <div class="tablewrap"><table>
 <thead><tr><th>condition (Qwen3-0.6B, 160 heads + 6 MLPs)</th><th class="n">vs raw intact</th><th class="n">vs adapted intact</th></tr></thead>
@@ -320,9 +338,15 @@ MLP scan on WikiText selected early layers whose joint cost explodes (+3.49 nats
 solo-picked six versus +0.36 for the middle band, every solo cost ≈0) — our own
 solo-mispredicts-joint finding biting our own pipeline; we select the middle band, as the MLP map
 dictates. Second, refitting on different hardware with bit-identical tokens changed the fitted
-programs (attention R² median 0.75 vs 0.81, unhealed k=160 moving by +0.8 nats) — a measured
-instance of the fit variance our chunk-resampled intervals do not cover; the healed result
-largely absorbed it.</p>
+programs (attention R² median 0.75 vs 0.81, unhealed k=160 moving by +0.8 nats). This is not
+nondeterminism in the solve — the ridge fit is convex and deterministic given its inputs. The
+inputs differ: the attention matrices being fit come from an fp32 forward pass, and MPS and CUDA
+kernels accumulate in different orders; because the instruction columns are strongly correlated
+(the <code>OFFSET(k)</code> family, sentence structure), the regression is ill-conditioned, and
+the nonnegative clamp makes the coefficient support discontinuous — tiny activation perturbations
+shift mass between correlated instructions. Platform numerics in, fit variance out: a measured
+instance of the variance our chunk-resampled intervals do not cover; the healed result largely
+absorbed it.</p>
 
 <figure>
 <div class="tablewrap"><table>
@@ -343,6 +367,26 @@ circularity that heads were selected under the full DSL: giving each tier its ow
 solo-cost-selected set, D3 still ties D2 within 0.015 nats at every budget even though the
 selections share only 128/160 heads — the positional finding is not a selection artifact.</figcaption>
 </figure>
+
+<h3>Exhibit A · The sink in costume</h3>
+
+<p>What resists substitution is concentrated and specific — and produced the paper's sharpest
+cautionary result. Induction heads (~5% of heads) do real copying — a match-rule ceiling
+reconstructs 96% of verbatim copy on repeated text — but their natural-text function is dominated
+by selecting <em>which entity</em> to attend to, and that selection has defeated every name we
+tried. A primacy rule ("attend to the first entity introduced") matched the head's choice 83–92%
+of the time on two model families. By the evidential standard most behavioral-match
+interpretability rests on, that is a discovered mechanism. One control — zeroing the attention
+sink and forcing the first entity mid-passage — drops it to exactly 0 of 281 cases. The rule
+explained nothing; it was reading the sink. With the sink controlled, recency, salience,
+re-mention, clause subject (dependency parse), neural coreference, soft mixtures,
+query-conditional co-occurrence, and a learned rank-1 direction all fail to beat a weak recency
+bias (0.09–0.14 top-1). A causal query-edit shows a learned direction is <em>used</em> (6/6 heads
+positive on both families) but explains a minority of the steering. The residue is un-named under
+this DSL — not shown to be intrinsically smooth. Unexecuted, the primacy rule would have been
+published as a finding; that is the argument for pricing explanations in one example.</p>
+
+<h3>Exhibit B · Deletion controls don't travel</h3>
 
 <figure>
 <div class="tablewrap"><table>
@@ -382,19 +426,6 @@ a rank-64 global map plus exact corrections for the 500 most frequent tokens mat
 +0.02). The substitutable MLP structure is a moderately compact low-rank map with a
 frequent-token exception list — memoization, not a short program, and we label the layers
 <em>token-local</em> rather than "code."</p>
-
-<p><strong>Error analysis: the sink in costume.</strong> What resists substitution is concentrated and
-specific. Induction heads (~5% of heads) do real copying — a match-rule ceiling reconstructs 96%
-of verbatim copy on repeated text — but their natural-text function is dominated by selecting
-<em>which entity</em> to attend to, and that selection has defeated every name we tried. A
-primacy rule ("attend to the first entity introduced") matched the head's choice 83–92% of the
-time on two model families; controlling the attention sink — zeroing it and forcing the first
-entity mid-passage — drops it to exactly 0 of 281 cases. It was the sink in costume. With the
-sink controlled, recency, salience, re-mention, clause subject (dependency parse), neural
-coreference, soft mixtures, query-conditional co-occurrence, and a learned rank-1 direction all
-fail to beat a weak recency bias (0.09–0.14 top-1). A causal query-edit shows a learned direction
-is <em>used</em> (6/6 heads positive on both families) but explains a minority of the steering.
-The residue is un-named under this DSL — not shown to be intrinsically smooth.</p>
 
 <p><strong>Statistical uncertainty.</strong> Confidence intervals resample the eight held-out
 chunks (cluster bootstrap); they do not span seeds, calibration sequences, or models — so they cover evaluation noise only and understate total uncertainty, since fit variance is unmeasured. For the
@@ -448,7 +479,11 @@ evaluation distribution (the induction ceiling runs from ~0% on fiction to ~78% 
 text), and the tolerated loss. We read the apparatus, not the fraction, as the contribution: a
 way to price interpretability claims — including where the apparatus itself breaks, since the
 zero-ablation control that much of the pruning literature leans on loses its separating power on
-redundant architectures and must be re-established per model. The measurement generalizes: run
+redundant architectures and must be re-established per model. The price is a price of
+<em>substitutability</em>, not mechanistic equivalence — the healed hybrid is adapted around the
+surrogate; where the claim is about the original mechanism itself, stricter instruments like
+causal scrubbing are the right tool, and this protocol is their cost-accounting complement.
+The measurement generalizes: run
 the same recipe with the same controls on any model, and read off what fraction of it is, under
 your vocabulary, code. What does not reduce — the entity selection at the heads that matter most
 — is where the next vocabulary has to grow.</p>

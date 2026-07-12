@@ -97,8 +97,9 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   <p class="byline">Which computations in a small language model can be replaced by explicit
   surrogates, at what cost, under a stated rule vocabulary — and where that stops. Short answer:
   the attention routing of a third of heads becomes positional templates and a fifth of MLP layers
-  become token-local tables, but at a substantial cost (perplexity roughly doubles), and the
-  fraction is a dial, not a constant.</p>
+  become token-local tables, at a substantial cost (perplexity roughly doubles) — and the audit
+  built to measure that twice caught standard interpretability evidence lying, which is the part
+  worth quoting.</p>
 </header>
 
 <div class="abstract">
@@ -110,19 +111,21 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
   adapted</em> intact model — with a position-shuffle control deciding whether recovery is
   function or healing, and matched-deletion baselines pricing the alternative. The goal is not
   efficiency — the replacements are worse in every practical respect — but testability: an
-  explanation you can execute has a measurable price. Demonstrating the protocol on Qwen3-0.6B
-  (with Pythia-410M cross-checks): the attention routing of 36% of heads (value and output
-  projections retained) and 21% of MLP layers — token-local maps, a different sense of
-  "replaceable," not summed with the first — substitute at <strong>+0.88 nats</strong> at the primary fit — across three independent fits
-  the fair cost spans +0.82 to +0.95: perplexity
-  roughly doubles, a tolerance that licenses "the network still functions with positional
-  templates in their place," not "these heads <em>are</em> templates" (synthetic narrative corpus;
-  the same protocol on WikiText prices +1.21). The substitutable routing is positional —
-  content-aware operators price at zero — a known phenomenon (PAPA, Synthesizer), newly priced.
-  What the protocol yields beyond it: the primacy rule matching
-  83–92% of an induction head's selections was the attention sink in costume (0 of 281 once
-  controlled); zero-ablation controls lose separating power on redundant architectures; and a
-  preliminary three-size check (0.6B–4B) finds the cost roughly stable. The fraction is a dial —
+  explanation you can execute has a measurable price. Twice, the protocol caught standard
+  interpretability evidence lying: the primacy rule matching 83–92% of an induction head's
+  selections was the attention sink in costume (0 of 281 once controlled), and zero-ablation
+  controls lose separating power on redundant architectures — a 6-nat swing across a preliminary
+  three-size check (0.6B–4B) in which the program cost itself stays roughly stable. Demonstrating
+  the protocol on Qwen3-0.6B (with Pythia-410M cross-checks): the attention routing of 36% of
+  heads (value and output projections retained) and 21% of MLP layers — token-local maps, a
+  different sense of "replaceable," not summed with the first — substitute at
+  <strong>+0.88 nats</strong> at the primary fit — across three independent fits the fair cost
+  spans +0.82 to +0.95, roughly doubling perplexity, while the stable quantity is the
+  <em>separation</em> from the position-shuffle control: ≥ +1.5 nats in every run. That tolerance
+  licenses "the network still functions with positional templates in their place," not "these
+  heads <em>are</em> templates" (synthetic narrative corpus; the same protocol on WikiText prices
+  +1.21). The substitutable routing is positional — content-aware operators price at zero — a
+  known phenomenon (PAPA, Synthesizer), newly priced. The fraction is a dial —
   instruction set, selection, adaptation, distribution, tolerance — not a constant of the model.
 </div>
 
@@ -340,9 +343,15 @@ the middle band, as the cross-family MLP map dictates, and report the incident a
 demonstration yet that the selection heuristic is a floor with teeth. Second, refitting on
 different hardware with bit-identical tokens changed the fitted programs themselves — attention
 R² median 0.75 (CUDA) versus 0.81 (Metal), moving the unhealed k=160 frontier by +0.8 nats — a
-measured instance of the fit variance our chunk-resampled intervals do not cover. The healed
-number largely absorbed it, which is itself evidence the heal-and-measure endpoint is more stable
-than the fits it consumes.</p>
+measured instance of the fit variance our chunk-resampled intervals do not cover. To be precise
+about the mechanism, since "a convex solve came out different" sounds alarming: the ridge fit is
+deterministic given its inputs, but its inputs are attention matrices captured from an fp32
+forward pass, and CUDA and Metal kernels accumulate in different orders. The instruction columns
+are strongly correlated (the OFFSET(k) family, sentence structure), so the regression is
+ill-conditioned, and the nonnegative clamp makes the coefficient support discontinuous — tiny
+activation perturbations shift mass between correlated instructions. Platform numerics in, fit
+variance out. The healed number largely absorbed it, which is itself evidence the
+heal-and-measure endpoint is more stable than the fits it consumes.</p>
 
 <p>There is one more asymmetry to net out, and it moves the number. The healed hybrid fine-tuned 65k
 norm gains on the corpus; the intact reference did not. Running the <em>same</em> heal on the intact
