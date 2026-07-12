@@ -865,7 +865,10 @@ choices rather than the model alone.</p>
   — passed all three criteria: real code +0.682 [+0.605, +0.755] vs the published +0.705, shuffle
   separation +3.60 nats, offset −0.240 vs −0.242. The declared MLP guard also fired (the fresh
   solo scan drifted to an early layer), one more measured instance of solo-selection instability.
-  The shuffled level is seed-sensitive (+2.21 → +4.28); the code number is not. Programs are fitted and evaluated within a
+  The shuffled level is seed-sensitive (+2.21 → +4.28). A further cross-platform run (CUDA,
+  original calibration) gives real +0.577, separation +1.50 (vs +1.51 locally), offset −0.242
+  (identical): across three independent fits the code number spans 0.58–0.71 nats while the
+  offset and matched-seed separation are stable to two decimals. Programs are fitted and evaluated within a
   single domain per protocol; whether a program fitted on one domain substitutes on another, and
   whether any of this holds past the 300–900-token context regime, are untested. The healed
   substitution pipeline itself has run only on the Qwen family (0.6B and 4B); the Pythia

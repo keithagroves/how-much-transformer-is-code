@@ -46,3 +46,10 @@ Failing any criterion will be reported as a failed replication in both paper ver
   calibration/seeds: 0.682 + 0.240 = **+0.92** (original fresh-heal frame: +0.95). Note the
   shuffled level itself is seed-sensitive (+2.21 → +4.28); the real-code level is not — the
   stable quantity is the code number, the control's magnitude varies, its direction does not.
+
+## Addendum: cross-platform run (not pre-registered; Colab T4/CUDA, default calibration and seeds)
+Same protocol, original calibration/seeds, different hardware: real **+0.577** [+0.514, +0.639],
+shuffled **+2.072** [+1.952, +2.211] (separation +1.50 vs +1.51 locally), offset **−0.2424**
+(identical to local). The MLP guard fired here too. Across three independent fits, the code
+number spans 0.58–0.71 (all within the ±0.15 criterion), while the offset and the matched-seed
+shuffle separation are stable to two decimals — the invariants are the ones the paper leans on.
