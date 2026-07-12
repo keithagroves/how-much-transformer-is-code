@@ -34,8 +34,15 @@ sequence and fresh seeds, everything else fixed in advance.
 
 Failing any criterion will be reported as a failed replication in both paper versions.
 
-## Results (to be filled in after the run — not before)
-- real code + heal: _pending_
-- shuffled code + heal: _pending_
-- intact-heal offset: _pending_
-- verdict: _pending_
+## Results (run 2026-07-11, local M4, ~55 min; log in prereg_run/prereg.log)
+- Fresh-calibration fit: attention R² median 0.82 (250 heads ≥ 0.8) — matches original 0.82/248.
+- MLP guard **fired**: fresh solo scan ranked L5 among the cheapest six (outside the declared
+  [6, 21] band), so the middle band [9–14] was used, per the declared rule. The solo MLP ranking
+  is unstable across calibration sequences; the guard caught it mechanically.
+- real code + heal: **+0.682** [+0.605, +0.755] — vs published +0.705, Δ = 0.023 ≤ 0.15 ✓
+- shuffled code + heal: **+4.281** [+3.499, +5.139] — separation +3.60 ≥ +1.0 ✓
+- intact-heal offset: **−0.240** [−0.273, −0.204] — vs published −0.242, Δ = 0.002 ≤ 0.05 ✓
+- **Verdict: replication PASSES all three declared criteria.** Fair cost under fresh
+  calibration/seeds: 0.682 + 0.240 = **+0.92** (original fresh-heal frame: +0.95). Note the
+  shuffled level itself is seed-sensitive (+2.21 → +4.28); the real-code level is not — the
+  stable quantity is the code number, the control's magnitude varies, its direction does not.
