@@ -21,7 +21,7 @@ raw = open(_os.environ.get("SUB_CORPUS", "ministral_corpus.txt")).read()
 train_starts = [o for o in range(20000, min(len(raw) - 10000, 1000000), 40000)
                 if not 185000 <= o <= 215000][:24]
 train_chunks = [tokz.encode(raw[o:o + 8000])[:T_TR] for o in train_starts]
-torch.manual_seed(11)
+torch.manual_seed(int(_os.environ.get("SUB_SEED_HEAL", "11")))
 mkrnd = lambda: (lambda r: r + r)(torch.randint(1000, RA.V - 1000, (50,)).tolist()) * 3
 train_chunks += [mkrnd(), mkrnd()]
 eval_starts = [o for o in range(40000, min(len(raw) - 10000, 1000000), 80000)

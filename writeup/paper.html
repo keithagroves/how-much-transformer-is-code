@@ -109,21 +109,24 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  Interpretability regularly claims that a network component "implements" an algorithm. We test
-  such claims by substitution: declare a small instruction set, fit a readable program in it for
-  each component, install the programs in the forward pass, retrain only 65k normalization gains,
-  and price the damage. The goal is not efficiency — the replacements are worse in every practical
-  respect — but audit: does a claim about what a component computes survive being <em>executed in
-  its place</em>? On Qwen3-0.6B, the attention routing of 36% of heads (value and output
-  projections retained) and 21% of MLP layers substitute at <strong>+0.88 nats</strong> against an
-  identically adapted intact model — roughly doubling perplexity, on a synthetic narrative corpus;
-  the same protocol on natural text (WikiText) prices +1.21. The substitutable routing is almost entirely <em>positional</em>:
-  content-aware operators price at zero. A position-shuffle control shows the recovery is
-  function, not healing. The most seductive rule for what resists — "attend to the first entity
-  introduced," matching 83–92% of selections — was the attention sink in costume (0 of 281 once
-  controlled). The replaceable fraction is a dial — of instruction set, selection, adaptation,
-  distribution, and tolerance — and the contribution is the pricing apparatus, including where its
-  own controls break.
+  Interpretability regularly claims that a network component "implements" an algorithm. Our
+  contribution is an <strong>audit protocol that prices such claims</strong>: declare a small
+  instruction set, fit a readable program for each component, install the programs in the forward
+  pass, retrain only 65k normalization gains, and measure the damage against an <em>identically
+  adapted</em> intact model — with a position-shuffle control that decides whether recovery is
+  function or healing, and matched-deletion baselines that price the alternative. The goal is not
+  efficiency — the replacements are worse in every practical respect — but testability: an
+  explanation you can execute has a measurable price. Demonstrating the protocol on Qwen3-0.6B:
+  the attention routing of 36% of heads (value and output projections retained) and 21% of MLP
+  layers substitute at <strong>+0.88 nats</strong> — roughly doubling perplexity, a tolerance that
+  licenses "the network still functions with positional templates in their place," not "these
+  heads <em>are</em> templates" (synthetic narrative corpus; the same protocol on WikiText prices
+  +1.21). That the substitutable routing is positional recapitulates PAPA and Synthesizer — the
+  phenomenon is known; the pricing discipline is new. What the protocol newly yields: the primacy
+  rule matching 83–92% of an induction head's selections was the attention sink in costume (0 of
+  281 once controlled), and zero-ablation controls themselves lose separating power on redundant
+  architectures. The replaceable fraction is a dial — instruction set, selection, adaptation,
+  distribution, tolerance — not a constant of the model.
 </div>
 
 <h2>1 · Introduction</h2>
@@ -285,7 +288,9 @@ nats; +0.88 roughly doubles perplexity (≈29 → ≈55). Shuffled code heals on
 level, so the heal cannot manufacture the function; positional-only ties fitted, so content
 operators buy nothing in this set; the programs land <strong>+0.57 nats below</strong> the
 strongest matched deletion (differences of nats are the meaningful effect size here — nats are
-already log-scale, so we demote ratios).</figcaption>
+already log-scale, so we demote ratios). The bracketed intervals resample evaluation chunks only:
+refitting on different hardware moved the unhealed cost by +0.8 nats, so fit variance is real and
+not covered by them.</figcaption>
 </figure>
 
 <p>The routing of 160 of 448 heads (36%) plus 6 of 28 MLP layers (21%) substitutes at fair cost
@@ -325,7 +330,10 @@ largely absorbed it.</p>
 instruction set: positional operators recover most of what deletion destroys; structural
 operators add a smaller real gain; content operators (duplicate/induction) add nothing —
 D2 ≈ D3 everywhere. Beyond ~160 heads deletion damage diverges (+10.4 at 200) while the DSLs stay
-near +1.2: a different, strongly interacting regime.</figcaption>
+near +1.2: a different, strongly interacting regime. A per-tier re-selection control answers the
+circularity that heads were selected under the full DSL: giving each tier its own
+solo-cost-selected set, D3 still ties D2 within 0.015 nats at every budget even though the
+selections share only 128/160 heads — the positional finding is not a selection artifact.</figcaption>
 </figure>
 
 <figure>

@@ -103,24 +103,26 @@ hr{border:none; border-top:1px solid var(--line); margin:2.4rem 0}
 
 <div class="abstract">
   <span class="lbl">Abstract</span>
-  We test interpretability claims by substitution: declare a small instruction set, fit a readable
-  program in it for each targeted component, install the programs in the forward pass, retrain
-  only 65k normalization gains, and price the damage. The goal is not efficiency — the
-  replacements are worse in every practical respect — but audit: does a claim about what a
-  component computes survive being <em>executed in its place</em>? On Qwen3-0.6B (with Pythia-410M
-  cross-checks), the attention routing of 36% of heads (value and output projections retained) and
-  21% of MLP layers — token-local maps, a different sense of "replaceable," not summed with the
-  first — substitute at <strong>+0.88 nats</strong> against an identically adapted intact model:
-  perplexity roughly doubles, on a synthetic narrative corpus; the same protocol on natural text
-  (WikiText) prices +1.21. The
-  substitutable routing is almost entirely <em>positional</em>: content-aware operators price at
-  zero. Position-shuffle and zero-ablation controls show the recovery is function, not healing; a
-  preliminary three-size check (0.6B–4B) finds the cost roughly stable while the zero control
-  itself loses separating power where heads-per-layer doubles. The most seductive rule for what
-  resists — "attend to the first entity introduced," matching 83–92% of selections — was the
-  attention sink in costume (0 of 281 once controlled). The fraction is a dial — instruction set,
-  selection, adaptation, distribution, tolerance — and the contribution is the pricing apparatus,
-  including where its own controls break.
+  Interpretability regularly claims that a component "implements" an algorithm. Our contribution
+  is an <strong>audit protocol that prices such claims</strong>: declare a small instruction set,
+  fit a readable program for each targeted component, install the programs in the forward pass,
+  retrain only 65k normalization gains, and measure the damage against an <em>identically
+  adapted</em> intact model — with a position-shuffle control deciding whether recovery is
+  function or healing, and matched-deletion baselines pricing the alternative. The goal is not
+  efficiency — the replacements are worse in every practical respect — but testability: an
+  explanation you can execute has a measurable price. Demonstrating the protocol on Qwen3-0.6B
+  (with Pythia-410M cross-checks): the attention routing of 36% of heads (value and output
+  projections retained) and 21% of MLP layers — token-local maps, a different sense of
+  "replaceable," not summed with the first — substitute at <strong>+0.88 nats</strong>: perplexity
+  roughly doubles, a tolerance that licenses "the network still functions with positional
+  templates in their place," not "these heads <em>are</em> templates" (synthetic narrative corpus;
+  the same protocol on WikiText prices +1.21). That the substitutable routing is positional —
+  content-aware operators price at zero — recapitulates PAPA and Synthesizer: the phenomenon is
+  known, the pricing discipline is new. What the protocol newly yields: the primacy rule matching
+  83–92% of an induction head's selections was the attention sink in costume (0 of 281 once
+  controlled); zero-ablation controls lose separating power on redundant architectures; and a
+  preliminary three-size check (0.6B–4B) finds the cost roughly stable. The fraction is a dial —
+  instruction set, selection, adaptation, distribution, tolerance — not a constant of the model.
 </div>
 
 <h2>Setup</h2>
@@ -243,7 +245,9 @@ variant of one of these.</p>
 <li><strong>Fair healed cost</strong> — heal the 65k norm gains with the programs active and
 compare against an <em>identically healed</em> intact model: <strong>+0.88 nats</strong>. This is
 the headline. The raw-intact comparison is +0.64 [95% CI +0.57, +0.71], but it silently pockets a
-−0.24-nat domain-adaptation discount, so we treat it as the variant, not the claim.</li>
+−0.24-nat domain-adaptation discount, so we treat it as the variant, not the claim. The interval
+resamples evaluation chunks only: refitting on different hardware moved the unhealed cost by
++0.8 nats, so fit variance is real and uncovered.</li>
 <li><strong>Margin over matched deletion</strong> — the healed programs (+0.70) against the
 strongest same-budget deletion baseline, joint-informed pruning re-healed identically (+1.27):
 the code carries function no matched deletion recovers, by <strong>+0.57 nats</strong>. (Both sides
@@ -476,6 +480,16 @@ a transparent surrogate-size measure, not a universal Kolmogorov-complexity clai
 <p>We stop the main table at the 160-head operating point. Beyond it, joint deletion damage becomes
 sharply nonlinear (+10.36 nats at 200 heads), while the explicit DSLs remain around +1.24; that is a
 different, strongly interacting regime. The complete 40–256 frontier is in the result artifact.</p>
+
+<p>One circularity deserves its own control: heads entered the substituted set by solo cost under
+the <em>full</em> DSL, which systematically favors positionally-replaceable heads — "content buys
+nothing in this set" could be true by construction, with the heads content would help resisting
+selection. So we re-selected per tier: rank every head by its solo cost under <em>that tier's</em>
+instructions only, give each tier its own cheapest-<em>k</em>, and rebuild the frontier. Selection
+genuinely moves (the D1 and D3 sets share only 128 of 160 heads), but the frontier does not: with
+each tier's own best set, D3 ties D2 within 0.015 nats at every budget (at k=160, D2 +0.575 vs D3
++0.562), while D2's structural operators earn a real +0.23 over D1. The positional finding is not
+a selection artifact.</p>
 
 <h3>One replacement, printed out</h3>
 

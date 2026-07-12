@@ -31,7 +31,8 @@ V = cfg.vocab_size
 
 import os as _os
 raw = open(_os.environ.get("SUB_CORPUS", "ministral_corpus.txt")).read()
-train_seq = tokz.encode(raw[:11000])[:T]
+_CAL = int(_os.environ.get("SUB_CALIB_OFFSET", "0"))
+train_seq = tokz.encode(raw[_CAL:_CAL + 11000])[:T]
 test_seq = tokz.encode(raw[200000:211000])[:T]
 torch.manual_seed(3)
 rnd_test = (lambda r: r + r)(torch.randint(1000, V - 1000, (50,)).tolist())

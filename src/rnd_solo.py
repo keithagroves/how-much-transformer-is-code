@@ -5,7 +5,8 @@ import replace_rich as RR
 import replace_all as RA
 
 RR.W.update(torch.load("rich_templates.pt"))
-torch.manual_seed(7)
+import os as _os
+torch.manual_seed(int(_os.environ.get("SUB_SEED_RND", "7")))
 seq = (lambda r: r + r)(torch.randint(1000, RA.V - 1000, (50,)).tolist()) * 4  # 400 toks
 base = RR.code_attn(seq)
 ni = RR.run_sub(seq, [], base)
